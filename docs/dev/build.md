@@ -1,10 +1,10 @@
 # 构建与调试
 
-> **验证状态**：本文撰写时本机仅有 Command Line Tools，未装完整 Xcode，构建命令**未在本机实测**；步骤整理自上游 README 与工程勘察。装好 Xcode 后请按本文操作并反馈修正。
+> **验证状态**：已在 Xcode 26.3（macOS 15）实测通过，产物 `FlowVision.app` 约 71MB。未配置签名证书时需按「签名」一节传附加参数。
 
 ## 环境要求
 
-- **Xcode 15.2+**（完整版，非 Command Line Tools；上游 1.7.6 提供 Xcode 26 编译版）
+- **Xcode 15.2+**（完整版，非 Command Line Tools；实测环境 Xcode 26.3）
 - macOS 11.0+ SDK（随 Xcode 自带）
 - 检查：`xcodebuild -version`；若输出 `Command Line Tools` 相关说明只有 CLT，需从 App Store 安装完整 Xcode，并执行：
 
@@ -53,20 +53,33 @@ https://github.com/netdcy/ffmpeg-kit/releases/download/v6.0/ffmpeg-kit-full-gpl-
 sudo xattr -rd com.apple.quarantine ./ffmpeg-kit-build/bundle-apple-xcframework-macos
 ```
 
-> 不提供 xcframework 也能构建运行：`FFmpegKit.swift` 用 dlopen 懒加载，缺失时全部 FFmpeg 功能静默降级（部分视频格式不可解码）。
+> **注意**：xcframework 是**硬依赖**——工程在 build phase 直接引用全部 8 个 xcframework，缺失时构建直接失败（并非仅运行期降级）；运行期 dlopen 降级只发生在 xcframework 存在但未签名/无法加载的场景。
 
 ## 构建步骤
 
-1. 按上文结构组织父目录。
+1. 按上文结构组织父目录（BTree、Settings、ffmpeg-kit-build 与 FlowVision 同级）。
 2. 用 Xcode 打开 `FlowVision.xcodeproj`（首次打开会自动 resolve SPM 远程包）。
 3. 菜单 **Product → Build For → Profiling**（上游推荐的 Release 级构建方式）。
 4. **Product → Show Build Folder in Finder** → `Products/Release/FlowVision.app`。
 
-命令行方式（验证用）：
+命令行方式（实测通过）：
 
 ```bash
 xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Release build
 ```
+
+## 签名
+
+未配置 Apple ID / 开发证书时，默认构建会报 `No signing certificate "Mac Development" found`。两种解决：
+
+- **本机构建验证**（无需证书，实测通过）：
+
+```bash
+xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Release build \
+  CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=""
+```
+
+- **正式签名**：Xcode → Settings → Accounts 登录 Apple ID，在项目 Signing & Capabilities 选择 Team 后正常构建。
 
 ## xcconfig 说明
 
@@ -88,8 +101,10 @@ xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Relea
 
 | 现象 | 原因与解决 |
 |---|---|
-| `../BTree` not found | 本地包缺失，按「依赖结构」布置父目录 |
+| `../BTree` not found | 本地包缺失，按「依赖结构」布置父目录（clone [BTree](https://github.com/attaswift/BTree)、[Settings](https://github.com/sindresorhus/Settings)） |
+| `There is no XCFramework found at .../ffmpegkit.xcframework` | FFmpegKit 未布置，是**硬依赖**，按「FFmpegKit 准备」下载解压 |
+| `No signing certificate "Mac Development" found` | 无签名证书，按「签名」一节处理（临时构建加 `CODE_SIGNING_ALLOWED=NO`） |
 | xcframework 签名错误 / 加载失败 | quarantine 属性未移除，`xattr -rd` 清理 |
 | SPM resolve 慢/失败 | 检查网络；远程包仅 SDWebImageWebPCoder 一条链 |
-| 部分视频无法播放（构建成功） | ffmpegkit.xcframework 未就位，属预期降级行为 |
+| 部分视频无法播放（构建成功） | ffmpegkit.xcframework 未就位或运行期加载失败，属预期降级行为 |
 | macOS 26 外观问题 | 上游提供 Xcode 26 编译版本（见 CHANGELOG 1.7.6 说明） |
