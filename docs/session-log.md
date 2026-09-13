@@ -92,3 +92,14 @@
 
 - [ ] 首次 push 到 origin（natinli/Pixy）。
 - [ ] 上游发布新版本时按 contributing-internal.md 的同步策略合并。
+
+### [Claude] · 更换应用图标
+
+#### 完成
+
+- 应用图标替换为用户选定的 icons8 "Photo Gallery" 图标（96px 下载版放大至 1024px 写入 AppIcon.appiconset/icon.png）。
+- 构建通过，Dock/应用已重启生效。
+
+#### 边界
+
+- 源图为 icons8 版权素材，免费许可需署名（"Icons by icons8"）；放大到 1024px 后大尺寸略糊。后续可换用 icons8 高清正版授权或 docs/design/ 原创概念稿。
