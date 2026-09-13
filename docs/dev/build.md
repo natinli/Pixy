@@ -14,26 +14,28 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 
 ## 依赖结构（关键！）
 
-工程引用两个**仓库外的本地 SPM 包**（相对路径），clone 本仓库后直接构建会缺包：
+工程引用**仓库外的本地依赖**（pbxproj 相对路径），clone 本仓库后直接构建会缺包：
 
 | 依赖 | 引用方式 | 获取 |
 |---|---|---|
 | SDWebImageWebPCoder 0.14.6 | 远程 SPM（自动解析，连带 SDWebImage、libwebp） | 自动 |
-| BTree | 本地包 `../BTree` | [attaswift/BTree](https://github.com/attaswift/BTree) |
-| Settings | 本地包 `../Settings` | [sindresorhus/Settings](https://github.com/sindresorhus/Settings) |
-| FFmpegKit | 嵌入式 xcframework | 见下节 |
+| BTree | 本地包 `../../../../Developer/pixy-deps/BTree` | [attaswift/BTree](https://github.com/attaswift/BTree) |
+| Settings | 本地包 `../../../../Developer/pixy-deps/Settings` | [sindresorhus/Settings](https://github.com/sindresorhus/Settings) |
+| FFmpegKit | 嵌入式 xcframework，同在 pixy-deps | 见下节 |
 
-正确的父目录结构：
+**依赖统一放在 `~/Developer/pixy-deps/`**（pbxproj 里的相对路径以仓库目录为基准：`projects/Pixy/` → `../../../../` 即用户主目录）。正确结构：
 
 ```
-父目录/
-├── FlowVision/            # 本仓库（含 FlowVision.xcodeproj）
+~/Developer/pixy-deps/
 ├── ffmpeg-kit-build/
 │   └── bundle-apple-xcframework-macos/
-│       └── ffmpegkit.xcframework
+│       ├── ffmpegkit.xcframework
+│       └── lib*.xcframework × 7
 ├── BTree/                 # clone attaswift/BTree
 └── Settings/              # clone sindresorhus/Settings
 ```
+
+若你的仓库不在 `~/Documents/nilo/projects/` 下，需按实际深度调整 pbxproj 中 10 处相对路径（grep `pixy-deps` 即可全部找到）。
 
 ## FFmpegKit 准备
 
@@ -46,18 +48,18 @@ https://github.com/netdcy/ffmpeg-kit/releases/download/v6.0/ffmpeg-kit-full-gpl-
 步骤：
 
 1. 下载 `ffmpeg-kit-full-gpl-6.0-macos-xcframework.zip`（full-gpl 6.0，非 LTS）。
-2. 解压到 `父目录/ffmpeg-kit-build/bundle-apple-xcframework-macos/`。
+2. 解压到 `~/Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos/`。
 3. 移除 quarantine 属性（否则签名/加载失败）：
 
 ```bash
-sudo xattr -rd com.apple.quarantine ./ffmpeg-kit-build/bundle-apple-xcframework-macos
+sudo xattr -rd com.apple.quarantine ~/Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos
 ```
 
 > **注意**：xcframework 是**硬依赖**——工程在 build phase 直接引用全部 8 个 xcframework，缺失时构建直接失败（并非仅运行期降级）；运行期 dlopen 降级只发生在 xcframework 存在但未签名/无法加载的场景。
 
 ## 构建步骤
 
-1. 按上文结构组织父目录（BTree、Settings、ffmpeg-kit-build 与 FlowVision 同级）。
+1. 确认依赖已就位（`~/Developer/pixy-deps/` 下有 BTree、Settings、ffmpeg-kit-build）。
 2. 用 Xcode 打开 `FlowVision.xcodeproj`（首次打开会自动 resolve SPM 远程包）。
 3. 菜单 **Product → Build For → Profiling**（上游推荐的 Release 级构建方式）。
 4. **Product → Show Build Folder in Finder** → `Products/Release/Pixy.app`。
@@ -101,7 +103,7 @@ xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Relea
 
 | 现象 | 原因与解决 |
 |---|---|
-| `../BTree` not found | 本地包缺失，按「依赖结构」布置父目录（clone [BTree](https://github.com/attaswift/BTree)、[Settings](https://github.com/sindresorhus/Settings)） |
+| `package ... cannot be accessed` | 本地依赖缺失或路径不符，按「依赖结构」布置到 `~/Developer/pixy-deps/`（clone [BTree](https://github.com/attaswift/BTree)、[Settings](https://github.com/sindresorhus/Settings)），或按仓库实际深度调整 pbxproj 相对路径 |
 | `There is no XCFramework found at .../ffmpegkit.xcframework` | FFmpegKit 未布置，是**硬依赖**，按「FFmpegKit 准备」下载解压 |
 | `No signing certificate "Mac Development" found` | 无签名证书，按「签名」一节处理（临时构建加 `CODE_SIGNING_ALLOWED=NO`） |
 | xcframework 签名错误 / 加载失败 | quarantine 属性未移除，`xattr -rd` 清理 |

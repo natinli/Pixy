@@ -34,4 +34,4 @@ macOS 瀑布流图片查看器，应用展示名为 **Pixy**。本仓库是上�
 ## 环境注意
 
 - 构建需要完整 Xcode（15.2+）；本机若只有 Command Line Tools 则无法 `xcodebuild`，详见 [docs/dev/build.md](docs/dev/build.md)。
-- 工程引用两个**仓库外本地 SPM 包**（`../BTree`、`../Settings`，相对路径），clone 后直接构建会缺包，解决方法见 build.md。
+- 工程引用仓库外本地依赖（BTree、Settings、FFmpegKit），统一放在 `~/Developer/pixy-deps/`，clone 后直接构建会缺包，布置方法见 build.md。

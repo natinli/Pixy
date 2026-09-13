@@ -72,3 +72,23 @@
 - Release 构建通过；启动后 Dock、菜单栏、进程 displayed name 均为 **Pixy**。
 - 关键发现：`CFBundleDisplayName` 只改菜单栏/关于窗口显示；**Dock 悬停与快捷菜单用 `CFBundleName`**，它被构建系统强制写为 `$(PRODUCT_NAME)`，改 pbxproj 的 `INFOPLIST_KEY_CFBundleName` 无效（Xcode 不支持该键），源 Info.plist 加该键也会被覆盖。**唯一正规改法是设置 `PRODUCT_NAME`**——产物从 FlowVision.app 变为 Pixy.app，CFBundleName 随之变 Pixy。
 - LaunchServices 缓存旧名时用 `lsregister -f <app>` + `killall Dock` 刷新。
+
+### [Claude] · 仓库更名与依赖迁移
+
+#### 完成
+
+- GitHub 仓库更名：natinli/FlowVision → **natinli/Pixy**（gh repo rename），origin 已更新；upstream（netdcy/FlowVision）不变。
+- 本地目录更名：`projects/FlowVision` → `projects/Pixy`；nilo 登记表与 .gitignore 同步更新。
+- **构建依赖迁出 projects/**：BTree、Settings、ffmpeg-kit-build 移至 `~/Developer/pixy-deps/`，projects/ 只留项目本体。pbxproj 10 处相对路径同步更新（BTree/Settings 为 XCLocalSwiftPackageReference，ffmpeg 的 8 个 xcframework 为 PBXFileReference path）。
+- 文档更新：build.md 依赖结构表与目录树（含「仓库不在标准位置需调整相对深度」说明）、CLAUDE.md 环境注意、排障表。
+
+#### 验证与技术记录
+
+- Release 构建通过（新路径实测）。
+- 关键点：pbxproj 相对路径以**仓库目录**（projects/Pixy/）为基准；本仓库在 `~/Documents/nilo/projects/` 下，故到主目录需 `../../../../`（4 级）。路径深度写错时报 `the package at '...' cannot be accessed`，报错信息里会显示解析后的绝对路径，可用于定位差几级。
+- Git 仓库更名后旧 URL 自动重定向，但本地 origin 与文档链接应手动更新。
+
+#### 待跟进
+
+- [ ] 首次 push 到 origin（natinli/Pixy）。
+- [ ] 上游发布新版本时按 contributing-internal.md 的同步策略合并。

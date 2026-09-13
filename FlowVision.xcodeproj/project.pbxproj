@@ -154,14 +154,14 @@
 		F74D55592F0E49A400C9AB85 /* AutoScrollPlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoScrollPlay.swift; sourceTree = "<group>"; };
 		F74D555B2F0E500C00C9AB85 /* EventHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EventHandler.swift; sourceTree = "<group>"; };
 		F74D555D2F0E52EA00C9AB85 /* ArrowKeyLocate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArrowKeyLocate.swift; sourceTree = "<group>"; };
-		F754F3C72C10393700A25D12 /* libavfilter.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavfilter.xcframework; path = "../ffmpeg-kit-build/bundle-apple-xcframework-macos/libavfilter.xcframework"; sourceTree = "<group>"; };
-		F754F3C82C10393700A25D12 /* libavutil.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavutil.xcframework; path = "../ffmpeg-kit-build/bundle-apple-xcframework-macos/libavutil.xcframework"; sourceTree = "<group>"; };
-		F754F3C92C10393700A25D12 /* libavcodec.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavcodec.xcframework; path = "../ffmpeg-kit-build/bundle-apple-xcframework-macos/libavcodec.xcframework"; sourceTree = "<group>"; };
-		F754F3CA2C10393700A25D12 /* libavdevice.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavdevice.xcframework; path = "../ffmpeg-kit-build/bundle-apple-xcframework-macos/libavdevice.xcframework"; sourceTree = "<group>"; };
-		F754F3CB2C10393700A25D12 /* ffmpegkit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ffmpegkit.xcframework; path = "../ffmpeg-kit-build/bundle-apple-xcframework-macos/ffmpegkit.xcframework"; sourceTree = "<group>"; };
-		F754F3CC2C10393700A25D12 /* libswscale.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libswscale.xcframework; path = "../ffmpeg-kit-build/bundle-apple-xcframework-macos/libswscale.xcframework"; sourceTree = "<group>"; };
-		F754F3CD2C10393700A25D12 /* libavformat.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavformat.xcframework; path = "../ffmpeg-kit-build/bundle-apple-xcframework-macos/libavformat.xcframework"; sourceTree = "<group>"; };
-		F754F3CE2C10393700A25D12 /* libswresample.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libswresample.xcframework; path = "../ffmpeg-kit-build/bundle-apple-xcframework-macos/libswresample.xcframework"; sourceTree = "<group>"; };
+		F754F3C72C10393700A25D12 /* libavfilter.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavfilter.xcframework; path = "../../../../Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos/libavfilter.xcframework"; sourceTree = "<group>"; };
+		F754F3C82C10393700A25D12 /* libavutil.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavutil.xcframework; path = "../../../../Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos/libavutil.xcframework"; sourceTree = "<group>"; };
+		F754F3C92C10393700A25D12 /* libavcodec.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavcodec.xcframework; path = "../../../../Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos/libavcodec.xcframework"; sourceTree = "<group>"; };
+		F754F3CA2C10393700A25D12 /* libavdevice.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavdevice.xcframework; path = "../../../../Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos/libavdevice.xcframework"; sourceTree = "<group>"; };
+		F754F3CB2C10393700A25D12 /* ffmpegkit.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = ffmpegkit.xcframework; path = "../../../../Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos/ffmpegkit.xcframework"; sourceTree = "<group>"; };
+		F754F3CC2C10393700A25D12 /* libswscale.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libswscale.xcframework; path = "../../../../Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos/libswscale.xcframework"; sourceTree = "<group>"; };
+		F754F3CD2C10393700A25D12 /* libavformat.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libavformat.xcframework; path = "../../../../Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos/libavformat.xcframework"; sourceTree = "<group>"; };
+		F754F3CE2C10393700A25D12 /* libswresample.xcframework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcframework; name = libswresample.xcframework; path = "../../../../Developer/pixy-deps/ffmpeg-kit-build/bundle-apple-xcframework-macos/libswresample.xcframework"; sourceTree = "<group>"; };
 		F7663C152F222AAC0028DF35 /* ImageEditingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageEditingView.swift; sourceTree = "<group>"; };
 		F76E2EFD2C3B765C0031B0B4 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		F76F6A622F4FE58000D798DC /* TempVariable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TempVariable.swift; sourceTree = "<group>"; };
@@ -817,11 +817,11 @@
 /* Begin XCLocalSwiftPackageReference section */
 		F7790ED92BA8581600406D35 /* XCLocalSwiftPackageReference "../BTree" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../BTree;
+			relativePath = ../../../../Developer/pixy-deps/BTree;
 		};
 		F7C2DEB62C4E6AE9003DF765 /* XCLocalSwiftPackageReference "../Settings" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = ../Settings;
+			relativePath = ../../../../Developer/pixy-deps/Settings;
 		};
 /* End XCLocalSwiftPackageReference section */
 
