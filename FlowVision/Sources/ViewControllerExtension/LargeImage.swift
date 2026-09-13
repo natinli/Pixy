@@ -132,6 +132,12 @@ extension ViewController {
         // 另外，修改此值会触发重布局
         // Also, modifying this value will trigger re-layout
         publicVar.isInLargeView=false
+
+        // 恢复常规标题栏形态
+        // Restore normal titlebar when leaving large-image mode
+        if let windowController = view.window?.windowController as? WindowController {
+            windowController.disableToolbarBlend()
+        }
         // view.window?.layoutIfNeeded() 修改时已经调用
 
             
@@ -276,6 +282,12 @@ extension ViewController {
                     largeImageView.isHidden=false
                     largeImageBgEffectView.isHidden=false
                     publicVar.isInLargeView=true
+
+                    // 工具栏透明融合：大图模式下内容延伸到标题栏后方
+                    // Toolbar blend: content extends behind titlebar in large-image mode
+                    if let windowController = view.window?.windowController as? WindowController {
+                        windowController.enableToolbarBlend()
+                    }
                     
                     // 便携模式下不使用动画，因为反倒有两次变化
                     // Portable mode doesn't use animation, as it would cause two changes
@@ -486,10 +498,13 @@ extension ViewController {
         
         let shortTitle = (file.path as NSString).lastPathComponent.removingPercentEncoding!
         view.window?.title = shortTitle
+        // 底部标题条（方案 1 分色同行）：名称与张数分开渲染，toolbarTitle 只放名称
         publicVar.toolbarTitle = fullTitle
         publicVar.titleStatisticInfo = indexInfo
-        // publicVar.toolbarTitle = shortTitle
         if let windowController = view.window?.windowController as? WindowController {
+            // 大图模式：标题显示在窗口底部
+            // Large-image mode: title shown at window bottom
+            windowController.updateBottomTitleText()
             windowController.updateToolbarSync()
         }
     }
@@ -510,8 +525,14 @@ extension ViewController {
         publicVar.isInLargeViewAfterAnimate=true
         largeImageView.alphaValue = 1
         largeImageBgEffectView.alphaValue = 1
-        
-        
+
+        // 工具栏透明融合：大图模式下内容延伸到标题栏后方
+        // Toolbar blend: content extends behind titlebar in large-image mode
+        if let windowController = view.window?.windowController as? WindowController {
+            windowController.enableToolbarBlend()
+        }
+
+
         // setWindowTitleOfLargeImage(file: item.file)
     }
     

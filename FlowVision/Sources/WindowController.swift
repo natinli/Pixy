@@ -25,7 +25,11 @@ class WindowController: NSWindowController, NSWindowDelegate {
             // 设置标题栏和工具栏合并效果
             // Set title bar and toolbar merge effect
             window.titleVisibility = .hidden
-            window.titlebarAppearsTransparent = false
+            // 两段式结构：灰色侧边栏列（左）+ 白色内容卡（右，含顶部工具栏行）
+            // Two-part structure: gray sidebar column (left) + white content card (right, toolbar row on top)
+            window.titlebarAppearsTransparent = true
+            window.styleMask.insert(.fullSizeContentView)
+            window.backgroundColor = NSColor(named: NSColor.Name("OutlineViewBgColor")) ?? NSColor.windowBackgroundColor
             window.isMovableByWindowBackground = false
             
             // 创建并配置工具栏
@@ -339,7 +343,9 @@ extension WindowController: NSToolbarDelegate {
         
         if let viewController = contentViewController as? ViewController {
             if viewController.publicVar.isInLargeView {
-                identifiers.append(.windowTitle)
+                // 大图模式：文件名标题移至窗口底部（ToolbarBlend），不再占用工具栏
+                // Large-image mode: filename title moved to window bottom, not in toolbar
+                identifiers.append(.flexibleSpace)
                 if #available(macOS 14.0, *) {
                     let file = viewController.largeImageView.file
                     if let isHDR = file.imageInfo?.isHDR,
@@ -357,6 +363,7 @@ extension WindowController: NSToolbarDelegate {
                 identifiers.append(.showinfo)
             }else{
                 if viewController.publicVar.profile.getValue(forKey: "isWindowTitleUseFullPath") == "true" {
+                    identifiers.append(.space)
                     identifiers.append(.pathControl)
                     if viewController.publicVar.profile.getValue(forKey: "isWindowTitleShowStatistics") == "true" {
                         identifiers.append(.windowTitleStatistics)

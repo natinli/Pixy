@@ -627,21 +627,21 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         
         let theme=NSApp.effectiveAppearance.name
         if theme == .darkAqua {
-            // 暗模式下的颜色
-            // Color in dark mode
             collectionView.layer?.backgroundColor = hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_DARK).cgColor
-            lastTheme = .darkAqua
         } else {
-            // 光模式下的颜色
-            // Color in light mode
             collectionView.layer?.backgroundColor = hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_LIGHT).cgColor
-            lastTheme = .aqua
         }
+        lastTheme = theme
         
         if globalVar.autoHideToolbar {
             mainScrollView.automaticallyAdjustsContentInsets = false
             outlineScrollView.automaticallyAdjustsContentInsets = false
         }
+
+        // 侧边栏 WorkBuddy 风格 + 内容区圆角白卡
+        // Sidebar WorkBuddy style + rounded content card
+        applySidebarCardStyle()
+        applyContentCardStyle()
 
         if #available(macOS 14.0, *) {
             largeImageView.imageView.preferredImageDynamicRange = (publicVar.isEnableHDR) ? .high : .standard
@@ -997,12 +997,8 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         if keyPath == "effectiveAppearance" {
             let theme=NSApp.effectiveAppearance.name
             if theme == .darkAqua {
-                // 暗模式下的颜色
-                // Color in dark mode
                 collectionView.layer?.backgroundColor = hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_DARK).cgColor
             } else {
-                // 光模式下的颜色
-                // Color in light mode
                 collectionView.layer?.backgroundColor = hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_LIGHT).cgColor
             }
             if(lastTheme != theme){

@@ -1017,7 +1017,7 @@ Gw
                                                 <rect key="frame" x="0.0" y="0.0" width="279" height="720"/>
                                                 <autoresizingMask key="autoresizingMask"/>
                                                 <subviews>
-                                                    <visualEffectView blendingMode="behindWindow" material="sidebar" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="Pixy-sidebar-effect">
+                                                    <visualEffectView blendingMode="behindWindow" material="sidebar" state="followsWindowActiveState" translatesAutoresizingMaskIntoConstraints="NO" id="Pixy-sidebar-effect" identifier="PixySidebarEffect">
                                                         <rect key="frame" x="0.0" y="0.0" width="279" height="720"/>
                                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     </visualEffectView>
