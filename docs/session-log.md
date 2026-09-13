@@ -103,3 +103,15 @@
 #### 边界
 
 - 源图为 icons8 版权素材，免费许可需署名（"Icons by icons8"）；放大到 1024px 后大尺寸略糊。后续可换用 icons8 高清正版授权或 docs/design/ 原创概念稿。
+
+### [Claude] · 修复菜单栏残留旧名
+
+#### 完成
+
+- 根因：应用菜单（关于/隐藏/退出 FlowVision）标题写死在 Main.storyboard 与两个 .xcstrings（101+51 处多语言文案）里，前两轮只改了代码与 Info.plist 未覆盖到。
+- 处理：storyboard 中 UI 标题全部改为 Pixy（12 处 customModule="FlowVision" 为 TARGET 模块引用，**必须保留**，改了会白屏）；两个 xcstrings 全量替换 FlowVision→Pixy（JSON 校验通过）。
+- 构建通过，编译产物 Main.storyboardc 已验证含 "About Pixy"/"Quit Pixy"。
+
+#### 边界
+
+- 源码中仍有少量 FlowVision：工程名/TARGET/scheme（用户决定保留）、数据目录 appendingPathComponent（避免数据迁移）、customModule 引用。

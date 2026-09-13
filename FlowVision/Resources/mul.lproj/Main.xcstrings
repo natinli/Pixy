@@ -326,7 +326,7 @@
       }
     },
     "1Xt-HY-uBw.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"FlowVision\"; ObjectID = \"1Xt-HY-uBw\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"Pixy\"; ObjectID = \"1Xt-HY-uBw\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "ar" : {
@@ -338,37 +338,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "ko" : {
@@ -380,25 +380,25 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "ru" : {
@@ -410,25 +410,25 @@
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         }
       }
@@ -1298,217 +1298,217 @@
       }
     },
     "4sb-4s-VLi.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"Quit FlowVision\"; ObjectID = \"4sb-4s-VLi\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"Quit Pixy\"; ObjectID = \"4sb-4s-VLi\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "إنهاء FlowVision"
+            "value" : "إنهاء Pixy"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision beenden"
+            "value" : "Pixy beenden"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Quit FlowVision"
+            "value" : "Quit Pixy"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Salir de FlowVision"
+            "value" : "Salir de Pixy"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quitter FlowVision"
+            "value" : "Quitter Pixy"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Esci da FlowVision"
+            "value" : "Esci da Pixy"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVisionを終了"
+            "value" : "Pixyを終了"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision 종료"
+            "value" : "Pixy 종료"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Afsluiten FlowVision"
+            "value" : "Afsluiten Pixy"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Zakończ FlowVision"
+            "value" : "Zakończ Pixy"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sair do FlowVision"
+            "value" : "Sair do Pixy"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sair do FlowVision"
+            "value" : "Sair do Pixy"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выйти из FlowVision"
+            "value" : "Выйти из Pixy"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Avsluta FlowVision"
+            "value" : "Avsluta Pixy"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision'u Kapat"
+            "value" : "Pixy'u Kapat"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退出 FlowVision"
+            "value" : "退出 Pixy"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "退出FlowVision"
+            "value" : "退出Pixy"
           }
         }
       }
     },
     "5kV-Vb-QxS.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"About FlowVision\"; ObjectID = \"5kV-Vb-QxS\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"About Pixy\"; ObjectID = \"5kV-Vb-QxS\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "حول FlowVision"
+            "value" : "حول Pixy"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Über FlowVision"
+            "value" : "Über Pixy"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "About FlowVision"
+            "value" : "About Pixy"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acerca de FlowVision"
+            "value" : "Acerca de Pixy"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "À propos de FlowVision"
+            "value" : "À propos de Pixy"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Informazioni su FlowVision"
+            "value" : "Informazioni su Pixy"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision について"
+            "value" : "Pixy について"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision 정보"
+            "value" : "Pixy 정보"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Over FlowVision"
+            "value" : "Over Pixy"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O FlowVision"
+            "value" : "O Pixy"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sobre o FlowVision"
+            "value" : "Sobre o Pixy"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sobre o FlowVision"
+            "value" : "Sobre o Pixy"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "О FlowVision"
+            "value" : "О Pixy"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Om FlowVision"
+            "value" : "Om Pixy"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision Hakkında"
+            "value" : "Pixy Hakkında"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "关于 FlowVision"
+            "value" : "关于 Pixy"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "關於FlowVision"
+            "value" : "關於Pixy"
           }
         }
       }
@@ -6482,109 +6482,109 @@
       }
     },
     "FKE-Sm-Kum.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"FlowVision Help\"; ObjectID = \"FKE-Sm-Kum\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"Pixy Help\"; ObjectID = \"FKE-Sm-Kum\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "مساعدة FlowVision"
+            "value" : "مساعدة Pixy"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision-Hilfe"
+            "value" : "Pixy-Hilfe"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "FlowVision Help"
+            "value" : "Pixy Help"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ayuda de FlowVision"
+            "value" : "Ayuda de Pixy"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aide FlowVision"
+            "value" : "Aide Pixy"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aiuto di FlowVision"
+            "value" : "Aiuto di Pixy"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision ヘルプ"
+            "value" : "Pixy ヘルプ"
           }
         },
         "ko" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision 도움말"
+            "value" : "Pixy 도움말"
           }
         },
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision Help"
+            "value" : "Pixy Help"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Pomoc FlowVision"
+            "value" : "Pomoc Pixy"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ajuda do FlowVision"
+            "value" : "Ajuda do Pixy"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ajuda do FlowVision"
+            "value" : "Ajuda do Pixy"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Справка FlowVision"
+            "value" : "Справка Pixy"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision Hjälp"
+            "value" : "Pixy Hjälp"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision Yardım"
+            "value" : "Pixy Yardım"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision 帮助"
+            "value" : "Pixy 帮助"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision 說明"
+            "value" : "Pixy 說明"
           }
         }
       }
@@ -12206,7 +12206,7 @@
       }
     },
     "Olw-nP-bQN.title" : {
-      "comment" : "Class = \"NSMenuItem\"; title = \"Hide FlowVision\"; ObjectID = \"Olw-nP-bQN\";",
+      "comment" : "Class = \"NSMenuItem\"; title = \"Hide Pixy\"; ObjectID = \"Olw-nP-bQN\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "ar" : {
@@ -12218,37 +12218,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision ausblenden"
+            "value" : "Pixy ausblenden"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Hide FlowVision"
+            "value" : "Hide Pixy"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ocultar FlowVision"
+            "value" : "Ocultar Pixy"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Masquer FlowVision"
+            "value" : "Masquer Pixy"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nascondi FlowVision"
+            "value" : "Nascondi Pixy"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVisionを隠す"
+            "value" : "Pixyを隠す"
           }
         },
         "ko" : {
@@ -12260,55 +12260,55 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verberg FlowVision"
+            "value" : "Verberg Pixy"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ukryj FlowVision"
+            "value" : "Ukryj Pixy"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ocultar FlowVision"
+            "value" : "Ocultar Pixy"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ocultar FlowVision"
+            "value" : "Ocultar Pixy"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Скрыть FlowVision"
+            "value" : "Скрыть Pixy"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Dölj FlowVision"
+            "value" : "Dölj Pixy"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision'u Gizle"
+            "value" : "Pixy'u Gizle"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "隐藏 FlowVision"
+            "value" : "隐藏 Pixy"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "隱藏FlowVision"
+            "value" : "隱藏Pixy"
           }
         }
       }
@@ -15770,7 +15770,7 @@
       }
     },
     "uQy-DD-JDr.title" : {
-      "comment" : "Class = \"NSMenu\"; title = \"FlowVision\"; ObjectID = \"uQy-DD-JDr\";",
+      "comment" : "Class = \"NSMenu\"; title = \"Pixy\"; ObjectID = \"uQy-DD-JDr\";",
       "extractionState" : "extracted_with_value",
       "localizations" : {
         "ar" : {
@@ -15782,37 +15782,37 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "ko" : {
@@ -15824,55 +15824,55 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "pl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "pt-PT" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "sv" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         },
         "zh-Hant" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "FlowVision"
+            "value" : "Pixy"
           }
         }
       }
