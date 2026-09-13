@@ -72,16 +72,15 @@ xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Relea
 
 ## 签名
 
-未配置 Apple ID / 开发证书时，默认构建会报 `No signing certificate "Mac Development" found`。两种解决：
-
-- **本机构建验证**（无需证书，实测通过）：
+工程已配置正式签名（DEVELOPMENT_TEAM=FPUF4BSUML，bundle id `com.natinli.Pixy`，免费 Personal Team + 自动生成的 Apple Development 证书）。直接构建即可：
 
 ```bash
-xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Release build \
-  CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=""
+xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Release build -allowProvisioningUpdates
 ```
 
-- **正式签名**：Xcode → Settings → Accounts 登录 Apple ID，在项目 Signing & Capabilities 选择 Team 后正常构建。
+- 证书过期（免费 Team 有效期约 7 天，会自动续）或换机器时重新执行上述命令即可。
+- 正式签名让 TCC 隐私授权跨构建生效（ad-hoc 签名每次构建都视为新应用，会反复弹"访问文稿"）。
+- 无证书的应急构建（不推荐）：加 `CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=""`。
 
 ## xcconfig 说明
 
