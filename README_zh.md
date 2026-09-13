@@ -1,126 +1,88 @@
 <p align="center">
 <h1 align="center">FlowVision</h1>
-<h3 align="center">为macOS设计的瀑布流式图片浏览器</h3> 
+<h3 align="center">为 macOS 设计的瀑布流式图片浏览器</h3>
 </p>
 
-[![](https://img.shields.io/github/release/netdcy/FlowVision.svg?color=blue)](https://github.com/netdcy/FlowVision/releases/latest "GitHub release") [![](https://img.shields.io/github/downloads/netdcy/FlowVision/total?color=blue)](https://github.com/netdcy/FlowVision/releases/latest "GitHub downloads") ![GitHub License](https://img.shields.io/github/license/netdcy/FlowVision?color=blue)
+<p align="center">
+<a href="https://github.com/natinli/FlowVision/releases"><img src="https://img.shields.io/github/release/netdcy/FlowVision.svg?color=blue" alt="release"></a>
+<a href="README.md">English</a> · 简体中文
+</p>
+
+> 本仓库是 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的 fork，在上游基础上维护中文文档体系并做定制改进。版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 预览
 
 ### 浅色模式
 ![preview](https://netdcy.github.io/FlowVision/docs/preview_2.png)
 
-### 黑暗模式
+### 深色模式
 ![preview](https://netdcy.github.io/FlowVision/docs/preview_1.png)
 
-## 应用特点:
+## 功能特性
 
- - 自适应布局模式、浅色/深色模式
+- **四种视图**：自适应布局（justified）、瀑布流、网格、列表，一键切换
+- **Finder 式文件管理**：复制/剪切/粘贴/重命名/删除、目录树、面包屑路径条
+- **右键手势**：快速跳转上一个/下一个含图片的文件夹、上级目录、历史返回
+- **视频播放**：内联自动播放、控制条、AB 循环、列表连续播放
+- **大图查看**：高质量缩放（减轻摩尔纹）、旋转/镜像、EXIF/GPS 信息、OCR 与二维码识别
+- **HDR 显示**（macOS 14.0+）、相机 RAW 支持、WebP/PNG 动画
+- **Finder 标签与 XMP 星级**：打标、过滤、按标签/评级排序
+- **性能**：万张级目录流畅浏览、LRU 内存回收、目录变更监听增量刷新
+- **递归模式**：一个窗口浏览整个子树
 
- - 方便的文件管理（操作类似 Finder）
+## 安装
 
- - 右键手势、快速查找上一个/下一个有图片/视频的文件夹
+系统要求：macOS 11.0+。开源软件，无网络请求。
 
- - 针对目录下大量图片情况的性能优化
+**Homebrew 安装（推荐）**
 
- - 高质量的缩放（减轻摩尔纹等问题）
-
- - 支持视频播放
-
- - 支持HDR显示
-
- - 支持递归模式
-
-## 安装使用
-
-### 系统需求
-
- - macOS 11.0+
-
-### 隐私与安全性
-
- - 开源软件
- - 无网络请求
-
-### Homebrew 方式安装
-
-首次安装
-```
+```bash
 brew install flowvision
 ```
-版本升级
+
+升级：
+
+```bash
+brew update && brew upgrade flowvision
 ```
-brew update
-brew upgrade flowvision
-```
 
-## 操作说明
+**从源码编译**：见 [docs/dev/build.md](docs/dev/build.md)。
 
-### 图片浏览:
- - 双击打开/关闭图片
- - 按住右键/左键滚动滚轮可以缩放
- - 按住中键拖动可以移动窗口
- - 长按左键切换 100%缩放
- - 长按右键切换缩放到视图
-### 右键手势:
- - 向右/左：切换到下一个/上一个有图片/视频的文件夹(逻辑上等同于将整个磁盘中的文件夹排序后的下一个)
- - 向上：切换到上级目录
- - 向下：返回到上一次的目录
- - 向上右：切换到与当前文件夹平级的下一个有图片的文件夹
- - 向下右：关闭当前标签页/窗口
-### 键盘按键:
- - W：同右键手势 向上
- - A/D：同右键手势 向左/右
- - S：同右键手势 向下
+详细安装说明与常见安装问题：[docs/user/installation.md](docs/user/installation.md)。
 
-## 编译
+## 快速上手
 
-### 环境
+| 操作 | 方式 |
+|---|---|
+| 打开/关闭大图 | 双击缩略图 |
+| 缩放 | 大图中滚轮；或按住右键/左键滚动滚轮 |
+| 文件夹跳转 | 右键手势：右/左=下/上一个图片文件夹，上=上级，下=返回历史 |
+| 目录导航（键盘） | W=上级，A/D=左/右，S=返回 |
+| 搜索过滤 | ⌘ + F |
 
-Xcode 15.2+
+完整操作说明（手势、全部快捷键、视频控制、标签评级）：[docs/user/usage.md](docs/user/usage.md)。
 
-### 第三方库
+遇到问题：[docs/user/faq.md](docs/user/faq.md)。
 
- - https://github.com/arthenica/ffmpeg-kit
- - https://github.com/attaswift/BTree
- - https://github.com/sindresorhus/Settings
+## 文档
 
-### 构建步骤
+| 文档 | 说明 |
+|---|---|
+| [docs/index.md](docs/index.md) | 文档中心总入口 |
+| [docs/user/](docs/user/installation.md) | 用户文档：安装、使用、FAQ |
+| [docs/dev/](docs/dev/architecture.md) | 开发文档：架构、模块详解、构建、修改指南 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本历史 |
+| [CLAUDE.md](CLAUDE.md) | AI 协作入口 |
 
-1. 克隆此项目和依赖库的代码。
-2. 对于ffmpeg-kit，需要预先构建二进制文件。如果你想省时间，可以直接下载它已构建好的二进制库，例如 `ffmpeg-kit-full-gpl-6.0-macos-xcframework.zip` (非LTS版本)。 解压后，在终端执行如下命令以移除quarantine属性：
+## 开发
 
-    ```
-    sudo xattr -rd com.apple.quarantine ./ffmpeg-kit-full-gpl-6.0-macos-xcframework
-    ```
-
-    (由于项目中止和版权原因，预构建的二进制文件已被移除，[这里](https://github.com/netdcy/ffmpeg-kit/releases/download/v6.0/ffmpeg-kit-full-gpl-6.0-macos-xcframework.zip)是原文件的备份。)
-
-3. 按如下所示组织目录结构：
-
-    ```
-    ├── FlowVision
-    │   ├── FlowVision.xcodeproj
-    │   └── FlowVision
-    │       └── Sources
-    ├── ffmpeg-kit-build
-    │   └── bundle-apple-xcframework-macos
-    │       ├── ffmpegkit.xcframework
-    │       └── ...
-    ├── BTree
-    │   ├── Package.swift
-    │   └── Sources
-    └── Settings
-        ├── Package.swift
-        └── Sources
-    ```
-
-4. 用Xcode打开 `FlowVision.xcodeproj` ，在菜单栏中点击 'Product' -> 'Build For' -> 'Profiling' 。
-5. 然后 'Product' -> 'Show Build Folder in Finder'，就可以看到构建好的app了 `Products/Release/FlowVision.app` 。
+- 环境：Xcode 15.2+，详见 [docs/dev/build.md](docs/dev/build.md)
+- 技术栈：纯 AppKit（Swift），SPM 依赖 SDWebImage(+WebP)、BTree、Settings；FFmpegKit xcframework 懒加载
+- 第三方库：[ffmpeg-kit](https://github.com/arthenica/ffmpeg-kit) · [BTree](https://github.com/attaswift/BTree) · [Settings](https://github.com/sindresorhus/Settings)
 
 ## 支持
 
-如果你感觉这个应用有帮助，欢迎支持开发者！
+如果你感觉这个应用有帮助，欢迎支持上游开发者！
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/netdcyn)
 
@@ -128,4 +90,4 @@ Xcode 15.2+
 
 ## 协议
 
-本项目使用GPL许可证。完整的许可证文本请参见 [LICENSE](https://github.com/netdcy/FlowVision/blob/main/LICENSE) 文件。
+本项目使用 GPL 许可证，完整文本见 [LICENSE](LICENSE)。

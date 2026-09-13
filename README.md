@@ -1,12 +1,16 @@
-
 <p align="center">
 <h1 align="center">FlowVision</h1>
-<h3 align="center">Waterfall-style Image Viewer for macOS<br><br><a href="./README_zh.md">[中文说明]</a></h3> 
+<h3 align="center">Waterfall-style Image Viewer for macOS</h3>
 </p>
 
-[![](https://img.shields.io/github/release/netdcy/FlowVision.svg?color=blue)](https://github.com/netdcy/FlowVision/releases/latest "GitHub release") [![](https://img.shields.io/github/downloads/netdcy/FlowVision/total?color=blue)](https://github.com/netdcy/FlowVision/releases/latest "GitHub downloads") ![GitHub License](https://img.shields.io/github/license/netdcy/FlowVision?color=blue)
+<p align="center">
+<a href="https://github.com/natinli/FlowVision/releases"><img src="https://img.shields.io/github/release/netdcy/FlowVision.svg?color=blue" alt="release"></a>
+English · <a href="README_zh.md">简体中文</a>
+</p>
 
-## Screenshots
+> This repository is a fork of [netdcy/FlowVision](https://github.com/netdcy/FlowVision), maintaining a Chinese documentation system and custom improvements on top of upstream. See [CHANGELOG.md](CHANGELOG.md) for version history.
+
+## Preview
 
 ### Light Mode
 ![preview](https://netdcy.github.io/FlowVision/docs/preview_2.png)
@@ -14,105 +18,71 @@
 ### Dark Mode
 ![preview](https://netdcy.github.io/FlowVision/docs/preview_1.png)
 
-## Features:
- - Adaptive layout mode, light/dark mode
- - Convenient file management (similar to Finder)
- - Right-click gestures, quickly find the previous/next folder with images/videos
- - Performance optimizations for directories with a large number of images
- - High-quality scaling (reduces moiré and other issues)
- - Support for video playback
- - Support for HDR display
- - Recursive mode
+## Features
 
-## Installation and Usage
+- **Four view modes**: justified layout, waterfall, grid, and list — switch with one click
+- **Finder-style file management**: copy/cut/paste/rename/delete, directory tree, breadcrumb path bar
+- **Right-click gestures**: quickly jump to the next/previous folder with images, go to parent, or go back in history
+- **Video playback**: inline autoplay, playback controls, A-B loop, continuous playback in list
+- **Full image view**: high-quality scaling (reduces moiré), rotation/mirroring, EXIF/GPS info, OCR and QR code recognition
+- **HDR display** (macOS 14.0+), camera RAW support, WebP/PNG animations
+- **Finder tags and XMP ratings**: tagging, filtering, and sorting by tag or rating
+- **Performance**: smooth browsing of directories with tens of thousands of images, LRU memory management, incremental refresh on directory changes
+- **Recursive mode**: browse an entire subtree in one window
 
-### System Requirements
+## Installation
 
- - macOS 11.0 or Later
+Requires macOS 11.0+. Open source, no network requests.
 
-### Privacy and Security
+**Homebrew (recommended)**
 
- - Open source
- - No Internet connection
-
-### Homebrew Install
-
-Initial Installation
-```
+```bash
 brew install flowvision
 ```
-Upgrade
+
+Upgrade:
+
+```bash
+brew update && brew upgrade flowvision
 ```
-brew update
-brew upgrade flowvision
-```
 
-## Instructions:
-### In Image View:
- - Double-click to open/close the image
- - Hold down the right/left mouse button and scroll the wheel to zoom
- - Hold down the middle mouse button and drag to move the window
- - Long press the left mouse button to switch to 100% zoom
- - Long press the right mouse button to fit the image to the view
-### Right-Click Gestures:
- - Right/Left: Switch to the next/previous folder with images/videos (logically equivalent to the next folder when sorting all folders on the disk)
- - Up: Switch to the parent directory
- - Down: Return to the previous directory
- - Up-Right: Switch to the next folder with images at the same level as the current folder
- - Down-Right: Close the tab/window
-### Keyboard Shortcuts:
- - W: Same as the right-click gesture Up
- - A/D: Same as the right-click gesture Left/Right
- - S: Same as the right-click gesture Down
+**Build from source**: see [docs/dev/build.md](docs/dev/build.md) (Chinese).
 
-## Build
+For detailed installation instructions: [docs/user/installation.md](docs/user/installation.md) (Chinese).
 
-### Environment
+## Quick Start
 
-Xcode 15.2+
+| Action | How |
+|---|---|
+| Open/close full image view | Double-click a thumbnail |
+| Zoom | Scroll wheel in image view; or hold right/left button and scroll |
+| Folder navigation | Right-click gestures: right/left = next/previous image folder, up = parent, down = back |
+| Keyboard navigation | W = parent, A/D = previous/next, S = back |
+| Search & filter | ⌘ + F |
 
-### Libraries
+Full usage documentation (gestures, all shortcuts, video controls, tags and ratings): [docs/user/usage.md](docs/user/usage.md) (Chinese).
 
- - https://github.com/arthenica/ffmpeg-kit
- - https://github.com/attaswift/BTree
- - https://github.com/sindresorhus/Settings
+Troubleshooting: [docs/user/faq.md](docs/user/faq.md) (Chinese).
 
-### Steps
+## Documentation
 
-1. Clone the source code of the project and libraries.
-2. For ffmpeg-kit, it need to be built to binary first. If you want to save time, you can directly download its pre-built binary, named like `ffmpeg-kit-full-gpl-6.0-macos-xcframework.zip` (not LTS version). Unzip it, then execute this in terminal to remove its quarantine attribute:
+| Document | Description |
+|---|---|
+| [docs/index.md](docs/index.md) | Documentation hub (Chinese) |
+| [docs/user/](docs/user/installation.md) | User docs: installation, usage, FAQ (Chinese) |
+| [docs/dev/](docs/dev/architecture.md) | Developer docs: architecture, module reference, build, contributing (Chinese) |
+| [CHANGELOG.md](CHANGELOG.md) | Version history |
+| [CLAUDE.md](CLAUDE.md) | AI collaboration entry point (Chinese) |
 
-    ```
-    sudo xattr -rd com.apple.quarantine ./ffmpeg-kit-full-gpl-6.0-macos-xcframework
-    ```
-    
-    (Due to the project being discontinued and copyright reasons, the prebuilt binaries have been removed. Here is a [backup](https://github.com/netdcy/ffmpeg-kit/releases/download/v6.0/ffmpeg-kit-full-gpl-6.0-macos-xcframework.zip) of original file.)
+## Development
 
-3. Organize the directory structure as shown below:
+- Requirements: Xcode 15.2+, see [docs/dev/build.md](docs/dev/build.md)
+- Stack: pure AppKit (Swift), SPM dependencies SDWebImage(+WebP), BTree, Settings; FFmpegKit xcframework lazy-loaded
+- Third-party libraries: [ffmpeg-kit](https://github.com/arthenica/ffmpeg-kit) · [BTree](https://github.com/attaswift/BTree) · [Settings](https://github.com/sindresorhus/Settings)
 
-    ```
-    ├── FlowVision
-    │   ├── FlowVision.xcodeproj
-    │   └── FlowVision
-    │       └── Sources
-    ├── ffmpeg-kit-build
-    │   └── bundle-apple-xcframework-macos
-    │       ├── ffmpegkit.xcframework
-    │       └── ...
-    ├── BTree
-    │   ├── Package.swift
-    │   └── Sources
-    └── Settings
-        ├── Package.swift
-        └── Sources
-    ```
+## Support
 
-4. Open `FlowVision.xcodeproj` by Xcode, click 'Product' -> 'Build For' -> 'Profiling' in menu bar.
-5. Then 'Product' -> 'Show Build Folder in Finder', and you will find the app is at `Products/Release/FlowVision.app`.
-
-## Donate
-
-If you found the project is helpful, feel free to buy me a coffee.
+If you find this app helpful, please consider supporting the upstream developer!
 
 [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/netdcyn)
 
@@ -120,5 +90,4 @@ If you found the project is helpful, feel free to buy me a coffee.
 
 ## License
 
-This project is licensed under the GPL License. See the [LICENSE](https://github.com/netdcy/FlowVision/blob/main/LICENSE) file for the full license text.
-
+This project is licensed under the GPL. See [LICENSE](LICENSE) for the full text.
