@@ -2,6 +2,38 @@
 
 本日志由 Codex、Claude 或人工共同维护。每个会话条目标题必须标注执行者：`[Codex]`、`[Claude]` 或 `[人工]`。**条目按时间倒序排列：最新条目在最顶部。** 项目级日志记录完整细节；外层 nilo 仓库 `docs/session-log.md` 只记简要条目并指向这里。
 
+## 2026-09-14
+
+### [Claude] · 两段式 UI 重构（用户睡眠期间彻底修复并自查）
+
+#### 最终形态（多轮迭代后）
+
+- **两段式结构**：灰色外壳（窗口底色 = OutlineViewBgColor）+ 两张浮动圆角卡片
+  - 侧边栏卡：内缩 6px、四角圆角 12、实心灰，目录树内容避让（scroll contentInsets）
+  - 内容卡：内缩（上 52 留工具栏行、右/下/左 8）、四角圆角 12、白色，承载缩略图网格
+  - 工具栏浮在外壳上（标题栏透明 + fullSizeContentView 常驻）
+- **大图模式**：enableToolbarBlend/disableToolbarBlend 切换（不再破坏两段式结构——之前退出大图会移除 fullSizeContentView 导致 UI 变形，已修复）；底部标题胶囊方案 1（文件名实色 + 张数半透明，分色同行）；Finder 打开的会话关闭大图退出应用（isLaunchFromFile + NSApp.terminate）
+- **路径条**：前置 .space 间隔，不再贴窗口边缘
+
+#### 迭代中的弯路（记录避免重蹈）
+
+1. 整窗透壁纸毛玻璃 → 用户否决（内容区发灰）→ 回退
+2. pane 层白底 + 单角圆角 → 圆角junction 处理错（maskedCorners 单角 + insets 冲突）→ 改为浮动卡片四周留缝方案
+3. disableToolbarBlend 恢复不透明标题栏 → 破坏两段式 → 改为常驻透明
+4. 关键教训：NSSplitView pane 无法直接 inset；用 scrollView.layer.cornerRadius + masksToBounds + contentInsets 实现卡片化
+
+#### 验证
+
+- Release 构建通过；截图确认：侧边栏卡四角圆角可见、内容卡浮起、分界清晰、无壁纸渗透
+- 大图往返后 UI 稳定（disableToolbarBlend 不再改窗口结构）
+- Finder-quit 逻辑保留（isLaunchFromFile 检测在 closeLargeImage 最前）
+
+#### 待跟进
+
+- [ ] 深色模式目测验证（代码使用自适应色，预期正常）
+- [ ] RTL 布局下侧边栏在右侧的表现
+- [ ] push 到 GitHub
+
 ## 2026-09-13
 
 ### [Claude] · 两项 UX 优化
