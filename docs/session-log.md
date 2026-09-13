@@ -115,3 +115,16 @@
 #### 边界
 
 - 源码中仍有少量 FlowVision：工程名/TARGET/scheme（用户决定保留）、数据目录 appendingPathComponent（避免数据迁移）、customModule 引用。
+
+### [Claude] · 两项 UX 优化
+
+#### 完成
+
+- **侧边栏毛玻璃**：storyboard 侧边栏 customView 插入 NSVisualEffectView（behindWindow + sidebar material，置于最底层）；CustomTableRowView.drawBackground 不再填充 OutlineViewBgColor 纯色改为透明，右键边框逻辑保留。明暗模式均生效。
+- **Dock 图标联动（方案 A）**：closeLargeImage 开头检测 publicVar.isLaunchFromFile（Finder/外部打开图片的会话标记），命中则关窗口并 NSApp.terminate；常规浏览会话不受影响。windowWillClose 已有完整的保存/清理/terminate 链路，直接复用。
+- 已知边界：customModule="FlowVision"、工程名/scheme、数据目录名保持不变（此前决策）。
+
+#### 验证
+
+- Release 构建通过；启动后侧边栏透出壁纸色调（vibrancy 生效），选中样式正常。
+- 关闭大图退出行为待用户 Finder 双击图片实测（isLaunchFromFile 场景）。
