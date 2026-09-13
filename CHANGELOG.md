@@ -7,7 +7,7 @@
 ## [Fork] 2026-09-13
 
 - 应用更名：**FlowVision → Pixy**（仅展示名；bundle id、数据目录、仓库名不变，与上游区分）。
-- Fork 上游 1.7.6 到 [natinli/FlowVision](https://github.com/natinli/FlowVision)，作为独立仓库维护（upstream 同步策略见 `docs/dev/contributing-internal.md`）。
+- Fork 上游 1.7.6 到 [natinli/Pixy](https://github.com/natinli/Pixy)，作为独立仓库维护（upstream 同步策略见 `docs/dev/contributing-internal.md`）。
 - 建立中文文档体系：用户文档（`docs/user/`）、开发/AI 协作文档（`docs/dev/`）、项目会话日志（`docs/session-log.md`）。
 - 完全重写 README.md 与 README_zh.md。
 - 新增本 CHANGELOG.md 与 AI 协作入口 CLAUDE.md。

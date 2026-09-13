@@ -4,7 +4,7 @@
 </p>
 
 <p align="center">
-<a href="https://github.com/natinli/FlowVision/releases"><img src="https://img.shields.io/github/release/netdcy/FlowVision.svg?color=blue" alt="release"></a>
+<a href="https://github.com/natinli/Pixy/releases"><img src="https://img.shields.io/github/release/netdcy/FlowVision.svg?color=blue" alt="release"></a>
 <a href="README.md">English</a> · 简体中文
 </p>
 

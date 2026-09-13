@@ -98,4 +98,4 @@ Pixy 使用高质量缩放算法减轻摩尔纹；继续放大到 100%（长按�
 
 ---
 
-未覆盖的问题可在 [upstream issues](https://github.com/netdcy/FlowVision/issues) 搜索或提出；fork 相关问题在 [fork issues](https://github.com/natinli/FlowVision/issues) 提出。
+未覆盖的问题可在 [upstream issues](https://github.com/netdcy/FlowVision/issues) 搜索或提出；fork 相关问题在 [fork issues](https://github.com/natinli/Pixy/issues) 提出。

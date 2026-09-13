@@ -8,7 +8,7 @@
 
 #### 背景
 
-- 本仓库 fork 自 netdcy/FlowVision（上游 1.7.6），由 natinli/FlowVision 维护。
+- 本仓库 fork 自 netdcy/FlowVision（上游 1.7.6），由 natinli/Pixy 维护。
 - 仓库原有文档仅面向最终用户的 README.md/README_zh.md（英文/中文）和 docs/ 下 3 张预览图，无开发向文档。
 - 用户要求：完全重新设计、覆盖全面、便于长期维护的全中文文档体系，含用户文档与开发/AI 协作文档；新增 CHANGELOG；完全重写 README；项目内建立更细粒度的会话日志。
 
@@ -32,7 +32,7 @@
 #### 待跟进
 
 - [x] 安装完整 Xcode 后实测构建命令（2026-09-13 完成，见下条）。
-- [ ] 首次 push 到 origin（natinli/FlowVision）。
+- [ ] 首次 push 到 origin（natinli/Pixy）。
 - [ ] 上游发布新版本时按 contributing-internal.md 的同步策略合并。
 
 ### [Claude] · Xcode 26.3 实测构建通过

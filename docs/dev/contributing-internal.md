@@ -36,7 +36,7 @@
 remote 布置：
 
 ```
-origin   = https://github.com/natinli/FlowVision.git    # 日常推送
+origin   = https://github.com/natinli/Pixy.git    # 日常推送
 upstream = https://github.com/netdcy/FlowVision.git     # 只 fetch，不 push
 ```
 

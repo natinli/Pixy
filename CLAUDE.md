@@ -1,10 +1,10 @@
 # Pixy (FlowVision fork) AI 协作指南
 
-macOS 瀑布流图片查看器，应用展示名为 **Pixy**。本仓库是上游 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的 fork，由 [natinli/FlowVision](https://github.com/natinli/FlowVision) 维护。
+macOS 瀑布流图片查看器，应用展示名为 **Pixy**。本仓库是上游 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的 fork，由 [natinli/Pixy](https://github.com/natinli/Pixy) 维护。
 
 ## 仓库性质
 
-- **origin**：`https://github.com/natinli/FlowVision.git`（fork，日常工作推送到这里）
+- **origin**：`https://github.com/natinli/Pixy.git`（fork，日常工作推送到这里）
 - **upstream**：`https://github.com/netdcy/FlowVision.git`（原仓库，只 fetch 合并，不推送）
 - fork 上的改动（文档、修复、定制）会与上游分叉；上游同步策略见 [docs/dev/contributing-internal.md](docs/dev/contributing-internal.md)。
 
