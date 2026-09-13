@@ -15,7 +15,7 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "F7A0754F2BA1D716009C47A6"
-               BuildableName = "FlowVision.app"
+               BuildableName = "Pixy.app"
                BlueprintName = "FlowVision"
                ReferencedContainer = "container:FlowVision.xcodeproj">
             </BuildableReference>
@@ -44,7 +44,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F7A0754F2BA1D716009C47A6"
-            BuildableName = "FlowVision.app"
+            BuildableName = "Pixy.app"
             BlueprintName = "FlowVision"
             ReferencedContainer = "container:FlowVision.xcodeproj">
          </BuildableReference>
@@ -73,7 +73,7 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "F7A0754F2BA1D716009C47A6"
-            BuildableName = "FlowVision.app"
+            BuildableName = "Pixy.app"
             BlueprintName = "FlowVision"
             ReferencedContainer = "container:FlowVision.xcodeproj">
          </BuildableReference>

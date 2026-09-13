@@ -53,7 +53,20 @@
 
 #### 待跟进
 
-- [ ] 正式签名配置（Xcode 登录 Apple ID）后重新构建带签名版本。
+- [x] 正式签名配置（2026-09-13 完成，见下条）。
+
+### [Claude] · 正式签名配置完成
+
+#### 完成
+
+- 用户在 Xcode 登录 Apple ID（免费 Personal Team：FPUF4BSUML）。
+- pbxproj：DEVELOPMENT_TEAM 从上游 M9PR3WG2FN 改为 FPUF4BSUML；bundle id 从 netdcy.FlowVision(Dbg) 改为 com.natinli.Pixy(Dbg)——免费 Team 不允许注册他人前缀的 id。
+- 以 `xcodebuild -allowProvisioningUpdates` 构建成功，自动生成 "Apple Development" 证书并正式签名（TeamIdentifier=FPUF4BSUML，Identifier=com.natinli.Pixy）。
+
+#### 收益
+
+- 签名身份跨构建稳定：TCC 隐私授权（访问文稿等）不再每次构建重新弹窗。
+- build.md 签名一节从此可用默认命令构建（无需 CODE_SIGNING_ALLOWED=NO）。
 
 ### [Claude] · 应用更名 FlowVision → Pixy
 
