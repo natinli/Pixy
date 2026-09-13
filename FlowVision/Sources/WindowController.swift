@@ -499,7 +499,7 @@ extension WindowController: NSToolbarDelegate {
         switch itemIdentifier {
             
         case .windowTitle:
-            let title = (contentViewController as? ViewController)?.publicVar.toolbarTitle ?? "FlowVision"
+            let title = (contentViewController as? ViewController)?.publicVar.toolbarTitle ?? "Pixy"
             let isInLargeView = viewController.publicVar.isInLargeView
             let showExtra = isInLargeView || viewController.publicVar.profile.getValue(forKey: "isWindowTitleShowStatistics") == "true"
             let statisticInfo = viewController.publicVar.titleStatisticInfo

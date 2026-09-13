@@ -28,14 +28,14 @@ brew upgrade flowvision
 
 ## 方式二：下载安装包
 
-1. 前往 [Releases](https://github.com/netdcy/FlowVision/releases) 下载对应芯片的版本：
+1. 前往上游 [Releases](https://github.com/netdcy/FlowVision/releases) 下载对应芯片的版本（上游发布的安装包名为 FlowVision，与本 fork 的展示名 Pixy 不冲突）：
    - Apple Silicon（M 系列）：`arm64` 版本
    - Intel：`x64` 版本
-2. 打开 `.dmg`，将 FlowVision.app 拖入「应用程序」文件夹。
+2. 打开 `.dmg`，将应用拖入「应用程序」文件夹。
 3. 首次打开若提示「无法验证开发者」或「已损坏」：这是因为应用未经 Apple 公证，在「系统设置 → 隐私与安全性」中点击「仍要打开」，或执行：
 
 ```bash
-xattr -rd com.apple.quarantine /Applications/FlowVision.app
+xattr -rd com.apple.quarantine /Applications/Pixy.app
 ```
 
 ## 方式三：从源码编译

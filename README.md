@@ -1,5 +1,5 @@
 <p align="center">
-<h1 align="center">FlowVision</h1>
+<h1 align="center">Pixy</h1>
 <h3 align="center">Waterfall-style Image Viewer for macOS</h3>
 </p>
 
@@ -8,7 +8,7 @@
 English · <a href="README_zh.md">简体中文</a>
 </p>
 
-> This repository is a fork of [netdcy/FlowVision](https://github.com/netdcy/FlowVision), maintaining a Chinese documentation system and custom improvements on top of upstream. See [CHANGELOG.md](CHANGELOG.md) for version history.
+> The app is named **Pixy**. This repository is a fork of [netdcy/FlowVision](https://github.com/netdcy/FlowVision) (repo name FlowVision kept), maintaining a Chinese documentation system and custom improvements on top of upstream. See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## Preview
 

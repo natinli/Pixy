@@ -1,6 +1,6 @@
-# FlowVision AI 协作指南
+# Pixy (FlowVision fork) AI 协作指南
 
-macOS 瀑布流图片查看器。本仓库是上游 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的 fork，由 [natinli/FlowVision](https://github.com/natinli/FlowVision) 维护。
+macOS 瀑布流图片查看器，应用展示名为 **Pixy**。本仓库是上游 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的 fork，由 [natinli/FlowVision](https://github.com/natinli/FlowVision) 维护。
 
 ## 仓库性质
 
@@ -24,6 +24,7 @@ macOS 瀑布流图片查看器。本仓库是上游 [netdcy/FlowVision](https://
 
 - 技术栈：**纯 AppKit**（无 SwiftUI），Swift + Xcode 工程布置，SPM 依赖 SDWebImage(+WebP)、BTree、Settings，FFmpegKit 以 xcframework dlopen 懒加载。
 - 代码组织是「巨型 ViewController + extension 分文件」：改功能先看 `FlowVision/Sources/ViewControllerExtension/` 是否已有对应扩展文件，把改动放进对应 extension，不往 ViewController.swift 本体堆。
+- 应用展示名为 **Pixy**（见 pbxproj `INFOPLIST_KEY_CFBundleDisplayName` 与 WindowController/DataModel 中字符串）；目录名、scheme、bundle id 仍为 FlowVision，改动时勿混淆。
 - 跨窗口/进程级状态在 `Common/GlobalVariable.swift` 的 `globalVar`；每窗口视图状态在 `ViewController.PublicVar`。不要另造全局单例。
 - 排序逻辑唯一真源在 `Common/DataModel.swift` 的 `SortKey` 比较运算符；布局计算唯一真源在 `ViewControllerExtension/LayoutManagement.swift` 的 `recalcLayout`。改这两处必须理解其被全项目依赖的范围。
 - **改代码后必须同步更新** `docs/dev/modules.md` 对应文件章节；影响架构时同步 `docs/dev/architecture.md`。

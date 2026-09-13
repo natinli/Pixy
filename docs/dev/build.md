@@ -1,6 +1,6 @@
 # 构建与调试
 
-> **验证状态**：已在 Xcode 26.3（macOS 15）实测通过，产物 `FlowVision.app` 约 71MB。未配置签名证书时需按「签名」一节传附加参数。
+> **验证状态**：已在 Xcode 26.3（macOS 15）实测通过，产物 `Pixy.app` 约 71MB。未配置签名证书时需按「签名」一节传附加参数。
 
 ## 环境要求
 
@@ -60,7 +60,7 @@ sudo xattr -rd com.apple.quarantine ./ffmpeg-kit-build/bundle-apple-xcframework-
 1. 按上文结构组织父目录（BTree、Settings、ffmpeg-kit-build 与 FlowVision 同级）。
 2. 用 Xcode 打开 `FlowVision.xcodeproj`（首次打开会自动 resolve SPM 远程包）。
 3. 菜单 **Product → Build For → Profiling**（上游推荐的 Release 级构建方式）。
-4. **Product → Show Build Folder in Finder** → `Products/Release/FlowVision.app`。
+4. **Product → Show Build Folder in Finder** → `Products/Release/Pixy.app`。
 
 命令行方式（实测通过）：
 

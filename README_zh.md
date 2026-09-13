@@ -1,5 +1,5 @@
 <p align="center">
-<h1 align="center">FlowVision</h1>
+<h1 align="center">Pixy</h1>
 <h3 align="center">为 macOS 设计的瀑布流式图片浏览器</h3>
 </p>
 
@@ -8,7 +8,7 @@
 <a href="README.md">English</a> · 简体中文
 </p>
 
-> 本仓库是 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的 fork，在上游基础上维护中文文档体系并做定制改进。版本历史见 [CHANGELOG.md](CHANGELOG.md)。
+> 本应用名为 **Pixy**，是 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的 fork（仓库名 FlowVision 保留），在上游基础上维护中文文档体系并做定制改进。版本历史见 [CHANGELOG.md](CHANGELOG.md)。
 
 ## 预览
 

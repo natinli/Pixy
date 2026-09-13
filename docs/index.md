@@ -1,6 +1,6 @@
-# FlowVision 文档中心
+# Pixy 文档中心
 
-macOS 瀑布流图片查看器。全部文档为中文，按「你是谁、要做什么」分流。
+macOS 瀑布流图片查看器（fork 自 FlowVision，展示名已更改为 Pixy）。全部文档为中文，按「你是谁、要做什么」分流。
 
 ## 用户文档（docs/user/）
 

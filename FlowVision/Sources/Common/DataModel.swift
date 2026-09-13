@@ -893,7 +893,7 @@ class TreeViewModel {
                     localizedName = ROOT_NAME
                 }
                 if name == "PlaceholderForAutoHideToolbar" {
-                    localizedName = "FlowVision"
+                    localizedName = "Pixy"
                     fullPath = "file:///FlowVisionTitleFolder/"
                 }
                 if subFolder.absoluteString.hasPrefix("file:///VirtualFinderTagsFolder") {

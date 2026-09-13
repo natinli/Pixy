@@ -54,3 +54,21 @@
 #### 待跟进
 
 - [ ] 正式签名配置（Xcode 登录 Apple ID）后重新构建带签名版本。
+
+### [Claude] · 应用更名 FlowVision → Pixy
+
+#### 完成
+
+- 用户经五轮候选名筛选后选定 **Pixy**。
+- 改动（仅展示名，符合 PRD 范围）：
+  - pbxproj：`INFOPLIST_KEY_CFBundleDisplayName = Pixy`（Debug/Release 两处）；`PRODUCT_NAME` 从 `$(TARGET_NAME)` 改为 `Pixy`/`PixyDbg`。
+  - `WindowController.swift:502` 工具栏默认标题、"DataModel.swift:896" localizedName → "Pixy"。
+  - 文档品牌替换：README 双语标题与 fork 说明、CLAUDE.md、docs/index.md、installation.md、faq.md、build.md 产物路径。
+  - CHANGELOG.md 顶部 Fork 条目追加更名记录。
+- 未改动：bundle id（netdcy.FlowVision）、数据目录（Application Support/FlowVision）、scheme 名、仓库目录名、上游 URL、GitHub 仓库名。
+
+#### 验证与技术记录
+
+- Release 构建通过；启动后 Dock、菜单栏、进程 displayed name 均为 **Pixy**。
+- 关键发现：`CFBundleDisplayName` 只改菜单栏/关于窗口显示；**Dock 悬停与快捷菜单用 `CFBundleName`**，它被构建系统强制写为 `$(PRODUCT_NAME)`，改 pbxproj 的 `INFOPLIST_KEY_CFBundleName` 无效（Xcode 不支持该键），源 Info.plist 加该键也会被覆盖。**唯一正规改法是设置 `PRODUCT_NAME`**——产物从 FlowVision.app 变为 Pixy.app，CFBundleName 随之变 Pixy。
+- LaunchServices 缓存旧名时用 `lsregister -f <app>` + `killall Dock` 刷新。

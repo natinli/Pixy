@@ -737,7 +737,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FlowVision/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = FlowVision;
+				INFOPLIST_KEY_CFBundleDisplayName = Pixy;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2024 netdcy";
@@ -751,7 +751,7 @@
 				MARKETING_VERSION = 1.7.6;
 				MERGED_BINARY_TYPE = automatic;
 				PRODUCT_BUNDLE_IDENTIFIER = netdcy.FlowVisionDbg;
-				PRODUCT_NAME = "$(TARGET_NAME)Dbg";
+				PRODUCT_NAME = "PixyDbg";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
@@ -771,7 +771,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FlowVision/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = FlowVision;
+				INFOPLIST_KEY_CFBundleDisplayName = Pixy;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.graphics-design";
 				INFOPLIST_KEY_NSAppleEventsUsageDescription = "";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "© 2024 netdcy";
@@ -785,7 +785,7 @@
 				MARKETING_VERSION = 1.7.6;
 				MERGED_BINARY_TYPE = automatic;
 				PRODUCT_BUNDLE_IDENTIFIER = netdcy.FlowVision;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = "Pixy";
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 			};
