@@ -354,29 +354,14 @@ class CustomTableRowView: NSTableRowView {
         }
     }
 
-    // 为了更好的视觉效果，可能还需要重写背景色绘制方法
-    // For better visual effect, may need to override background color drawing method
+    // 侧边栏改为毛玻璃半透明：行背景不再填充纯色，透出底层 NSVisualEffectView
+    // Sidebar uses vibrancy: row background no longer fills solid color, letting the underlying NSVisualEffectView show through
     override func drawBackground(in dirtyRect: NSRect) {
-        super.drawBackground(in: dirtyRect)
-
-        // 自定义非选中状态下的背景色
-        // Customize background color in unselected state
-        let theme=NSApp.effectiveAppearance.name
-        
-        if theme == .darkAqua {
-            // 暗模式下的颜色
-            // Color in dark mode
-            // hexToNSColor(hex: "#333333").setFill()
-            NSColor(named: NSColor.Name("OutlineViewBgColor"))?.setFill()
-        }else {
-            // 光模式下的颜色
-            // Color in light mode
-            // hexToNSColor(hex: "#F4F5F5").setFill()
-            NSColor(named: NSColor.Name("OutlineViewBgColor"))?.setFill()
-        }
-
+        NSColor.clear.setFill()
         __NSRectFillUsingOperation(dirtyRect, .sourceOver)
-        
+
+        // 右键选中行的边框
+        // Border for right-clicked row
         // 边距
         // Margin
         let selectionRect = NSInsetRect(self.bounds, 9, 2.5)

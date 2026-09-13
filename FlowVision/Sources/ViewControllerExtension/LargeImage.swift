@@ -35,15 +35,23 @@ extension ViewController {
     }
  
     @objc func closeLargeImage(_ sender: Any) {
-        
+
 //        if currLargeImagePos == -1 {
 //            return
 //        }
-        
+
         if !publicVar.isInLargeView || !publicVar.isInLargeViewAfterAnimate {
             return
         }
-        
+
+        // 从 Finder/外部打开图片的会话：关闭大图即退出整个应用（Dock 图标随之消失）
+        // Session launched from Finder/external file: closing the large image quits the whole app (Dock icon disappears)
+        if publicVar.isLaunchFromFile {
+            view.window?.close()
+            NSApp.terminate(nil)
+            return
+        }
+
         view.window?.makeFirstResponder(collectionView)
         
         // 继续自动滚动
