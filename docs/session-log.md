@@ -2,7 +2,33 @@
 
 本日志由 Codex、Claude 或人工共同维护。每个会话条目标题必须标注执行者：`[Codex]`、`[Claude]` 或 `[人工]`。**条目按时间倒序排列：最新条目在最顶部。** 项目级日志记录完整细节；外层 nilo 仓库 `docs/session-log.md` 只记简要条目并指向这里。
 
+## 2026-09-15
+
+### [Codex] · 去除分栏间隙残留竖线，完成圆角收口
+
+- v8 实机验证表明，移除内容面板自绘描边后仍存在一列亮色像素；像素值约为 `#f4f5f5`，与 storyboard 的 `OutlineViewBgColor` 一致，根因是 `NSSplitView` 分栏间隙露出了父级背景，而不是圆角 path 或 Dock。
+- v9 将 `NSSplitView` 自身背景统一为 `NSColor.windowBackgroundColor`，并保留无描边的单侧 12px 填充圆角；新 Release 包重新启动后，竖线消失，底部 junction 只保留自然的白灰弧形过渡。用户现场确认“终于好了”。
+- 构建通过，`git diff --check` 通过；代码未提交、未推送。
+
+### [Codex] · 统一圆角外侧背景，修正材质色带
+
+- 重新置前检查 v6 实机窗口后确认：圆角 path 已经连续，真正造成“圆角下面不干净”的是侧边栏 storyboard `NSVisualEffectView` 仍在绘制粉紫色材质，而内容 pane 弧外壳绘制的是中性窗口底色，两者在分界处形成亮竖带和色阶跳变。
+- 保留 storyboard effect view 作为兼容占位但停止其绘制，在侧边栏 pane 下方加入与内容 pane 共用 `NSColor.windowBackgroundColor` 的不透明背景 view；内容 pane 仍由同一条 leading edge path 绘制填充和弧线。
+- v7 Release 构建通过。实际全屏截图和窗口级截图均确认：上、下圆角只有一条连续边，弧外为统一中性灰；窗口底部紧接的深紫色与窗口边界重合，属于 Dock 上沿而非 Pixy 绘制。未提交、未推送。
+
 ## 2026-09-14
+
+### [Codex] · 移除圆角 path 误画的底边暗线
+
+- 用户最新复核仍指出圆角下方不干净。对比当前截图与 Chrome 参考图的逐行像素后确认：闭合内容 path 的 `stroke()` 同时描了整条底边；在 Dock 上沿之前形成一条横向突变，容易被误认为圆角外侧背景污染。
+- 保留闭合 path 负责内容面填充，边框改为只绘制 leading 侧的竖线与上下两段 12pt 弧线，不再描绘顶部/底部水平边；NSSplitView 的 divider 仍只保留布局与命中区域。
+- 全新 v5 Release 构建通过；窗口级截图确认应用自有圆角边界无底边暗线，全屏截图确认剩余紫色是 Dock 的系统叠层。未提交、未推送。
+
+### [Codex] · 圆角外侧背景污染修正
+
+- 用户反馈内容 pane 的圆角下方背景不干净。运行时对比确认：深紫色区域来自全屏截图中的 macOS Dock；Pixy 自身的弧外层此前仍使用半透明 `NSVisualEffectView`，在窗口底部会让外部颜色参与过渡。
+- 将内容 pane 的弧外层改为不透明 `NSView`，直接绘制动态窗口背景色；内容白面仍由同一条 leading-edge path 绘制，scroll/clip/collection 背景继续保持透明。
+- Release 构建通过；窗口级截图确认圆角外侧干净，全屏截图确认 Dock 仍是窗口外的独立叠层。未提交、未推送。
 
 ### [Claude] · 两段式 UI 重构（用户睡眠期间彻底修复并自查）
 

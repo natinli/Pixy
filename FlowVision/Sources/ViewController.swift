@@ -626,11 +626,6 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         changeWaterfallLayoutNumberOfColumns()
         
         let theme=NSApp.effectiveAppearance.name
-        if theme == .darkAqua {
-            collectionView.layer?.backgroundColor = hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_DARK).cgColor
-        } else {
-            collectionView.layer?.backgroundColor = hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_LIGHT).cgColor
-        }
         lastTheme = theme
         
         if globalVar.autoHideToolbar {
@@ -996,11 +991,7 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "effectiveAppearance" {
             let theme=NSApp.effectiveAppearance.name
-            if theme == .darkAqua {
-                collectionView.layer?.backgroundColor = hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_DARK).cgColor
-            } else {
-                collectionView.layer?.backgroundColor = hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_LIGHT).cgColor
-            }
+            applyContentCardStyle()
             if(lastTheme != theme){
                 refreshAll(dryRun: true, needLoadThumbPriority: false)
             }

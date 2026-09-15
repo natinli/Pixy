@@ -36,6 +36,13 @@ class CustomSplitView: NSSplitView {
             }
         }
     }
+
+    override func drawDivider(in rect: NSRect) {
+        // 分割线的命中区域和布局仍由 NSSplitView 保留；视觉边界统一由
+        // ContentPaneSurfaceView 绘制，避免原生直线穿过上下两个圆角。
+        // Keep NSSplitView's hit area/layout, but let ContentPaneSurfaceView own
+        // the visual edge so a native straight line cannot cross the two arcs.
+    }
     
     override func otherMouseDown(with event: NSEvent) {
         // 检查是否按下了鼠标中键
