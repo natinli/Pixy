@@ -363,7 +363,8 @@ extension WindowController: NSToolbarDelegate {
                 identifiers.append(.showinfo)
             }else{
                 if viewController.publicVar.profile.getValue(forKey: "isWindowTitleUseFullPath") == "true" {
-                    identifiers.append(.space)
+                    // 为地址区域增加固定左侧留白。
+                    identifiers.append(contentsOf: [.space, .space, .space])
                     identifiers.append(.pathControl)
                     if viewController.publicVar.profile.getValue(forKey: "isWindowTitleShowStatistics") == "true" {
                         identifiers.append(.windowTitleStatistics)

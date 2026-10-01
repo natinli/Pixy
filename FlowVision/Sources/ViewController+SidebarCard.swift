@@ -1,28 +1,10 @@
-// MARK: - 两段式结构样式：灰色外壳（侧边栏列）+ 内容 pane 的连续圆角分界
-// MARK: - Two-part structure: gray shell (sidebar column) + continuous content-pane edge
+// MARK: - 共享透明侧边栏材质与内容区单侧圆角
 
 import Cocoa
 
-/// 内容 pane 的弧外背景。这里不能使用透明材质：pane 靠近窗口底部时，
-/// 半透明材质会采样窗口外的 Dock，导致圆角下面出现脏色或暗色楔形。
-/// Background outside the rounded content surface. It must be opaque: near
-/// the bottom of the window, a translucent material can sample the Dock and
-/// create a dirty wedge below the rounded corner.
-private final class ContentPaneShellView: NSView {
-    var fillColor: NSColor = .windowBackgroundColor {
-        didSet { needsDisplay = true }
-    }
-
-    override func draw(_ dirtyRect: NSRect) {
-        fillColor.setFill()
-        dirtyRect.fill()
-    }
-
-    override func hitTest(_ point: NSPoint) -> NSView? {
-        // 背景层不能挡住内容 pane 或分割线的交互。
-        // The background layer must not intercept content or divider events.
-        return nil
-    }
+/// 材质只负责绘制，不参与分栏布局，也不接收目录树的鼠标事件。
+private final class SidebarBackdropView: NSVisualEffectView {
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
 }
 
 /// 内容白面只在靠侧边栏的一侧做圆角；边界完全由填充 path 的反锯齿自然形成。
@@ -33,7 +15,7 @@ private final class ContentPaneSurfaceView: NSView {
         didSet { needsDisplay = true }
     }
 
-    var cornerRadius: CGFloat = 12 {
+    var cornerRadius: CGFloat = 8 {
         didSet { needsDisplay = true }
     }
 
@@ -109,86 +91,77 @@ private final class ContentPaneSurfaceView: NSView {
 
 extension ViewController {
 
-    /// 侧边栏：实心灰，铺满左列全高（无内缩无圆角）
-    /// Sidebar: solid gray, full-bleed, no inset or rounding
+    /// 侧边栏使用窗口背后的透明材质，目录树和滚动容器保持透明。
     func applySidebarCardStyle() {
-        let contentView = view
-        guard let effectView = findSidebarEffectView(in: contentView),
+        guard let effectView = findSidebarEffectView(in: view),
               let sidebarPane = effectView.superview else { return }
 
-        // 侧边栏和内容 pane 的圆角外侧必须共享同一块确定性的底色。
-        // NSVisualEffectView 即使设置为 withinWindow，仍会在窗口边界参与材质合成；
-        // 这会让侧边栏和圆角外壳出现不同色阶。保留 storyboard 里的 effect view
-        // 作为兼容占位，但由同一个不透明背景 view 负责最终绘制。
-        // The sidebar and the rounded pane's outside area must share one stable
-        // color. NSVisualEffectView can still introduce a different material
-        // grade at the window edge, so keep it as a storyboard placeholder but
-        // let one opaque background view own the final pixels.
+        // 分栏共享一张材质背景，圆角外侧与目录栏连续。
         effectView.isHidden = true
+        effectView.material = .sidebar
+        effectView.blendingMode = .behindWindow
+        effectView.state = .followsWindowActiveState
+        sidebarPane.wantsLayer = true
+        sidebarPane.layer?.backgroundColor = NSColor.clear.cgColor
 
-        let backgroundView: ContentPaneShellView
-        if let existing = sidebarPane.subviews.first(where: { $0 is ContentPaneShellView }) as? ContentPaneShellView {
-            backgroundView = existing
-        } else {
-            backgroundView = ContentPaneShellView(frame: sidebarPane.bounds)
-            sidebarPane.addSubview(backgroundView, positioned: .below, relativeTo: outlineScrollView)
-        }
-        backgroundView.fillColor = NSColor.windowBackgroundColor
-        backgroundView.frame = sidebarPane.bounds
-        backgroundView.autoresizingMask = [.width, .height]
+        outlineScrollView.drawsBackground = false
+        outlineScrollView.backgroundColor = .clear
+        outlineScrollView.contentView.drawsBackground = false
+        outlineScrollView.contentView.backgroundColor = .clear
+        outlineView.backgroundColor = .clear
+        // 只隐藏滚动条，滚轮、触控板和键盘滚动继续由 NSScrollView 处理。
+        outlineScrollView.hasVerticalScroller = false
+        outlineScrollView.hasHorizontalScroller = false
     }
 
-    /// 内容区：pane 全高铺外壳，内容白面只在 leading 侧做 12pt 圆角。
-    /// Content: shell fills the pane; the white surface rounds only its leading side.
+    /// 内容面板使用 8pt 单侧圆角，弧外露出共享侧边栏材质。
     func applyContentCardStyle() {
         applySidebarCardStyle()
 
         guard let splitView = findSplitView(in: view),
               let scrollView = findMainScrollView(in: view),
               let pane = scrollView.superview,
-              splitView.arrangedSubviews.contains(where: { $0 === pane }) else { return }
+              splitView.arrangedSubviews.contains(where: { $0 === pane }),
+              let container = splitView.superview else { return }
 
-        // 分栏间隙由 NSSplitView 自身露出；若保留窗口的 OutlineViewBgColor，
-        // 会在灰色侧边栏与白色内容面之间形成一列更亮的直线。
-        // The divider gap is exposed by NSSplitView itself. Its default
-        // OutlineViewBgColor is lighter than the sidebar and creates a bright
-        // straight seam between the gray sidebar and the white content pane.
         splitView.wantsLayer = true
-        splitView.layer?.backgroundColor = NSColor.windowBackgroundColor.cgColor
+        splitView.layer?.backgroundColor = NSColor.clear.cgColor
+        let backdrop: SidebarBackdropView
+        if let existing = container.subviews.first(where: { $0 is SidebarBackdropView }) as? SidebarBackdropView {
+            backdrop = existing
+        } else {
+            backdrop = SidebarBackdropView(frame: splitView.frame)
+            backdrop.identifier = NSUserInterfaceItemIdentifier("PixySplitBackdrop")
+            // NSSplitView 会管理子视图几何；背景放在同级，避免被当作分栏调整。
+            container.addSubview(backdrop, positioned: .below, relativeTo: splitView)
+        }
+        backdrop.material = .sidebar
+        backdrop.blendingMode = .behindWindow
+        backdrop.state = .followsWindowActiveState
+        backdrop.frame = splitView.frame
+        backdrop.autoresizingMask = [.width, .height]
 
-        // pane 本体透明，圆角外侧露出确定性的窗口背景。
-        // Keep the pane transparent so the opaque shell is visible outside the surface.
         pane.wantsLayer = true
         pane.layer?.backgroundColor = NSColor.clear.cgColor
-
-        let shellView: ContentPaneShellView
-        if let existing = pane.subviews.first(where: { $0 is ContentPaneShellView }) as? ContentPaneShellView {
-            shellView = existing
-        } else {
-            shellView = ContentPaneShellView(frame: pane.bounds)
-            pane.addSubview(shellView, positioned: .below, relativeTo: scrollView)
-        }
-        shellView.fillColor = NSColor.windowBackgroundColor
-        shellView.frame = pane.bounds
-        shellView.autoresizingMask = [.width, .height]
 
         let surfaceView: ContentPaneSurfaceView
         if let existing = pane.subviews.first(where: { $0 is ContentPaneSurfaceView }) as? ContentPaneSurfaceView {
             surfaceView = existing
         } else {
             surfaceView = ContentPaneSurfaceView(frame: pane.bounds)
-            pane.addSubview(surfaceView, positioned: .above, relativeTo: shellView)
+            pane.addSubview(surfaceView, positioned: .below, relativeTo: scrollView)
         }
         surfaceView.frame = pane.bounds
         surfaceView.autoresizingMask = [.width, .height]
-        surfaceView.cornerRadius = 12
+        surfaceView.cornerRadius = 8
         surfaceView.leadingEdgeIsLeft = splitView.userInterfaceLayoutDirection != .rightToLeft
         surfaceView.contentColor = NSApp.effectiveAppearance.name == .darkAqua
             ? hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_DARK)
             : hexToNSColor(hex: COLOR_COLLECTIONVIEW_BG_LIGHT)
 
-        // 清掉 AppKit 在 scroll/clip/collection 链上的矩形背景，避免盖住圆角外壳。
-        // Clear AppKit's rectangular backgrounds so they cannot cover the rounded shell.
+        updateContentCornerMask()
+
+        // scroll/clip/collection 使用透明背景，由内容面统一填充底色。
         scrollView.drawsBackground = false
         scrollView.backgroundColor = .clear
         scrollView.wantsLayer = true
@@ -207,6 +180,27 @@ extension ViewController {
             collectionView.wantsLayer = true
             collectionView.layer?.backgroundColor = NSColor.clear.cgColor
         }
+    }
+
+    /// 裁剪整条内容绘制链，缩略图滚动到边缘时也不能盖住圆角。
+    func updateContentCornerMask() {
+        guard let splitView = findSplitView(in: view),
+              let pane = findMainScrollView(in: view)?.superview else { return }
+        if let backdrop = splitView.superview?.subviews.first(where: { $0 is SidebarBackdropView }) {
+            backdrop.frame = splitView.frame
+        }
+        let rect = pane.bounds
+        guard rect.width > 0, rect.height > 0 else { return }
+        let radius = min(8, min(rect.width, rect.height) / 2)
+        let path = CGMutablePath()
+        path.addRoundedRect(in: rect, cornerWidth: radius, cornerHeight: radius)
+        let isRTL = splitView.userInterfaceLayoutDirection == .rightToLeft
+        path.addRect(CGRect(x: isRTL ? rect.minX : rect.midX,
+                            y: rect.minY, width: rect.width / 2, height: rect.height))
+        let mask = (pane.layer?.mask as? CAShapeLayer) ?? CAShapeLayer()
+        mask.frame = rect
+        mask.path = path
+        pane.layer?.mask = mask
     }
 
     // MARK: 视图查找

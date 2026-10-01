@@ -643,7 +643,7 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         }
         
         mainScrollView.scrollerStyle = .legacy
-        outlineScrollView.scrollerStyle = .legacy
+        outlineScrollView.scrollerStyle = .overlay
         
         treeViewData.initData(path: treeRootFolder)
         outlineView.reloadData()
@@ -1020,6 +1020,7 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
     
     override func viewDidLayout() {
         super.viewDidLayout()
+        updateContentCornerMask()
         
         // 调整搜索框位置
         // Adjust search box position

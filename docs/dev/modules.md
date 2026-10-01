@@ -15,6 +15,7 @@
 ### WindowController.swift（2052 行）
 单窗口壳。
 - `toolbar(_:itemForItemIdentifier:)` — 全部工具栏项构建，action 转发 ViewController
+- `getItemIdentifiers` — 地址区域前置固定间距，与导航按钮保持留白
 - `showMoreMenu` — 「更多」巨型菜单（HDR、锁定、RAW 内嵌缩略图、便携/递归模式等约 80 项）
 - `saveWindowState` / `windowWillClose` — frame、lastFolder 持久化 → `viewController.prepareForDeinit()`
 - `windowWillEnterFullScreen/DidEnter/DidExit` — 黑底、工具栏/光标隐藏联动
@@ -30,6 +31,11 @@
   - `startWatchingDirectory` / `scheduledRefresh` — 目录监听 + 防抖刷新
   - `_rightMouseDown/Dragged/Up` — 手势轨迹采集（增量式，阈值 4px）
   - `afterFinishLoad` — 决定启动目录 → 启动后台线程
+
+### ViewController+SidebarCard.swift
+- `applySidebarCardStyle` — 目录树与 scroll/clip 背景透明；关闭横纵滚动条，保留滚动容器。
+- `applyContentCardStyle` — 侧边栏和内容圆角外侧共享 behindWindow/sidebar 材质，背景位于 NSSplitView 同级，不参与分栏布局；内容面采用 leading 侧 8pt 填充圆角。
+- `updateContentCornerMask` — 按内容面板尺寸更新整层裁剪，覆盖 scroll/clip/collection 的绘制；支持 RTL，布局时同步更新。
 
 ## Common/（11 文件）
 
