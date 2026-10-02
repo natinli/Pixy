@@ -104,9 +104,21 @@ extension ViewController {
         hasManualToggleSidebar=true
         publicVar.profile.isDirTreeHidden.toggle()
         if !publicVar.profile.isDirTreeHidden{
-            splitView.setPosition(270, ofDividerAt: 0)
+            splitView.setPosition(238, ofDividerAt: 0)
         }else{
             splitView.setPosition(0, ofDividerAt: 0)
+        }
+
+        // NSSplitView 的自定义布局需要在 setPosition 后再跑一轮，才能让内容面板吃满收起后的宽度。
+        splitView.needsLayout = true
+        view.needsLayout = true
+        view.layoutSubtreeIfNeeded()
+        DispatchQueue.main.async { [weak self] in
+            guard let self else { return }
+            self.splitView.needsLayout = true
+            self.view.needsLayout = true
+            self.view.layoutSubtreeIfNeeded()
+            self.splitViewSizeChanged()
         }
 
 //        let defaults = UserDefaults.standard

@@ -34,7 +34,8 @@
 
 ### ViewController+SidebarCard.swift
 - `applySidebarCardStyle` — 目录树与 scroll/clip 背景透明，共享窗口背后动态 sidebar 材质，目录顶部根据 window.contentLayoutRect 避让工具栏，再保留 15pt 内容间距；关闭横纵滚动条，保留滚动容器。
-- `applyContentCardStyle` — 侧边栏和内容圆角外侧共享 behindWindow/sidebar 材质，背景位于 NSSplitView 同级，不参与分栏布局；内容面采用 leading 侧 8pt 填充圆角。
+- `applyContentCardStyle` — 侧边栏和内容圆角外侧共享 behindWindow/sidebar 材质，背景位于 NSSplitView 同级，不参与分栏布局；内容面采用 leading 侧 8pt 填充圆角，并让主滚动区避开透明标题栏下方的工具栏保护带。
+- `updateContentToolbarInsets` — 按内容面板与 `window.contentLayoutRect` 的几何关系重设主滚动区高度，确保滚动内容不穿过工具栏。
 - `updateContentCornerMask` — 按内容面板尺寸更新整层裁剪，覆盖 scroll/clip/collection 的绘制；支持 RTL，布局时同步更新。
 
 ## Common/（11 文件）
@@ -45,7 +46,7 @@
 - `FileModel` — 单文件：path/ext/type/image/thumbSize/originalSize/rotate/finderTags/lock/ver
 - `DirModel` — `files: Map<SortKeyFile,FileModel>` + layoutCalcPos（增量布局游标）+ keepScrollPos；`changeSortType` 重建排序
 - `DatabaseModel` — `db: Map<SortKeyDir,DirModel>` + curFolder + `ver`（版本号，使旧任务失效）
-- `TreeViewModel`/`TreeNode` — Finder 风格侧栏分组与目录树数据；`SidebarNodeRole` 隔离分组、目录、卷、标签、文件、特殊入口及分隔线，`entryID` + 规范路径组成节点身份；`rebuildSidebar` 是初建与刷新的共同入口，构建个人收藏、iCloud、位置和标签四组；`sidebarCandidates` 负责虚拟域隔离和入口排名，`activeSidebarEntryID` 由用户选择／展开建立，随后成功程序定位更新当前分支；启动程序定位始终保留空值，默认使用最具体的快捷入口。
+- `TreeViewModel`/`TreeNode` — Finder 风格侧栏分组与目录树数据；`SidebarNodeRole` 隔离分组、目录、卷、标签、文件、特殊入口及分隔线，`entryID` + 规范路径组成节点身份；`rebuildSidebar` 是初建与刷新的共同入口，构建精简的个人收藏、iCloud、位置和标签四组，并过滤系统虚拟入口与 TimeMachine；`sidebarCandidates` 负责虚拟域隔离和入口排名，`activeSidebarEntryID` 由用户选择／展开建立，随后成功程序定位更新当前分支。
 - `normalizedURL`/`isVirtualTagURL`/`contains` — 统一文件 URL 规范化与路径组件祖先关系；不按显示名称定位、不解析符号链接改变路径语义；虚拟标签域隔离真实目录候选和文件操作。
 - `TaskPool` — 多队列优先级任务池（makeQueue/push/pop/setMostPriority）
 
@@ -85,13 +86,13 @@
 
 ### FileSystem.swift（1812 行）— 扫描与导航核心
 - `treeTraversal(folderURL:round:initURL:direction:sameLevel:skip:dryRun:)` — 递归扫描：过滤隐藏/搜索/标签/评级 → 分离 subFolders/files → 写 DirModel；按 direction 前序/后序递归
-- `switchDirByDirection(direction:dest:...)` — 导航状态机：zero/left/right/up/down/forward；维护历史栈；`fileDB.ver+=1`；定位 → treeReLocate + switchFolder
+- `switchDirByDirection(direction:dest:...)` — 导航状态机：zero/left/right/up/down/forward；维护历史栈；`fileDB.ver+=1`；定位 → treeReLocate + switchFolder；内容区进入新目录后清除侧栏选中态，侧栏入口发起的导航保留选中。
 - `switchFolder(path:)` — 清任务池、快照渐隐动画、处理 Finder 打开定位、文件推入 readInfoTaskPool
 - `scanFiles` / `scanVirtualFiles` — 递归模式枚举 / 按标签聚合的虚拟目录
 - `handleGetInfo` 系列 — 文件信息窗口数据组装
 
 ### LayoutManagement.swift — 布局计算唯一真源
-- `refreshTreeView` 按稳定节点身份保存、刷新和恢复展开／选中状态；与初建共享 `rebuildSidebar`，保持原目录排序。
+- `refreshTreeView` 按稳定节点身份保存、刷新和恢复用户手动展开／选中状态；与初建共享 `rebuildSidebar`，保持原目录排序。默认导航不自动展开当前路径，目录仍可通过披露箭头按需展开。
 - `recalcLayout(targetFolder)` — 增量计算（从 layoutCalcPos 起）：justified 宽高比凑行 / waterfall·grid 固定列宽 → 写 FileModel.thumbSize/lineNo
 - `switchToJustifiedView/GridView/WaterfallView/DetailView`、`changeThumbSize`、`refreshAll`
 
@@ -109,7 +110,7 @@
 | WindowManagement.swift（417） | maximize/suitable/portable 窗口尺寸系列 |
 | MemoryManagement.swift（87） | LRUMemRecord（目录访问 LRU）、内存 footprint 报告 |
 | AutoScrollPlay.swift（149） | 自动滚动（Timer 连续滚动）与自动播放（定时 nextLargeImage） |
-| DirTree.swift | `treeReLocate` 按真实 URL 选择当前入口／最深收藏祖先／位置，逐级展开并唯一选中；`expandSidebarGroups` 和收藏变更通知入口 |
+| DirTree.swift | `treeReLocate` 按真实 URL 选择当前入口／最深收藏祖先／位置；开启跟随当前目录时才逐级展开，默认只选中目标；`expandSidebarGroups` 和收藏变更通知入口 |
 | LayoutProfileConfig.swift（127） | 自定义布局风格保存/切换 |
 | ProgressBar.swift（219） | 底部细进度条，sessionId 防串台 |
 

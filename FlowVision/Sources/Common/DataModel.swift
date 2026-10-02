@@ -740,25 +740,15 @@ class TreeViewModel {
         let oldFavorites = favorites.children ?? []
         var entries: [TreeNode] = []
         var seen = Set<String>()
-        // Finder 的个人收藏以 AirDrop、最近使用开头；它们是系统虚拟入口，没有文件 URL。
-        entries.append(specialEntry("shortcut:airdrop", key: "sidebar-airdrop", symbol: "dot.radiowaves.left.and.right",
-                                    resource: "SidebarAirDrop.icns", previous: oldFavorites))
-        entries.append(specialEntry("shortcut:recents", key: "sidebar-recents", symbol: "clock", previous: oldFavorites))
-        // Finder 的默认收藏顺序：应用程序、桌面、文稿、下载；图片等自定义入口仍从旧收藏中保留。
+        // 个人收藏保留 Finder 的常用文件夹入口；系统虚拟入口由 Finder 自身负责，不在 Pixy 侧栏重复展示。
         let shortcuts: [(FileManager.SearchPathDirectory, String)] = [
-            (.applicationDirectory, "app.badge"), (.desktopDirectory, "desktopcomputer"),
+            (.desktopDirectory, "desktopcomputer"),
             (.documentDirectory, "doc"), (.downloadsDirectory, "arrow.down.circle")]
         for (directory, symbol) in shortcuts {
             if let url = FileManager.default.urls(for: directory, in: .userDomainMask).first {
-                let resource: String?
-                switch directory {
-                case .applicationDirectory: resource = "SidebarApplicationsFolder.icns"
-                case .desktopDirectory: resource = nil
-                default: resource = nil
-                }
                 let symbol = directory == .desktopDirectory ? "rectangle.bottomthird.inset.filled" : symbol
                 entries.append(entry(url, id: "shortcut:\(url.path)", symbol: symbol,
-                                     resource: resource, previous: oldFavorites))
+                                     previous: oldFavorites))
                 seen.insert(url.path)
             }
         }
@@ -786,8 +776,7 @@ class TreeViewModel {
         if entries.last?.role == .separator { entries.removeLast() }
         favorites.children = entries
 
-        // Finder 的 iCloud 分组位于个人收藏与位置之间。共享目录在未下载时仍保留虚拟入口，
-        // 保证侧栏结构与 Finder 一致，同时不为了绘制侧栏触发 File Provider 扫描。
+        // Finder 的 iCloud 分组位于个人收藏与位置之间，只保留 iCloud 云盘入口。
         let icloud = group("icloud", NSLocalizedString("sidebar-icloud", comment: "iCloud"))
         let oldICloud = icloud.children ?? []
         let cloudDocs = FileManager.default.homeDirectoryForCurrentUser
@@ -798,13 +787,6 @@ class TreeViewModel {
                                        displayName: NSLocalizedString("sidebar-icloud-drive", comment: "iCloud 云盘"), previous: oldICloud))
         } else {
             icloudEntries.append(specialEntry("icloud:drive", key: "sidebar-icloud-drive", symbol: "icloud", previous: oldICloud))
-        }
-        let shared = cloudDocs.appendingPathComponent("Shared", isDirectory: true)
-        if FileManager.default.fileExists(atPath: shared.path) {
-            icloudEntries.append(entry(shared, id: "icloud:shared", role: .directory, symbol: "folder.badge.person.crop",
-                                       displayName: NSLocalizedString("sidebar-shared", comment: "共享"), previous: oldICloud))
-        } else {
-            icloudEntries.append(specialEntry("icloud:shared", key: "sidebar-shared", symbol: "folder.badge.person.crop", previous: oldICloud))
         }
         icloud.children = icloudEntries
 
@@ -820,7 +802,10 @@ class TreeViewModel {
             let mounted = FileManager.default.mountedVolumeURLs(
                 includingResourceValuesForKeys: [.volumeNameKey], options: [.skipHiddenVolumes]) ?? []
             let mountedVolumes = mounted.filter { url in
-                url.path != "/" && !url.path.hasPrefix("/Volumes/com.apple.TimeMachine.localsnapshots")
+                let name = url.lastPathComponent.lowercased()
+                return url.path != "/"
+                    && !url.path.hasPrefix("/Volumes/com.apple.TimeMachine.localsnapshots")
+                    && !name.contains("timemachine")
             }
             let oneDrive = FileManager.default.homeDirectoryForCurrentUser
                 .appendingPathComponent("Library/CloudStorage/OneDrive-个人", isDirectory: true)
@@ -832,9 +817,8 @@ class TreeViewModel {
                     func rank(_ url: URL) -> Int {
                         let name = url.lastPathComponent.lowercased()
                         if name.contains("minimalist") { return 0 }
-                        if name.contains("timemachine") { return 1 }
-                        if name.contains("onedrive") { return 2 }
-                        return 3
+                        if name.contains("onedrive") { return 1 }
+                        return 2
                     }
                     let ranks = (rank(a), rank(b))
                     return ranks.0 == ranks.1
@@ -845,10 +829,7 @@ class TreeViewModel {
                 let lowerName = url.lastPathComponent.lowercased()
                 let symbol: String
                 let displayName: String?
-                if lowerName.contains("timemachine") {
-                    symbol = "clock.arrow.circlepath"
-                    displayName = "TimeMachine"
-                } else if lowerName.contains("onedrive") {
+                if lowerName.contains("onedrive") {
                     symbol = "cloud"
                     displayName = "OneDrive"
                 } else {

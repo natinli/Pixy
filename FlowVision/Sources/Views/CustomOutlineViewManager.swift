@@ -10,6 +10,8 @@ class CustomOutlineViewManager: NSObject {
     var fileDB: DatabaseModel
     var treeViewData: TreeViewModel
     var ifActWhenSelected = true
+    // 侧栏点击触发的目录切换需要保留选中态；内容区、路径栏等其他入口应清除侧栏选中。
+    var isNavigatingFromSidebar = false
     // 路径定位只需要读取每一级的直接子项，避免启动时为用户主目录扫描所有后代目录。
     var suppressDeepChildInspection = false
     weak var outlineView: NSOutlineView?
@@ -174,7 +176,7 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
             view.imageView?.contentTintColor = treeNode.role == .volume ? .secondaryLabelColor : .systemBlue
         }
         let shouldShowEject = treeNode.role == .volume
-            && ["Minimalist", "TimeMachine"].contains(treeNode.name)
+            && treeNode.name == "Minimalist"
         view.ejectImageView.image = shouldShowEject
             ? NSImage(systemSymbolName: "eject", accessibilityDescription: NSLocalizedString("Eject", comment: "推出"))?
                 .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 12, weight: .regular))
@@ -211,12 +213,7 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
             treeViewData.activeSidebarEntryID = item.entryID
             // 系统虚拟入口没有文件夹路径；交给 Finder 打开对应页面，Pixy 当前目录保持不变。
             let finderURL: URL?
-            switch item.entryID {
-            case "shortcut:airdrop": finderURL = URL(string: "x-apple-finder://AirDrop")
-            case "shortcut:recents": finderURL = URL(string: "x-apple-finder://Recents")
-            case "icloud:drive", "icloud:shared": finderURL = URL(string: "x-apple-finder://iCloudDrive")
-            default: finderURL = nil
-            }
+            finderURL = item.entryID == "icloud:drive" ? URL(string: "x-apple-finder://iCloudDrive") : nil
             if let finderURL { NSWorkspace.shared.open(finderURL) }
             return
         }
@@ -230,6 +227,9 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
             // log(fileDB.curFolder)
             // fileDB.unlock()
             // viewController.publicVar.folderStepStack.insert(lastFolderPath, at: 0)
+            // 点击侧栏目录只切换内容；子目录由用户点击披露箭头按需展开。
+            isNavigatingFromSidebar = true
+            defer { isNavigatingFromSidebar = false }
             viewController.switchDirByDirection(direction: .zero, dest: item.fullPath, doCollapse: false, expandLast: false, skip: false, stackDeep: 0)
         }
         

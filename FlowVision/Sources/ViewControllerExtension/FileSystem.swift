@@ -1278,6 +1278,12 @@ extension ViewController {
         if globalVar.dirTreeAutoExpand {
             treeReLocate(path: nextFolder, doCollapse: doCollapse, expandLast: expandLast)
         }
+
+        // Finder 在内容区进入子文件夹后不会继续高亮侧栏入口；只有侧栏自身发起的导航保留选中态。
+        if nextFolder != lastFolder && !outlineViewManager.isNavigatingFromSidebar {
+            outlineView.deselectAll(nil)
+            treeViewData.activeSidebarEntryID = nil
+        }
         
         log("Switch:",nextFolder.removingPercentEncoding!)
         switchFolder(path: nextFolder)

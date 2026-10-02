@@ -296,6 +296,8 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
     var treeViewData = TreeViewModel()
     
     var publicVar = PublicVar()
+    // 记录侧栏最近一次可见宽度，供收起期间的分栏布局保留尺寸基线。
+    private var lastSidebarWidth: CGFloat = 238
     
     var recalcLayoutTimes = 0
     var startTime = DispatchTime(uptimeNanoseconds: 0)
@@ -1032,6 +1034,7 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
     override func viewDidLayout() {
         super.viewDidLayout()
         updateSidebarContentInsets()
+        updateContentToolbarInsets()
         updateContentCornerMask()
         outlineViewManager?.adjustColumnWidth()
         
@@ -1063,15 +1066,25 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         }
 
         let dividerThickness = splitView.dividerThickness
-        let contentWidth = splitView.bounds.width - sidebarView.frame.width - dividerThickness
+        let availableWidth = max(0, splitView.bounds.width - dividerThickness)
+        let requestedSidebarWidth = sidebarView.frame.width > 0 ? sidebarView.frame.width : lastSidebarWidth
+        let sidebarWidth = publicVar.profile.isDirTreeHidden
+            ? 0
+            : min(max(requestedSidebarWidth, 0), availableWidth)
+        let contentWidth = max(0, availableWidth - sidebarWidth)
         let isRTL = splitView.userInterfaceLayoutDirection == .rightToLeft
+
+        sidebarView.clipsToBounds = true
+        if !publicVar.profile.isDirTreeHidden {
+            lastSidebarWidth = sidebarWidth
+        }
 
         if isRTL {
             contentView.frame = CGRect(x: 0, y: 0, width: contentWidth, height: splitView.bounds.height)
-            sidebarView.frame = CGRect(x: contentWidth + dividerThickness, y: 0, width: sidebarView.frame.width, height: splitView.bounds.height)
+            sidebarView.frame = CGRect(x: contentWidth + dividerThickness, y: 0, width: sidebarWidth, height: splitView.bounds.height)
         } else {
-            sidebarView.frame = CGRect(x: 0, y: 0, width: sidebarView.frame.width, height: splitView.bounds.height)
-            contentView.frame = CGRect(x: sidebarView.frame.width + dividerThickness, y: 0, width: contentWidth, height: splitView.bounds.height)
+            sidebarView.frame = CGRect(x: 0, y: 0, width: sidebarWidth, height: splitView.bounds.height)
+            contentView.frame = CGRect(x: sidebarWidth + dividerThickness, y: 0, width: contentWidth, height: splitView.bounds.height)
         }
     }
     func splitViewDidResizeSubviews(_ notification: Notification) {

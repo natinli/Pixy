@@ -256,6 +256,7 @@ class WindowController: NSWindowController, NSWindowDelegate {
         window.standardWindowButton(.zoomButton)?.isHidden = false
         window.titlebarAppearsTransparent = false
         toolbar.isVisible = true
+        (contentViewController as? ViewController)?.updateContentToolbarInsets()
     }
     
     // 隐藏标题栏和工具栏
@@ -269,6 +270,7 @@ class WindowController: NSWindowController, NSWindowDelegate {
         window.standardWindowButton(.zoomButton)?.isHidden = true
         window.titlebarAppearsTransparent = true
         toolbar.isVisible = false
+        (contentViewController as? ViewController)?.updateContentToolbarInsets()
     }
     
     // 安排延迟隐藏光标（在全屏模式下，鼠标停止移动后1秒隐藏）

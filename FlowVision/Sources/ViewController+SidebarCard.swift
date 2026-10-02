@@ -127,6 +127,30 @@ extension ViewController {
         }
     }
 
+    /// 把内容滚动区的上边界放到工具栏下方，避免 fullSizeContentView 下滚动内容穿过标题栏。
+    func updateContentToolbarInsets() {
+        guard let scrollView = findMainScrollView(in: view),
+              let pane = scrollView.superview,
+              let window = scrollView.window else { return }
+
+        // 以内容面板的完整几何计算重叠高度，不能使用已经缩短过的 scrollView frame，
+        // 否则下一轮布局会把保护区算成 0，滚动区又重新穿回标题栏。
+        let paneInWindow = pane.convert(pane.bounds, to: nil)
+        let toolbarOverlap = max(0, paneInWindow.maxY - window.contentLayoutRect.maxY)
+        let availableHeight = max(0, pane.bounds.height - toolbarOverlap)
+        let frame = NSRect(
+            x: pane.bounds.minX,
+            y: pane.isFlipped ? pane.bounds.minY + toolbarOverlap : pane.bounds.minY,
+            width: pane.bounds.width,
+            height: availableHeight
+        )
+        if scrollView.frame != frame {
+            scrollView.frame = frame
+        }
+        // 高度由上面的布局函数控制，窗口变高时再由 viewDidLayout 重算。
+        scrollView.autoresizingMask = [.width]
+    }
+
     /// 内容面板使用 8pt 单侧圆角，弧外露出共享侧边栏材质。
     func applyContentCardStyle() {
         applySidebarCardStyle()
@@ -193,6 +217,8 @@ extension ViewController {
             collectionView.wantsLayer = true
             collectionView.layer?.backgroundColor = NSColor.clear.cgColor
         }
+
+        updateContentToolbarInsets()
     }
 
     /// 裁剪整条内容绘制链，缩略图滚动到边缘时也不能盖住圆角。

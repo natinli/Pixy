@@ -110,7 +110,8 @@ class GlobalVar{
     var openLastFolder = true
     var homeFolder = "file:///"
     var keepFilterStateWhenSwitchFolder = false
-    var dirTreeAutoExpand = true
+    // Finder 默认只展开分组；当前目录不会自动把整条层级路径铺到侧栏。
+    var dirTreeAutoExpand = false
     var largeImageViewShowTagsAndRating = true
     var enhancedIndexEnabled = true
     var collectionViewItemShowTooltip = true
@@ -213,4 +214,3 @@ func getSystemVolumeName() -> String? {
         return nil
     }
 }
-
