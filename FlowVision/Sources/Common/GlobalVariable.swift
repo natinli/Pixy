@@ -25,7 +25,15 @@ let COLOR_COLLECTIONVIEW_BG_LIGHT = "#FFFFFF"
 let COLOR_COLLECTIONVIEW_BG_DARK = "#2D2D2D"
 
 class GlobalVar{
-    var myFavoritesArray = ["/"]
+    static let favoritesDidChange = Notification.Name("PixyFavoritesDidChange")
+    var myFavoritesArray = ["/"] {
+        didSet {
+            guard myFavoritesArray != oldValue else { return }
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: Self.favoritesDidChange, object: nil)
+            }
+        }
+    }
     var windowNum = 0
     var toolbarIndex = 0
     var operationLogs: [String] = []

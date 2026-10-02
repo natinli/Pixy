@@ -8,9 +8,60 @@ import Cocoa
 
 class CustomOutlineView: NSOutlineView, NSMenuDelegate {
     
+    private var sidebarTrackingArea: NSTrackingArea?
+    private var sidebarIsHovered = false
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        if let area = sidebarTrackingArea { removeTrackingArea(area) }
+        let area = NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect], owner: self)
+        addTrackingArea(area)
+        sidebarTrackingArea = area
+    }
+
+    override func mouseEntered(with event: NSEvent) { sidebarIsHovered = true; needsDisplay = true }
+    override func mouseExited(with event: NSEvent) { sidebarIsHovered = false; needsDisplay = true }
+
     var curRightClickedPath = ""
     var curRightClickedIndex = -1
     
+    override func frameOfCell(atColumn column: Int, row: Int) -> NSRect {
+        var frame = super.frameOfCell(atColumn: column, row: row)
+        guard column >= 0, column < tableColumns.count, tableColumns[column] === outlineTableColumn,
+              let node = item(atRow: row) as? TreeNode else { return frame }
+        // 分组仅组织数据，不给根入口额外增加一级视觉缩进。
+        let depth = max(0, level(forRow: row) - 1)
+        let inset: CGFloat = node.role == .group ? 12 : 13 + CGFloat(depth) * indentationPerLevel
+        let columnFrame = rect(ofColumn: column)
+        frame.size.width = max(0, columnFrame.width - inset)
+        frame.origin.x = userInterfaceLayoutDirection == .rightToLeft ? columnFrame.minX : columnFrame.minX + inset
+        return frame
+    }
+
+    override func frameOfOutlineCell(atRow row: Int) -> NSRect {
+        guard let node = item(atRow: row) as? TreeNode, node.role != .group else { return .zero }
+        guard sidebarIsHovered || isItemExpanded(node) else { return .zero }
+        var frame = super.frameOfOutlineCell(atRow: row)
+        guard !frame.isEmpty else { return frame }
+        let inset = 2 + CGFloat(max(0, level(forRow: row) - 1)) * indentationPerLevel
+        frame.origin.x = userInterfaceLayoutDirection == .rightToLeft ? bounds.width - inset - frame.width : inset
+        return frame
+    }
+
+    // 可选行由节点角色与可用性决定，键盘跨组跳过标题、分隔线及失效入口。
+    func selectAdjacentNavigableRow(direction: Int) {
+        guard direction == -1 || direction == 1 else { return }
+        var row = selectedRow >= 0 ? selectedRow + direction : (direction > 0 ? 0 : numberOfRows - 1)
+        while row >= 0 && row < numberOfRows {
+            if let node = item(atRow: row) as? TreeNode, node.isSelectable {
+                selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
+                scrollRowToVisible(row)
+                return
+            }
+            row += direction
+        }
+    }
+
     override func becomeFirstResponder() -> Bool {
         let result = super.becomeFirstResponder()
         log("CustomOutlineView becomeFirstResponder")
@@ -78,8 +129,13 @@ class CustomOutlineView: NSOutlineView, NSMenuDelegate {
         if clickedRow != -1 {
             // self.selectRowIndexes(IndexSet(integer: clickedRow), byExtendingSelection: false)
             
-            let item = self.item(atRow: clickedRow) as? TreeNode
-            curRightClickedPath=item!.fullPath
+            guard let item = self.item(atRow: clickedRow) as? TreeNode,
+                  item.isNavigable, item.role != .special else {
+                curRightClickedPath = ""
+                curRightClickedIndex = -1
+                return nil
+            }
+            curRightClickedPath=item.fullPath
             curRightClickedIndex=clickedRow
             
             (self.delegate as? CustomOutlineViewManager)?.ifActWhenSelected=false
@@ -236,7 +292,7 @@ class CustomOutlineView: NSOutlineView, NSMenuDelegate {
         let selectedIndexes = self.selectedRowIndexes
         for index in selectedIndexes {
             if let item = self.item(atRow: index) as? TreeNode {
-                return URL(string: item.fullPath)
+                return item.fileURL
             }
         }
         return nil

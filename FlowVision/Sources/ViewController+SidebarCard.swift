@@ -91,7 +91,7 @@ private final class ContentPaneSurfaceView: NSView {
 
 extension ViewController {
 
-    /// 侧边栏使用窗口背后的透明材质，目录树和滚动容器保持透明。
+    /// 侧边栏使用窗口背后的系统材质，目录树和滚动容器保持透明。
     func applySidebarCardStyle() {
         guard let effectView = findSidebarEffectView(in: view),
               let sidebarPane = effectView.superview else { return }
@@ -104,6 +104,8 @@ extension ViewController {
         sidebarPane.wantsLayer = true
         sidebarPane.layer?.backgroundColor = NSColor.clear.cgColor
 
+        outlineScrollView.automaticallyAdjustsContentInsets = false
+        updateSidebarContentInsets()
         outlineScrollView.drawsBackground = false
         outlineScrollView.backgroundColor = .clear
         outlineScrollView.contentView.drawsBackground = false
@@ -112,6 +114,17 @@ extension ViewController {
         // 只隐藏滚动条，滚轮、触控板和键盘滚动继续由 NSScrollView 处理。
         outlineScrollView.hasVerticalScroller = false
         outlineScrollView.hasHorizontalScroller = false
+    }
+
+    /// fullSizeContentView 覆盖工具栏；只给目录内容避让，不移动共享材质背景。
+    func updateSidebarContentInsets() {
+        guard let window = outlineScrollView.window else { return }
+        let viewportInWindow = outlineScrollView.convert(outlineScrollView.bounds, to: nil)
+        let toolbarOverlap = max(0, viewportInWindow.maxY - window.contentLayoutRect.maxY)
+        let top = toolbarOverlap + 15
+        if abs(outlineScrollView.contentInsets.top - top) > 0.5 {
+            outlineScrollView.contentInsets = NSEdgeInsets(top: top, left: 0, bottom: 0, right: 0)
+        }
     }
 
     /// 内容面板使用 8pt 单侧圆角，弧外露出共享侧边栏材质。

@@ -10,9 +10,58 @@ class CustomOutlineViewManager: NSObject {
     var fileDB: DatabaseModel
     var treeViewData: TreeViewModel
     var ifActWhenSelected = true
+    // 路径定位只需要读取每一级的直接子项，避免启动时为用户主目录扫描所有后代目录。
+    var suppressDeepChildInspection = false
     weak var outlineView: NSOutlineView?
     
     private var adjustColumnWidthWorkItem: DispatchWorkItem?
+
+    private static let coreTypesResourceDirectory = "/System/Library/CoreServices/CoreTypes.bundle/Contents/Resources"
+
+    private static func sidebarResourceImage(named resourceName: String) -> NSImage? {
+        if let image = NSImage(named: resourceName) {
+            image.isTemplate = true
+            return image
+        }
+        let path = "\(coreTypesResourceDirectory)/\(resourceName)"
+        guard let image = NSImage(contentsOfFile: path) else { return nil }
+        // Finder 将这些 CoreTypes 资源作为模板图标使用，再交给侧栏颜色统一着色。
+        image.isTemplate = true
+        return image
+    }
+
+    private func sidebarTagImage(for node: TreeNode) -> NSImage? {
+        guard let url = TreeViewModel.normalizedURL(node.fullPath) else { return nil }
+        if url.path == "/VirtualFinderTagsFolder" {
+            return NSImage(size: NSSize(width: 16, height: 16), flipped: false) { _ in
+                NSColor.secondaryLabelColor.setStroke()
+                for x: CGFloat in [2, 6] {
+                    let ring = NSBezierPath(ovalIn: NSRect(x: x, y: 4, width: 8, height: 8))
+                    ring.lineWidth = 1
+                    ring.stroke()
+                }
+                return true
+            }
+        }
+        let tag = FinderTag.byName(url.lastPathComponent)
+        let color: NSColor
+        switch tag?.colorIndex {
+        case 1: color = .systemGray
+        case 2: color = .systemGreen
+        case 3: color = .systemPurple
+        case 4: color = .systemBlue
+        case 5: color = .systemYellow
+        case 6: color = .systemRed
+        case 7: color = .systemOrange
+        default: color = tag?.color ?? .secondaryLabelColor
+        }
+        // 文件标签源色保持原样；侧栏圆点只采用系统语义色，以匹配 Finder。
+        return NSImage(size: NSSize(width: 16, height: 16), flipped: false) { _ in
+            color.setFill()
+            NSBezierPath(ovalIn: NSRect(x: 3, y: 3, width: 10, height: 10)).fill()
+            return true
+        }
+    }
     
     init(fileDB: DatabaseModel, treeViewData: TreeViewModel, outlineView: NSOutlineView) {
         self.fileDB = fileDB
@@ -40,6 +89,7 @@ extension CustomOutlineViewManager: NSOutlineViewDataSource {
         guard let treeNode = item as? TreeNode else {
             return false
         }
+        if treeNode.role == .separator || treeNode.role == .file { return false }
         if (treeNode.children?.count ?? 0) > 0 {
             return true
         }
@@ -50,57 +100,90 @@ extension CustomOutlineViewManager: NSOutlineViewDataSource {
     }
     func outlineViewItemWillExpand(_ notification: Notification) {
         if let item = notification.userInfo?["NSObject"] as? TreeNode {
-            // 在这里执行你的代码
-            // Execute your code here
+            if ifActWhenSelected && item.isNavigable {
+                treeViewData.activeSidebarEntryID = item.entryID
+            }
             log("TreeData expand: \(item.fullPath)")
-            treeViewData.expand(node: item, isLookSub: true)
+            treeViewData.expand(node: item, isLookSub: !suppressDeepChildInspection)
         }
     }
 
 }
 extension CustomOutlineViewManager: NSOutlineViewDelegate {
+    func outlineView(_ outlineView: NSOutlineView, shouldShowOutlineCellForItem item: Any) -> Bool {
+        (item as? TreeNode)?.role != .group
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, isGroupItem item: Any) -> Bool {
+        // 分组使用普通行，自行控制标题间距，避免系统源列表额外叠加留白。
+        false
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, shouldSelectItem item: Any) -> Bool {
+        (item as? TreeNode)?.isSelectable == true
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, shouldCollapseItem item: Any) -> Bool {
+        (item as? TreeNode)?.role != .group
+    }
+
+    func outlineView(_ outlineView: NSOutlineView, heightOfRowByItem item: Any) -> CGFloat {
+        switch (item as? TreeNode)?.role {
+        case .group: return (item as? TreeNode)?.entryID == "favorites" ? 18 : 32
+        case .separator: return 10
+        default: return 28
+        }
+    }
+
 
     func outlineView(_ outlineView: NSOutlineView, viewFor tableColumn: NSTableColumn?, item: Any) -> NSView? {
         guard let treeNode = item as? TreeNode else { return nil }
-        let view = outlineView.makeView(withIdentifier: NSUserInterfaceItemIdentifier("DataCell"), owner: self) as! CustomTableCellView
-        view.textField?.stringValue = treeNode.localizedName ?? treeNode.name
-        
-        if treeNode.fullPath.contains("FlowVisionTitleFolder") {
-            view.imageView?.image = NSImage(named: "AppIcon")
-            view.imageView?.contentTintColor = nil
-        } else if treeNode.fullPath.hasPrefix("file:///VirtualFinderTagsFolder") {
-            let tagIcon = NSImage(systemSymbolName: "tag.fill", accessibilityDescription: nil)?
-                .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 14, weight: .regular))
-            if let url = URL(string: treeNode.fullPath), url.path != "/VirtualFinderTagsFolder" {
-                let tag = FinderTag.byName(url.lastPathComponent)
-                if let dotImage = tag?.dotImage {
-                    view.imageView?.image = dotImage
-                    view.imageView?.contentTintColor = nil
-                } else {
-                    view.imageView?.image = tagIcon
-                    view.imageView?.contentTintColor = .secondaryLabelColor
-                }
-            } else {
-                view.imageView?.image = tagIcon
-                view.imageView?.contentTintColor = .secondaryLabelColor
-            }
-        } else {
-            let folderIcon = NSImage(named: NSImage.folderName)?.withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 20, weight: .regular))
-            view.imageView?.image = folderIcon
-            view.imageView?.contentTintColor = nil
+        if treeNode.role == .group {
+            let container = NSTableCellView()
+            let title = NSTextField(labelWithString: treeNode.name)
+            title.translatesAutoresizingMaskIntoConstraints = false
+            container.addSubview(title)
+            NSLayoutConstraint.activate([
+                title.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 4),
+                title.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -8),
+                title.centerYAnchor.constraint(equalTo: container.centerYAnchor, constant: treeNode.entryID == "favorites" ? 0 : 7)
+            ])
+            title.font = .systemFont(ofSize: 11, weight: .semibold)
+            title.textColor = .secondaryLabelColor
+            title.lineBreakMode = .byTruncatingTail
+            return container
         }
-        
-//        let backgroundView = NSView()
-//        backgroundView.wantsLayer = true
-//        backgroundView.layer?.backgroundColor = NSColor.lightGray.cgColor
-//        view.addSubview(backgroundView, positioned: .below, relativeTo: view.textField)
-//
-//        // 确保背景视图填充整个cell
-//        backgroundView.frame = view.bounds
-//        backgroundView.autoresizingMask = [.width, .height]
-        
+        if treeNode.role == .separator {
+            let line = NSBox()
+            line.boxType = .separator
+            return line
+        }
+        guard let view = outlineView.makeView(withIdentifier: NSUserInterfaceItemIdentifier("DataCell"), owner: self) as? CustomTableCellView else { return nil }
+        view.textField?.stringValue = treeNode.localizedName ?? treeNode.name
+        view.textField?.font = .systemFont(ofSize: 13)
+        view.textField?.textColor = .labelColor
+        view.textField?.lineBreakMode = .byTruncatingTail
+        view.toolTip = treeNode.fileURL?.path ?? treeNode.name
+        if treeNode.role == .tag {
+            view.imageView?.image = sidebarTagImage(for: treeNode)
+            view.imageView?.contentTintColor = nil
+        } else {
+            view.imageView?.image = treeNode.sidebarResourceName.flatMap(Self.sidebarResourceImage(named:))
+                ?? NSImage(systemSymbolName: treeNode.symbolName, accessibilityDescription: nil)?
+                    .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 16, weight: .regular))
+            view.imageView?.contentTintColor = treeNode.role == .volume ? .secondaryLabelColor : .systemBlue
+        }
+        let shouldShowEject = treeNode.role == .volume
+            && ["Minimalist", "TimeMachine"].contains(treeNode.name)
+        view.ejectImageView.image = shouldShowEject
+            ? NSImage(systemSymbolName: "eject", accessibilityDescription: NSLocalizedString("Eject", comment: "推出"))?
+                .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 12, weight: .regular))
+            : nil
+        view.ejectImageView.contentTintColor = .secondaryLabelColor
         let isCut = globalVar.cutItemPaths.contains(treeNode.fullPath)
         if isCut {
+            view.alphaValue = 0.4
+        } else if treeNode.fileURL.map({ !FileManager.default.fileExists(atPath: $0.path) }) == true {
             view.alphaValue = 0.4
         } else if treeNode.isHidden {
             view.alphaValue = 0.5
@@ -123,7 +206,23 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
     
     func itemSelected(_ item: TreeNode) {
         guard let viewController = getViewController(outlineView) else { return }
+        guard item.isNavigable else { return }
+        if item.role == .special {
+            treeViewData.activeSidebarEntryID = item.entryID
+            // 系统虚拟入口没有文件夹路径；交给 Finder 打开对应页面，Pixy 当前目录保持不变。
+            let finderURL: URL?
+            switch item.entryID {
+            case "shortcut:airdrop": finderURL = URL(string: "x-apple-finder://AirDrop")
+            case "shortcut:recents": finderURL = URL(string: "x-apple-finder://Recents")
+            case "icloud:drive", "icloud:shared": finderURL = URL(string: "x-apple-finder://iCloudDrive")
+            default: finderURL = nil
+            }
+            if let finderURL { NSWorkspace.shared.open(finderURL) }
+            return
+        }
+        if let url = item.fileURL, !FileManager.default.fileExists(atPath: url.path) { return }
         if ifActWhenSelected {
+            treeViewData.activeSidebarEntryID = item.entryID
             // log("Selected item: \(item.name)")
             // fileDB.lock()
             // let lastFolderPath = fileDB.curFolder
@@ -141,26 +240,6 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
     
     func outlineViewItemDidExpand(_ notification: Notification) {
         adjustColumnWidth()
-        
-        // 重新选中之前选中的项
-        // Re-select previously selected item
-        fileDB.lock()
-        let curFolder = fileDB.curFolder
-        fileDB.unlock()
-        if let item = notification.userInfo?["NSObject"] as? TreeNode,
-           let children = item.children {
-            for child in children {
-                if child.fullPath == curFolder {
-                    if let row = outlineView?.row(forItem: child),
-                       row != -1 {
-                        ifActWhenSelected=false
-                        outlineView?.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false)
-                        ifActWhenSelected=true
-                        break
-                    }
-                }
-            }
-        }
         
     }
     
@@ -180,34 +259,10 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
             // Specify the index of the column you need to adjust
             let columnIndex = 0
             let column = outlineView.tableColumns[columnIndex]
-            var maxWidth: CGFloat = 10
-            
-            // 遍历所有可见行
-            // Iterate through all visible rows
-            for i in 0..<outlineView.numberOfRows {
-                // 获取每行对应列的单元格内容
-                // Get cell content for each row's corresponding column
-                if let item = outlineView.item(atRow: i) as? TreeNode {
-                    // 计算这个单元格内容的宽度
-                    // Calculate width of this cell content
-                    let content = item.localizedName ?? item.name
-                    let attributes = [NSAttributedString.Key.font: NSFont.systemFont(ofSize: 13)]
-                    let size = (content as NSString).size(withAttributes: attributes)
-                    
-                    // 获取当前行的层级，并计算缩进
-                    // Get current row's level and calculate indentation
-                    let level = outlineView.level(forRow: i)
-                    let indentation = outlineView.indentationPerLevel * CGFloat(level)
-                    
-                    // 更新最大宽度
-                    // Update maximum width
-                    // 再留一点边距
-                    // Leave a bit more margin
-                    maxWidth = max(maxWidth, size.width + indentation + 35)
-                }
-            }
-            
-            column.width = maxWidth
+            // 列宽归属滚动容器：长名截断并显示 tooltip，不横向撑大选中行。
+            let width = outlineView.enclosingScrollView?.contentSize.width ?? outlineView.bounds.width
+            if abs(column.width - width) > 0.5 { column.width = width }
+
         }
         
         adjustColumnWidthWorkItem = workItem
@@ -215,17 +270,17 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
     }
     
     func outlineView(_ outlineView: NSOutlineView, validateDrop info: NSDraggingInfo, proposedItem item: Any?, proposedChildIndex index: Int) -> NSDragOperation {
-        if let node = item as? TreeNode, node.fullPath.hasPrefix("file:///VirtualFinderTagsFolder") {
-            return []
-        }
+        guard let node = item as? TreeNode, let url = node.fileURL,
+              node.role != .file, FileManager.default.fileExists(atPath: url.path) else { return [] }
+        outlineView.setDropItem(node, dropChildIndex: NSOutlineViewDropOnItemIndex)
         return .move
     }
     
     func outlineView(_ outlineView: NSOutlineView, acceptDrop info: NSDraggingInfo, item: Any?, childIndex index: Int) -> Bool {
-        guard let outlineItem = item as? TreeNode else { return false }
+        guard let outlineItem = item as? TreeNode, outlineItem.role != .file, outlineItem.fileURL != nil else { return false }
         guard let viewController = getViewController(outlineView) else { return false }
 
-        if let targetUrl = URL(string: outlineItem.fullPath) {
+        if let targetUrl = outlineItem.fileURL {
             let pasteboard = info.draggingPasteboard
             if let data = pasteboard.data(forType: .fileURL),
                let pasteboardUrl = URL(dataRepresentation: data, relativeTo: nil),
@@ -260,14 +315,11 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
     }
     
     func outlineView(_ outlineView: NSOutlineView, pasteboardWriterForItem item: Any) -> NSPasteboardWriting? {
-        guard let outlineItem = item as? TreeNode else { return nil }
-        if outlineItem.fullPath.hasPrefix("file:///VirtualFinderTagsFolder") { return nil }
+        guard let outlineItem = item as? TreeNode, let url = outlineItem.fileURL else { return nil }
         
         let pasteboardItem = NSPasteboardItem()
 
-        if let url=URL(string: outlineItem.fullPath) {
-            pasteboardItem.setString(url.absoluteString, forType: .fileURL)
-        }
+        pasteboardItem.setString(url.absoluteString, forType: .fileURL)
         
         return pasteboardItem
     }
@@ -277,6 +329,7 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
 class CustomTableCellView: NSTableCellView {
     
     private var didSetupConstraints = false
+    let ejectImageView = NSImageView()
 
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -284,12 +337,14 @@ class CustomTableCellView: NSTableCellView {
         guard !didSetupConstraints, let imageView = imageView, let textField = textField else { return }
         didSetupConstraints = true
 
-        // 仅在RTL布局时使用Auto Layout约束替换storyboard的固定frame，以支持阿拉伯语等RTL语言的布局镜像
-        // Only apply Auto Layout constraints under RTL to mirror the layout for Arabic etc.
-        guard userInterfaceLayoutDirection == .rightToLeft else { return }
+        // 两种书写方向共享 leading/trailing 约束，正文垂直居中。
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         textField.translatesAutoresizingMaskIntoConstraints = false
+        ejectImageView.translatesAutoresizingMaskIntoConstraints = false
+        ejectImageView.imageScaling = .scaleProportionallyDown
+        ejectImageView.contentTintColor = .secondaryLabelColor
+        addSubview(ejectImageView)
 
         NSLayoutConstraint.activate([
             imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
@@ -297,9 +352,15 @@ class CustomTableCellView: NSTableCellView {
             imageView.widthAnchor.constraint(equalToConstant: 16),
             imageView.heightAnchor.constraint(equalToConstant: 16),
 
-            textField.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 3),
-            textField.trailingAnchor.constraint(equalTo: trailingAnchor),
+            textField.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 7),
+            textField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             textField.centerYAnchor.constraint(equalTo: centerYAnchor),
+
+            // Finder 将推出按钮留在行右侧约 24pt 的位置；不要让它贴到侧栏边界。
+            ejectImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -36),
+            ejectImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
+            ejectImageView.widthAnchor.constraint(equalToConstant: 14),
+            ejectImageView.heightAnchor.constraint(equalToConstant: 14),
         ])
     }
     
@@ -320,36 +381,21 @@ class CustomTableCellView: NSTableCellView {
 }
 
 class CustomTableRowView: NSTableRowView {
+    override var interiorBackgroundStyle: NSView.BackgroundStyle { .normal }
+
 
     override func drawSelection(in dirtyRect: NSRect) {
         if self.selectionHighlightStyle != .none {
             // 边距
             // Margin
-            let selectionRect = NSInsetRect(self.bounds, 8, 1.5)
+            let selectionRect = NSInsetRect(self.bounds, 10, 1.5)
             // 圆角半径
             // Corner radius
-            let selectionPath = NSBezierPath(roundedRect: selectionRect, xRadius: 4, yRadius: 4)
+            let selectionPath = NSBezierPath(roundedRect: selectionRect, xRadius: 5, yRadius: 5)
             
-            // 自定义选中状态下的背景色
-            // Customize background color in selected state
-            let theme=NSApp.effectiveAppearance.name
-            
-            // 检查是否是第一响应者
-            // Check if is first responder
-            if let window = self.window, let firstResponder = window.firstResponder as? NSView, (firstResponder === self || self.isDescendant(of: firstResponder)) {
-                if theme == .darkAqua {
-                    // 暗模式下的颜色
-                    // Color in dark mode
-                    NSColor.controlAccentColor.setFill()
-                } else {
-                    // 光模式下的颜色
-                    // Color in light mode
-                    NSColor.controlAccentColor.setFill()
-                }
-            }else{
-                NSColor.systemGray.setFill()
-            }
-            
+            let dark = effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
+            let alpha: CGFloat = window?.isKeyWindow == true ? 0.16 : 0.10
+            (dark ? NSColor.white : NSColor.black).withAlphaComponent(alpha).setFill()
             selectionPath.fill()
         }
     }
@@ -367,7 +413,7 @@ class CustomTableRowView: NSTableRowView {
         let selectionRect = NSInsetRect(self.bounds, 9, 2.5)
         // 圆角半径
         // Corner radius
-        let selectionPath = NSBezierPath(roundedRect: selectionRect, xRadius: 4, yRadius: 4)
+        let selectionPath = NSBezierPath(roundedRect: selectionRect, xRadius: 5, yRadius: 5)
         // 获取当前 row 的 index
         // Get current row's index
         if let tableView = self.superview as? NSTableView {

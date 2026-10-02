@@ -608,7 +608,26 @@ func getMapKeysFile (_ theMap : Map<SortKeyFile,FileModel>) -> [(SortKeyFile,Fil
     return keys
 }
 
+enum SidebarNodeRole { case root, group, directory, volume, tag, file, separator, special }
+
 class TreeNode: NSObject {
+    var role: SidebarNodeRole = .directory
+    var entryID = ""
+    var symbolName = "folder"
+    // Finder 的固定入口使用 CoreTypes 中的系统侧栏资源；普通目录仍使用 SF Symbols。
+    var sidebarResourceName: String?
+    var stableID: String { "\(role):\(entryID):\(TreeViewModel.normalizedURL(fullPath)?.path ?? fullPath)" }
+    var isNavigable: Bool { [.directory, .volume, .tag, .file, .special].contains(role) }
+    var isSelectable: Bool {
+        guard isNavigable else { return false }
+        return fileURL.map { FileManager.default.fileExists(atPath: $0.path) } ?? (role == .tag || role == .special)
+    }
+    var fileURL: URL? {
+        guard [.directory, .volume, .file].contains(role) else { return nil }
+        guard let url = TreeViewModel.normalizedURL(fullPath), !TreeViewModel.isVirtualTagURL(url) else { return nil }
+        return url
+    }
+
     var name: String
     var localizedName: String?
     var fullPath: String
@@ -625,22 +644,238 @@ class TreeNode: NSObject {
 
 class TreeViewModel {
     var root: TreeNode?
+    var activeSidebarEntryID: String?
+    // 启动定位期间只沿目标路径生成直接子节点，避免一次性读取用户目录。
+    var sidebarRelocationTarget: URL?
     weak var viewController: ViewController!
     
+    // 入口只投影真实配置；分组不携带可供文件操作使用的 URL。
+    static func normalizedURL(_ path: String) -> URL? {
+        guard !path.isEmpty else { return nil }
+        if path.hasPrefix("/") { return URL(fileURLWithPath: path).standardizedFileURL }
+        guard let url = URL(string: path), url.isFileURL else { return nil }
+        return url.standardizedFileURL
+    }
+
+    static func isVirtualTagURL(_ url: URL) -> Bool {
+        url.pathComponents.dropFirst().first == "VirtualFinderTagsFolder"
+    }
+
+    static func contains(_ ancestor: URL, _ target: URL) -> Bool {
+        target.pathComponents.starts(with: ancestor.pathComponents)
+    }
+
+    func sidebarCandidates(for target: URL) -> [(TreeNode, TreeNode)] {
+        let activeEntryID = activeSidebarEntryID
+        let groups = root?.children ?? []
+        var candidates: [(TreeNode, TreeNode)] = []
+        for group in groups {
+            for entry in group.children ?? [] {
+                guard entry.isNavigable, let url = TreeViewModel.normalizedURL(entry.fullPath),
+                      (entry.role == .tag) == TreeViewModel.isVirtualTagURL(target),
+                      TreeViewModel.contains(url, target) else { continue }
+                candidates.append((group, entry))
+            }
+        }
+        // 当前入口优先；随后取收藏里最深的祖先，最后回退磁盘入口。
+        candidates.sort { a, b in
+            let aCurrent = a.1.entryID == activeEntryID
+            let bCurrent = b.1.entryID == activeEntryID
+            if aCurrent != bCurrent { return aCurrent }
+            let aFavorite = a.0.entryID == "favorites"
+            let bFavorite = b.0.entryID == "favorites"
+            if aFavorite != bFavorite { return aFavorite }
+            return (TreeViewModel.normalizedURL(a.1.fullPath)?.pathComponents.count ?? 0)
+                > (TreeViewModel.normalizedURL(b.1.fullPath)?.pathComponents.count ?? 0)
+        }
+        return candidates
+    }
+
     func initData(path: String) {
         root = TreeNode(name: "Root", fullPath: path)
-        expand(node: root!, isLookSub: true)
-//        var currentNode = root!
-//        // currentNode.children?.append(TreeNode(name: "test", fullPath: "curPath"))
-//        let newNode = TreeNode(name: "test", fullPath: "curPath")
-//        if currentNode.children == nil {
-//            currentNode.children = [newNode]
-//        } else {
-//            currentNode.children?.append(newNode)
-//        }
-
+        root?.role = .root
+        rebuildSidebar()
     }
-    
+
+    func rebuildSidebar() {
+        guard let root = root else { return }
+        let oldGroups = root.children ?? []
+        func group(_ id: String, _ title: String) -> TreeNode {
+            let node = oldGroups.first { $0.entryID == id } ?? TreeNode(name: title)
+            node.role = .group
+            node.entryID = id
+            return node
+        }
+        func entry(_ url: URL, id: String, role: SidebarNodeRole = .directory,
+                   symbol: String = "folder", displayName: String? = nil,
+                   resource: String? = nil,
+                   previous: [TreeNode]) -> TreeNode {
+            let node = previous.first { $0.entryID == id && Self.normalizedURL($0.fullPath)?.path == url.path }
+                ?? TreeNode(name: url.lastPathComponent, fullPath: url.absoluteString)
+            node.role = role
+            node.entryID = id
+            node.symbolName = symbol
+            node.sidebarResourceName = resource
+            let systemName = url.path == "/" ? ROOT_NAME : (try? url.resourceValues(forKeys: [.localizedNameKey]).localizedName)
+            node.name = displayName ?? systemName ?? url.lastPathComponent
+            node.localizedName = displayName ?? systemName
+            node.hasChild = role == .directory || role == .volume || (role == .tag && url.path == "/VirtualFinderTagsFolder")
+            return node
+        }
+        func specialEntry(_ id: String, key: String, symbol: String,
+                          resource: String? = nil, previous: [TreeNode]) -> TreeNode {
+            let node = previous.first { $0.entryID == id } ?? TreeNode(name: NSLocalizedString(key, comment: "Finder sidebar special item"))
+            node.name = NSLocalizedString(key, comment: "Finder sidebar special item")
+            node.localizedName = node.name
+            node.fullPath = ""
+            node.role = .special
+            node.entryID = id
+            node.symbolName = symbol
+            node.sidebarResourceName = resource
+            node.children = nil
+            node.hasChild = false
+            return node
+        }
+        let favorites = group("favorites", NSLocalizedString("sidebar-favorites", comment: "个人收藏"))
+        let oldFavorites = favorites.children ?? []
+        var entries: [TreeNode] = []
+        var seen = Set<String>()
+        // Finder 的个人收藏以 AirDrop、最近使用开头；它们是系统虚拟入口，没有文件 URL。
+        entries.append(specialEntry("shortcut:airdrop", key: "sidebar-airdrop", symbol: "dot.radiowaves.left.and.right",
+                                    resource: "SidebarAirDrop.icns", previous: oldFavorites))
+        entries.append(specialEntry("shortcut:recents", key: "sidebar-recents", symbol: "clock", previous: oldFavorites))
+        // Finder 的默认收藏顺序：应用程序、桌面、文稿、下载；图片等自定义入口仍从旧收藏中保留。
+        let shortcuts: [(FileManager.SearchPathDirectory, String)] = [
+            (.applicationDirectory, "app.badge"), (.desktopDirectory, "desktopcomputer"),
+            (.documentDirectory, "doc"), (.downloadsDirectory, "arrow.down.circle")]
+        for (directory, symbol) in shortcuts {
+            if let url = FileManager.default.urls(for: directory, in: .userDomainMask).first {
+                let resource: String?
+                switch directory {
+                case .applicationDirectory: resource = "SidebarApplicationsFolder.icns"
+                case .desktopDirectory: resource = nil
+                default: resource = nil
+                }
+                let symbol = directory == .desktopDirectory ? "rectangle.bottomthird.inset.filled" : symbol
+                entries.append(entry(url, id: "shortcut:\(url.path)", symbol: symbol,
+                                     resource: resource, previous: oldFavorites))
+                seen.insert(url.path)
+            }
+        }
+        let home = FileManager.default.homeDirectoryForCurrentUser
+        entries.append(entry(home, id: "shortcut:\(home.path)", symbol: "house", previous: oldFavorites))
+        seen.insert(home.path)
+        var separatorIndex = 0
+        for path in globalVar.myFavoritesArray {
+            if path == FavoritesPopoverViewController.separatorValue {
+                if entries.last?.role != .separator {
+                    let node = TreeNode(name: "")
+                    node.role = .separator
+                    node.entryID = "separator:\(separatorIndex)"
+                    entries.append(node)
+                    separatorIndex += 1
+                }
+                continue
+            }
+            guard let url = Self.normalizedURL(path), seen.insert(url.path).inserted else { continue }
+            let isTag = Self.isVirtualTagURL(url)
+            let isFile = !isTag && (try? url.resourceValues(forKeys: [.isRegularFileKey]).isRegularFile) == true
+            entries.append(entry(url, id: "favorite:\(url.path)", role: isTag ? .tag : (isFile ? .file : .directory),
+                                 symbol: isFile ? "doc" : "folder", previous: oldFavorites))
+        }
+        if entries.last?.role == .separator { entries.removeLast() }
+        favorites.children = entries
+
+        // Finder 的 iCloud 分组位于个人收藏与位置之间。共享目录在未下载时仍保留虚拟入口，
+        // 保证侧栏结构与 Finder 一致，同时不为了绘制侧栏触发 File Provider 扫描。
+        let icloud = group("icloud", NSLocalizedString("sidebar-icloud", comment: "iCloud"))
+        let oldICloud = icloud.children ?? []
+        let cloudDocs = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs", isDirectory: true)
+        var icloudEntries: [TreeNode] = []
+        if FileManager.default.fileExists(atPath: cloudDocs.path) {
+            icloudEntries.append(entry(cloudDocs, id: "icloud:drive", role: .directory, symbol: "icloud",
+                                       displayName: NSLocalizedString("sidebar-icloud-drive", comment: "iCloud 云盘"), previous: oldICloud))
+        } else {
+            icloudEntries.append(specialEntry("icloud:drive", key: "sidebar-icloud-drive", symbol: "icloud", previous: oldICloud))
+        }
+        let shared = cloudDocs.appendingPathComponent("Shared", isDirectory: true)
+        if FileManager.default.fileExists(atPath: shared.path) {
+            icloudEntries.append(entry(shared, id: "icloud:shared", role: .directory, symbol: "folder.badge.person.crop",
+                                       displayName: NSLocalizedString("sidebar-shared", comment: "共享"), previous: oldICloud))
+        } else {
+            icloudEntries.append(specialEntry("icloud:shared", key: "sidebar-shared", symbol: "folder.badge.person.crop", previous: oldICloud))
+        }
+        icloud.children = icloudEntries
+
+        let locations = group("locations", NSLocalizedString("sidebar-locations", comment: "位置"))
+        let oldLocations = locations.children ?? []
+        let computerName = (Host.current().localizedName ?? "Mac")
+            .replacingOccurrences(of: "的", with: " 的 ")
+        let computer = entry(URL(fileURLWithPath: "/"), id: "location:computer", role: .volume,
+                             symbol: "macmini", displayName: computerName,
+                             resource: nil, previous: oldLocations)
+        var locationEntries: [TreeNode] = [computer]
+        if root.fullPath == "root" {
+            let mounted = FileManager.default.mountedVolumeURLs(
+                includingResourceValuesForKeys: [.volumeNameKey], options: [.skipHiddenVolumes]) ?? []
+            let mountedVolumes = mounted.filter { url in
+                url.path != "/" && !url.path.hasPrefix("/Volumes/com.apple.TimeMachine.localsnapshots")
+            }
+            let oneDrive = FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Library/CloudStorage/OneDrive-个人", isDirectory: true)
+            var volumeURLs = mountedVolumes
+            if FileManager.default.fileExists(atPath: oneDrive.path) { volumeURLs.append(oneDrive) }
+            let uniqueVolumes = Dictionary(grouping: volumeURLs, by: { $0.standardizedFileURL.path })
+                .compactMap { $0.value.first }
+                .sorted { a, b in
+                    func rank(_ url: URL) -> Int {
+                        let name = url.lastPathComponent.lowercased()
+                        if name.contains("minimalist") { return 0 }
+                        if name.contains("timemachine") { return 1 }
+                        if name.contains("onedrive") { return 2 }
+                        return 3
+                    }
+                    let ranks = (rank(a), rank(b))
+                    return ranks.0 == ranks.1
+                        ? a.lastPathComponent.localizedStandardCompare(b.lastPathComponent) == .orderedAscending
+                        : ranks.0 < ranks.1
+                }
+            for url in uniqueVolumes {
+                let lowerName = url.lastPathComponent.lowercased()
+                let symbol: String
+                let displayName: String?
+                if lowerName.contains("timemachine") {
+                    symbol = "clock.arrow.circlepath"
+                    displayName = "TimeMachine"
+                } else if lowerName.contains("onedrive") {
+                    symbol = "cloud"
+                    displayName = "OneDrive"
+                } else {
+                    symbol = "externaldrive"
+                    displayName = nil
+                }
+                let resource: String? = lowerName.contains("onedrive") ? "SidebarOneDrive" : nil
+                locationEntries.append(entry(url, id: "location:\(url.path)", role: .volume,
+                                             symbol: symbol, displayName: displayName,
+                                             resource: resource, previous: oldLocations))
+            }
+        } else if let customRoot = Self.normalizedURL(root.fullPath), customRoot.path != "/" {
+            locationEntries.append(entry(customRoot, id: "location:\(customRoot.path)", role: .volume,
+                                         symbol: "externaldrive", previous: oldLocations))
+        }
+        locations.children = locationEntries
+        let tags = group("tags", NSLocalizedString("sidebar-tags", comment: "标签"))
+        let tagRoot = TreeNode(name: NSLocalizedString("sidebar-all-tags", comment: "所有标签"), fullPath: "file:///VirtualFinderTagsFolder/")
+        tagRoot.role = .tag
+        tagRoot.entryID = "tags"
+        expand(node: tagRoot, isLookSub: false)
+        tags.children = (tagRoot.children ?? []) + [tagRoot]
+        tagRoot.children = nil
+        tagRoot.hasChild = false
+        root.children = [favorites, icloud, locations, tags]
+    }
+
     func hasSubdirectory(at folderURL: URL) -> Bool {
         if folderURL.path.hasPrefix("/VirtualFinderTagsFolder") {
             if folderURL.path == "/VirtualFinderTagsFolder" {
@@ -670,7 +905,10 @@ class TreeViewModel {
     }
     
     func expand(node: TreeNode, isLookSub: Bool){
-        let folderURL=URL(string: node.fullPath)!
+        if node.role == .root { rebuildSidebar(); return }
+        guard node.role != .group, node.role != .separator, node.role != .file,
+              let folderURL = Self.normalizedURL(node.fullPath) else { return }
+        if node.role == .tag && folderURL.path != "/VirtualFinderTagsFolder" { return }
         do{
             var contents = [URL]()
             
@@ -684,7 +922,19 @@ class TreeViewModel {
                     }
                 }
             } else if folderURL.path != "root" {
-                contents = try FileManager.default.contentsOfDirectory(at: folderURL, includingPropertiesForKeys: [.isDirectoryKey, .isUbiquitousItemKey, .isHiddenKey, .contentModificationDateKey, .creationDateKey, .addedToDirectoryDateKey], options: [])
+                // 侧栏只需要直接子项；通过 path API 避免 File Provider 元数据查询阻塞主线程。
+                if !isLookSub, let target = sidebarRelocationTarget,
+                   Self.contains(folderURL, target), folderURL.path != target.path {
+                    var directChild = target
+                    while directChild.deletingLastPathComponent().path != folderURL.path {
+                        let parent = directChild.deletingLastPathComponent()
+                        if parent.path == directChild.path { break }
+                        directChild = parent
+                    }
+                    contents = [directChild]
+                } else {
+                    contents = try FileManager.default.contentsOfDirectory(atPath: folderURL.path).map { folderURL.appendingPathComponent($0) }
+                }
             }else{
 
                 let fileManager = FileManager.default
@@ -904,11 +1154,13 @@ class TreeViewModel {
                     }
                 }
                 var newNode = TreeNode(name: name, fullPath: fullPath)
+                newNode.entryID = node.entryID
+                newNode.role = Self.isVirtualTagURL(subFolder) ? .tag : .directory
                 newNode.localizedName = localizedName
                 newNode.isHidden = (try? subFolder.resourceValues(forKeys: [.isHiddenKey]))?.isHidden ?? false
                 
-                if oldChildren?.contains(where: { $0.name == newNode.name }) ?? false {
-                    newNode = oldChildren!.first(where: { $0.name == newNode.name })!
+                if oldChildren?.contains(where: { $0.stableID == newNode.stableID }) ?? false {
+                    newNode = oldChildren!.first(where: { $0.stableID == newNode.stableID })!
                 }
                 node.children?.append(newNode)
                 
@@ -932,7 +1184,10 @@ class TreeViewModel {
                             }
                         }catch{}
                     }
-                }
+                } else {
+                    // 路径定位时不预扫描后代，只保留 Finder 风格的可展开提示。
+                    newNode.hasChild = true
+                    }
             }
             
             

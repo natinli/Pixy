@@ -120,3 +120,13 @@ FlowVision/Sources/（53 个 Swift 文件，约 3.3 万行）
 - **目录监听**：DispatchSourceFileSystemObject + 防抖（RefCode.swift 的 FSEvents 是未接入的参考实现）。
 - **FFmpeg 懒加载**：未提供 xcframework 时应用正常运行，仅视频解码能力降级。
 - **RTL 镜像**：三个布局类各自镜像 x 坐标，手势判定在 RTL 下左右语义互换。
+
+## Finder 风格侧栏
+
+`TreeViewModel.rebuildSidebar` 将 Finder 系统快捷入口（隔空投送、最近使用、应用程序、桌面、文稿、下载）、`globalVar.myFavoritesArray`、iCloud 云盘／共享、当前本机、实际挂载卷、OneDrive 及现有 Finder 标签投影为个人收藏／iCloud／位置／标签四组。分组节点不携带文件 URL，普通目录保持按需枚举；不同入口使用独立节点对象，身份由角色、入口 ID 和完整路径组成。刷新复用同身份节点并恢复展开、选中状态。
+
+目录跟随由 `DirTree.treeReLocate` 统一负责：按规范 URL 的路径组件判断祖先关系，由 `TreeViewModel.sidebarCandidates` 排名，优先当前已成功定位的入口分支，其次最深收藏祖先，最后位置；只展开目标分支并选中一行；启动恢复尚无用户导航分支时，优先匹配桌面等最具体的快捷入口，同时折叠其他临时展开分支；用户点击／展开建立导航分支后，程序定位才更新当前分支标识，不自动展开整棵磁盘树。标签继续使用既有虚拟路径；`isVirtualTagURL` 统一识别虚拟域，标签收藏按标签角色投影，路径候选不会与真实根目录混合。自定义树根作为位置入口保留，收藏存储格式不变。
+
+收藏唯一源仍是 `globalVar.myFavoritesArray`；其 didSet 在主线程通知全部窗口，窗口刷新投影，关闭清理时解除观察。固定系统快捷入口只参与显示和去重，不写回收藏，也不保存侧栏展开状态到收藏。
+
+`CustomOutlineView` 与 Manager 根据节点角色隔离标题、分隔线的导航／右键／拖放，标签不参与真实文件读写。原生 OutlineView 显式使用 plain style，由自定义行统一拥有标题间距、去除分组层视觉缩进和灰底选中几何，避免自动源列表样式附加边距。目录内容顶部按 `window.contentLayoutRect` 计算被工具栏遮挡的高度，再增加 15pt 间距，背景保持覆盖全窗口；布局变化时更新。列宽固定为 viewport，长名称截断并显示 tooltip；初始侧栏宽 238pt，用户仍可拖宽。外观统一使用系统动态颜色、线性图标、28pt 正文行及 leading/trailing 约束，固定 Finder 入口优先使用 macOS CoreTypes 侧栏资源（应用程序、桌面、隔空投送），OneDrive 使用资源目录中的 Finder 同形模板字形，本机入口使用 `macmini` 符号，共享入口使用文件夹徽标，外置磁盘行保留推出按钮；侧栏与内容 8pt 圆角外侧共享窗口背后动态 sidebar 材质。

@@ -193,43 +193,41 @@ extension ViewController {
         }
     }
     
-    func refreshTreeView(){
-        var expandedItems: [TreeNode] = []
-        
-        func checkExpandedItems(item: TreeNode) {
-            if outlineView.isItemExpanded(item) {
-                expandedItems.append(item)
-                if let children = item.children {
-                    for child in children {
-                        checkExpandedItems(item: child)
-                    }
-                }
+    func refreshTreeView() {
+        var expanded = Set<String>()
+        let selectedID = (outlineView.item(atRow: outlineView.selectedRow) as? TreeNode)?.stableID
+        func capture(_ node: TreeNode) {
+            if outlineView.isItemExpanded(node) { expanded.insert(node.stableID) }
+            for child in node.children ?? [] { capture(child) }
+        }
+        for node in treeViewData.root?.children ?? [] { capture(node) }
+        let previousAction = outlineViewManager.ifActWhenSelected
+        outlineViewManager.ifActWhenSelected = false
+        defer { outlineViewManager.ifActWhenSelected = previousAction }
+        treeViewData.rebuildSidebar()
+        func refresh(_ node: TreeNode) {
+            if expanded.contains(node.stableID), node.role != .group {
+                treeViewData.expand(node: node, isLookSub: true)
             }
+            for child in node.children ?? [] { refresh(child) }
         }
-
-        if let root = treeViewData.root {
-            treeViewData.expand(node: root, isLookSub: true)
-        }
-        
-        if let children = treeViewData.root?.children {
-            for item in children {
-                checkExpandedItems(item: item)
+        for node in treeViewData.root?.children ?? [] { refresh(node) }
+        outlineView.reloadData()
+        expandSidebarGroups()
+        func restore(_ node: TreeNode) {
+            if expanded.contains(node.stableID) { outlineView.expandItem(node) }
+            if node.stableID == selectedID {
+                let row = outlineView.row(forItem: node)
+                if row >= 0 { outlineView.selectRowIndexes(IndexSet(integer: row), byExtendingSelection: false) }
             }
+            for child in node.children ?? [] { restore(child) }
         }
-
-        // 对已展开的项进行操作
-        // Operate on the expanded items
-        for item in expandedItems {
-            treeViewData.expand(node: item, isLookSub: true)
-        }
-        
+        outlineView.deselectAll(nil)
+        for node in treeViewData.root?.children ?? [] { restore(node) }
         fileDB.lock()
         let curFolder = fileDB.curFolder
         fileDB.unlock()
-        outlineView.reloadData()
-        if globalVar.dirTreeAutoExpand {
-            treeReLocate(path: curFolder, doCollapse: false, expandLast: false)
-        }
+        if globalVar.dirTreeAutoExpand { treeReLocate(path: curFolder, doCollapse: false, expandLast: false) }
         outlineViewManager.adjustColumnWidth()
     }
 }

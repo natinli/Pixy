@@ -525,6 +525,13 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         // Global drag operation
         outlineView.setDraggingSourceOperationMask([.every], forLocal: false)
         outlineView.columnAutoresizingStyle = .noColumnAutoresizing
+        outlineView.style = .plain
+        outlineView.rowHeight = 28
+        outlineView.intercellSpacing = NSSize(width: 0, height: 0)
+        outlineView.indentationPerLevel = 14
+        outlineView.selectionHighlightStyle = .regular
+        NotificationCenter.default.addObserver(self, selector: #selector(sidebarFavoritesDidChange(_:)),
+                                               name: GlobalVar.favoritesDidChange, object: nil)
         
         // 初始化splitView
         // Initialize splitView
@@ -610,8 +617,10 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         
         publicVar.setFileExtensions()
         
-        if publicVar.profile.isDirTreeHidden{
+        if publicVar.profile.isDirTreeHidden {
             splitView.setPosition(0, ofDividerAt: 0)
+        } else {
+            splitView.setPosition(238, ofDividerAt: 0)
         }
 
         if publicVar.profile.layoutType == .waterfall {
@@ -633,8 +642,7 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
             outlineScrollView.automaticallyAdjustsContentInsets = false
         }
 
-        // 侧边栏 WorkBuddy 风格 + 内容区圆角白卡
-        // Sidebar WorkBuddy style + rounded content card
+        // Finder 风格侧栏与内容区共享圆角外侧材质。
         applySidebarCardStyle()
         applyContentCardStyle()
 
@@ -647,6 +655,7 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         
         treeViewData.initData(path: treeRootFolder)
         outlineView.reloadData()
+        expandSidebarGroups()
         DispatchQueue.main.async {
             self.outlineViewManager.adjustColumnWidth()
         }
@@ -851,6 +860,7 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
     }
     
     func prepareForDeinit() {
+        NotificationCenter.default.removeObserver(self, name: GlobalVar.favoritesDidChange, object: nil)
         // 在这里执行清理工作
         // Perform cleanup work here
         log("ViewController is being deinitialized")
@@ -1009,7 +1019,8 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         }
 
         // 获取行对应的条目
-        if let item = outlineView.item(atRow: row) {
+        if let item = outlineView.item(atRow: row) as? TreeNode,
+           item.role != .group, item.role != .separator, item.role != .special {
             if outlineView.isItemExpanded(item) {
                 outlineView.collapseItem(item)
             } else {
@@ -1020,7 +1031,9 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
     
     override func viewDidLayout() {
         super.viewDidLayout()
+        updateSidebarContentInsets()
         updateContentCornerMask()
+        outlineViewManager?.adjustColumnWidth()
         
         // 调整搜索框位置
         // Adjust search box position

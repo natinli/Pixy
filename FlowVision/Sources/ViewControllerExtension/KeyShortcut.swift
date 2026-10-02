@@ -757,22 +757,9 @@ extension ViewController {
                             let selectedRow=outlineView.selectedRow
                             // ⬆️
                             if specialKey == .upArrow {
-                                if selectedRow > 0 {
-                                    let previousRow = selectedRow - 1
-                                    outlineView.selectRowIndexes(IndexSet(integer: previousRow), byExtendingSelection: false)
-                                    // 可选：滚动视图以确保选中的项可见
-                                    // Optional: Scroll view to ensure selected item is visible
-                                    outlineView.scrollRowToVisible(previousRow)
-                                }
-                                // ⬇️
+                                outlineView.selectAdjacentNavigableRow(direction: -1)
                             } else if specialKey == .downArrow {
-                                if selectedRow != -1 && selectedRow < outlineView.numberOfRows - 1 {
-                                    let nextRow = selectedRow + 1
-                                    outlineView.selectRowIndexes(IndexSet(integer: nextRow), byExtendingSelection: false)
-                                    // 可选：滚动视图以确保选中的项可见
-                                    // Optional: Scroll view to ensure selected item is visible
-                                    outlineView.scrollRowToVisible(nextRow)
-                                }
+                                outlineView.selectAdjacentNavigableRow(direction: 1)
                                 // ⬅️➡️、Space/Enter
                                 // ⬅️➡️, Space/Enter
                             }else {

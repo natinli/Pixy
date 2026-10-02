@@ -1,6 +1,198 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "sidebar-favorites" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Favorites"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "个人收藏"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "個人收藏"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المفضلة"
+          }
+        }
+      }
+    },
+    "sidebar-airdrop" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "AirDrop" }
+        },
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "隔空投送" }
+        },
+        "zh-Hant" : {
+          "stringUnit" : { "state" : "translated", "value" : "隔空投送" }
+        },
+        "ar" : {
+          "stringUnit" : { "state" : "translated", "value" : "AirDrop" }
+        }
+      }
+    },
+    "sidebar-recents" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "Recents" }
+        },
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "最近使用" }
+        },
+        "zh-Hant" : {
+          "stringUnit" : { "state" : "translated", "value" : "最近使用" }
+        },
+        "ar" : {
+          "stringUnit" : { "state" : "translated", "value" : "Recents" }
+        }
+      }
+    },
+    "sidebar-icloud" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "iCloud" }
+        },
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "iCloud" }
+        },
+        "zh-Hant" : {
+          "stringUnit" : { "state" : "translated", "value" : "iCloud" }
+        },
+        "ar" : {
+          "stringUnit" : { "state" : "translated", "value" : "iCloud" }
+        }
+      }
+    },
+    "sidebar-icloud-drive" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "iCloud Drive" }
+        },
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "iCloud 云盘" }
+        },
+        "zh-Hant" : {
+          "stringUnit" : { "state" : "translated", "value" : "iCloud 雲碟" }
+        },
+        "ar" : {
+          "stringUnit" : { "state" : "translated", "value" : "iCloud Drive" }
+        }
+      }
+    },
+    "sidebar-shared" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : { "state" : "translated", "value" : "Shared" }
+        },
+        "zh-Hans" : {
+          "stringUnit" : { "state" : "translated", "value" : "共享" }
+        },
+        "zh-Hant" : {
+          "stringUnit" : { "state" : "translated", "value" : "共享" }
+        },
+        "ar" : {
+          "stringUnit" : { "state" : "translated", "value" : "Shared" }
+        }
+      }
+    },
+    "sidebar-locations" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Locations"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "位置"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "المواقع"
+          }
+        }
+      }
+    },
+    "sidebar-tags" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tags"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "标签"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "標籤"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "الوسوم"
+          }
+        }
+      }
+    },
+    "sidebar-all-tags" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "All Tags…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有标签…"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有標籤…"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "كل الوسوم…"
+          }
+        }
+      }
+    },
     "(Multiselect)" : {
       "comment" : "(多选)",
       "localizations" : {
