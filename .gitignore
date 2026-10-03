@@ -1,2 +1,12 @@
 xcuserdata/
 LocalDev.xcconfig
+.build/
+DerivedData/
+build/
+.swiftpm/
+*.xcarchive
+*.dmg
+*.zip
+*.p12
+*.mobileprovision
+dist/

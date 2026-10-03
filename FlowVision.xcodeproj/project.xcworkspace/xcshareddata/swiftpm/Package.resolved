@@ -1,6 +1,15 @@
 {
-  "originHash" : "e833fb3387e3d25a8dd47d041d897793d3acaf462dff351bb613c1059f8b80e8",
+  "originHash" : "374c3cdc5c2b1dac9784d4a98765f6fa2a75647cba23090b00f27dab9663237d",
   "pins" : [
+    {
+      "identity" : "btree",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/attaswift/BTree.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "407fda73e18cc9df9130453ee36f73408c22408f"
+      }
+    },
     {
       "identity" : "libwebp-xcode",
       "kind" : "remoteSourceControl",
@@ -26,6 +35,15 @@
       "state" : {
         "revision" : "f534cfe830a7807ecc3d0332127a502426cfa067",
         "version" : "0.14.6"
+      }
+    },
+    {
+      "identity" : "settings",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sindresorhus/Settings.git",
+      "state" : {
+        "revision" : "f41475771f65379ca10852c95119a7f53f0de5a5",
+        "version" : "3.1.2"
       }
     }
   ],

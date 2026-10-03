@@ -1,93 +1,79 @@
 <p align="center">
 <h1 align="center">Pixy</h1>
-<h3 align="center">Waterfall-style Image Viewer for macOS</h3>
+<h3 align="center">Waterfall-style image viewer for macOS</h3>
 </p>
 
 <p align="center">
-<a href="https://github.com/natinli/Pixy/releases"><img src="https://img.shields.io/github/release/netdcy/FlowVision.svg?color=blue" alt="release"></a>
-English · <a href="README_zh.md">简体中文</a>
+<a href="https://github.com/natinli/Pixy/releases"><img src="https://img.shields.io/github/release/natinli/Pixy.svg?color=blue" alt="release"></a>
+<a href="README_zh.md">简体中文</a>
 </p>
 
-> The app is named **Pixy**. This repository is a fork of [netdcy/FlowVision](https://github.com/netdcy/FlowVision) (repo name FlowVision kept), maintaining a Chinese documentation system and custom improvements on top of upstream. See [CHANGELOG.md](CHANGELOG.md) for version history.
+> Pixy is a macOS image and video browser based on [netdcy/FlowVision](https://github.com/netdcy/FlowVision). The fork keeps upstream attribution while maintaining its own release, documentation, and Finder-style navigation work. See [CHANGELOG.md](CHANGELOG.md) for the project history.
 
 ## Preview
 
 ### Light Mode
-![preview](https://netdcy.github.io/FlowVision/docs/preview_2.png)
+![preview](docs/preview_2.png)
 
 ### Dark Mode
-![preview](https://netdcy.github.io/FlowVision/docs/preview_1.png)
+![preview](docs/preview_1.png)
 
 ## Features
 
-- **Four view modes**: justified layout, waterfall, grid, and list — switch with one click
-- **Finder-style file management**: copy/cut/paste/rename/delete, directory tree, breadcrumb path bar
-- **Right-click gestures**: quickly jump to the next/previous folder with images, go to parent, or go back in history
-- **Video playback**: inline autoplay, playback controls, A-B loop, continuous playback in list
-- **Full image view**: high-quality scaling (reduces moiré), rotation/mirroring, EXIF/GPS info, OCR and QR code recognition
-- **HDR display** (macOS 14.0+), camera RAW support, WebP/PNG animations
-- **Finder tags and XMP ratings**: tagging, filtering, and sorting by tag or rating
-- **Performance**: smooth browsing of directories with tens of thousands of images, LRU memory management, incremental refresh on directory changes
+- **Four view modes**: justified layout, waterfall, grid, and list
+- **Finder-style file management**: copy/cut/paste/rename/delete, directory tree, and breadcrumb path bar
+- **Finder-style sidebar**: familiar macOS locations, tags, disclosure behavior, and dynamic selection feedback
+- **Right-click gestures**: jump to neighboring image folders, the parent folder, or navigation history
+- **Video playback**: inline playback controls, A-B loop, and continuous playback in lists
+- **Full image view**: high-quality scaling, rotation/mirroring, EXIF/GPS information, OCR, and QR recognition
+- **HDR display** (macOS 14.0+), camera RAW, WebP, and animated PNG support
+- **Finder tags and XMP ratings**: tagging, filtering, and sorting
+- **Performance**: incremental directory refresh and LRU memory management for large folders
 - **Recursive mode**: browse an entire subtree in one window
 
 ## Installation
 
-Requires macOS 11.0+. Open source, no network requests.
+Pixy supports macOS 11.0 and later. Published releases are intended to be **Developer ID signed and Apple notarized**, so Finder can use Pixy as the default image viewer without asking users to bypass Gatekeeper. Download the latest `.dmg` or `.zip` from [GitHub Releases](https://github.com/natinli/Pixy/releases), then drag Pixy to Applications.
 
-**Homebrew (recommended)**
+If a release is not available yet, build from source with [docs/dev/build.md](docs/dev/build.md). An unsigned source build is for development and may be blocked by Gatekeeper; it is not the release distribution path.
 
-```bash
-brew install flowvision
-```
-
-Upgrade:
-
-```bash
-brew update && brew upgrade flowvision
-```
-
-**Build from source**: see [docs/dev/build.md](docs/dev/build.md) (Chinese).
-
-For detailed installation instructions: [docs/user/installation.md](docs/user/installation.md) (Chinese).
+For the complete installation and first-launch guide, see [docs/user/installation.md](docs/user/installation.md).
 
 ## Quick Start
 
 | Action | How |
 |---|---|
 | Open/close full image view | Double-click a thumbnail |
-| Zoom | Scroll wheel in image view; or hold right/left button and scroll |
+| Zoom | Scroll in image view; or hold a mouse button and scroll |
 | Folder navigation | Right-click gestures: right/left = next/previous image folder, up = parent, down = back |
 | Keyboard navigation | W = parent, A/D = previous/next, S = back |
 | Search & filter | ⌘ + F |
 
-Full usage documentation (gestures, all shortcuts, video controls, tags and ratings): [docs/user/usage.md](docs/user/usage.md) (Chinese).
+Full usage documentation: [docs/user/usage.md](docs/user/usage.md).
 
-Troubleshooting: [docs/user/faq.md](docs/user/faq.md) (Chinese).
+Troubleshooting: [docs/user/faq.md](docs/user/faq.md).
 
 ## Documentation
 
 | Document | Description |
 |---|---|
-| [docs/index.md](docs/index.md) | Documentation hub (Chinese) |
-| [docs/user/](docs/user/installation.md) | User docs: installation, usage, FAQ (Chinese) |
-| [docs/dev/](docs/dev/architecture.md) | Developer docs: architecture, module reference, build, contributing (Chinese) |
+| [docs/index.md](docs/index.md) | Documentation hub |
+| [docs/user/](docs/user/installation.md) | Installation, usage, and FAQ |
+| [docs/dev/](docs/dev/architecture.md) | Architecture, modules, build, and contribution guidance |
+| [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) | Dependency licenses and distribution notes |
 | [CHANGELOG.md](CHANGELOG.md) | Version history |
-| [CLAUDE.md](CLAUDE.md) | AI collaboration entry point (Chinese) |
 
 ## Development
 
-- Requirements: Xcode 15.2+, see [docs/dev/build.md](docs/dev/build.md)
-- Stack: pure AppKit (Swift), SPM dependencies SDWebImage(+WebP), BTree, Settings; FFmpegKit xcframework lazy-loaded
-- Third-party libraries: [ffmpeg-kit](https://github.com/arthenica/ffmpeg-kit) · [BTree](https://github.com/attaswift/BTree) · [Settings](https://github.com/sindresorhus/Settings)
+- Requirements: Xcode 15.2+ and macOS 11.0+ SDK
+- Stack: AppKit and Swift, with locked Swift Package dependencies for SDWebImage, BTree, and Settings
+- Optional video runtime: FFmpegKit 6.0 full-gpl macOS xcframework, downloaded and checksum-verified by the bootstrap script
+- Build instructions: [docs/dev/build.md](docs/dev/build.md)
 
-## Support
+## Contributing
 
-If you find this app helpful, please consider supporting the upstream developer!
-
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://buymeacoffee.com/netdcyn)
-
-<img src="https://flowvision.app/donate.jpg" alt="WeChat Donate" width="350"/>
+Please read [CONTRIBUTING.md](CONTRIBUTING.md), [SECURITY.md](SECURITY.md), and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before opening a pull request or reporting a security issue.
 
 ## License
 
-This project is licensed under the GPL. See [LICENSE](LICENSE) for the full text.
+Pixy is distributed under the GPL-3.0 license. See [LICENSE](LICENSE) and [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md) for the complete distribution context.

@@ -2,6 +2,39 @@
 
 本日志由 Codex、Claude 或人工共同维护。每个会话条目标题必须标注执行者：`[Codex]`、`[Claude]` 或 `[人工]`。**条目按时间倒序排列：最新条目在最顶部。** 项目级日志记录完整细节；外层 nilo 仓库 `docs/session-log.md` 只记简要条目并指向这里。
 
+## 2026-10-03
+
+### [Codex] · Pixy GitHub 开源发布准备
+
+- TL;DR：把 Pixy 的构建、依赖、签名公证、安装和社区入口整理为公开可复现流程。
+
+#### ✅ 完成
+
+- BTree、Settings 改为公开 Swift Package，并由 `Package.resolved` 固定解析结果；移除工程中开发机绝对路径。
+- 新增 FFmpegKit bootstrap 与复制脚本，固定下载地址、版本和 SHA-256；带视频运行库的通用 arm64/x86_64 Release 构建通过，8 个 framework 均进入 `Pixy.app`。
+- 移除公开工程中的个人 Team ID 和默认开发签名，新增 `release.sh` 完成 Developer ID archive/export、DMG/ZIP、公证、staple、spctl 与 checksum；新增 PR/推送 CI 与 tag 发布 workflow。
+- 更新公开 README、安装、构建、FAQ 和第三方许可证说明；新增 CONTRIBUTING、SECURITY、CODE_OF_CONDUCT 与首发 smoke checklist。
+- 补齐 `NSAppleEventsUsageDescription`，保留图片/视频 UTI 声明并移除未使用的 Photos Library entitlement，安装文档明确默认图片应用依赖签名公证 release。
+
+#### 验证
+
+- `xcodebuild -list -project FlowVision.xcodeproj` 通过。
+- Release 无签名构建通过；带 FFmpegKit 的干净 Release 构建通过，产物为通用 arm64/x86_64。
+- `sh -n`、`plutil -lint`、`git diff --check`、`scripts/check-public-hygiene.sh` 通过。
+- 全新临时 clone 等价副本 `/tmp/pixy-fresh-RrUtrP` 重新解析 `Package.resolved`，执行无 FFmpegKit 的 Release clean/build，输出 `BUILD SUCCEEDED`；依赖来源与公开卫生检查通过。构建日志移出副本后再执行卫生检查，避免把本机环境变量写入验证树。
+- 复核发布脚本后改为分别提交 ZIP 与 DMG 公证，再执行 App/DMG staple，确保两种公开分发格式都有对应的公证记录。
+- 只读核对 `natinli/Pixy`：仓库已公开、默认分支为 `main`、GPL-3.0；Issues 当前关闭，远端暂无 `v*` tag/Release，`main` 未启用分支保护。由于本轮未 push，新增 workflow 仍只存在本地。
+- 对照上游 `netdcy/FlowVision` 的 `main` 与 1.7.6 Release：上游工程使用 Automatic Signing，实际包为 Developer ID 签名、已公证并 stapled。Pixy 工程恢复同样的 Automatic Signing 方式，Team ID 仅在本机/CI 注入，发布脚本改为 Automatic + Developer ID。
+- 本机只发现 Apple Development 身份，没有 Developer ID Application 证书；`pixy-notary` 公证 profile 不存在。无签名 Release 构建已通过，真实公证包留待配置发布证书和凭据后验证。
+- 用本机 Apple Development 身份尝试 Automatic Signing 失败：Xcode 对 macOS target 需要匹配的 `Mac Development` 证书，依赖包和 Pixy 均报告证书类型不匹配；未生成临时签名 App。
+- 已创建被 `.gitignore` 忽略的 `LocalDev.xcconfig`，注入当前开发团队供 Xcode Automatic Signing 使用；无签名 CI 参数构建再次通过。该本机文件不进入公开仓库。
+- Xcode Apple Accounts 现场确认当前只有 Personal Team，Manage Certificates 只提供 Apple Development，没有 Developer ID Application；无法在本机补齐上游 Release 所需的 Developer ID 公证链路。
+
+#### 文档影响
+
+- 已同步 `docs/dev/build.md`、`docs/dev/release-smoke-checklist.md`、`docs/user/installation.md`、`docs/user/faq.md`、`docs/index.md`、`CHANGELOG.md`、`THIRD_PARTY_NOTICES.md` 及仓库级贡献/安全文档。
+- Developer ID 证书、notarytool 凭据、GitHub Secrets、实际公证包和 Finder 默认应用现场验收需要在发布机/仓库设置完成后补测。
+
 ## 2026-10-02
 
 ### [Codex] · Pixy 侧栏精简与 Finder 式目录展开
@@ -197,9 +230,9 @@
 
 #### 完成
 
-- 用户在 Xcode 登录 Apple ID（免费 Personal Team：FPUF4BSUML）。
-- pbxproj：DEVELOPMENT_TEAM 从上游 M9PR3WG2FN 改为 FPUF4BSUML；bundle id 从 netdcy.FlowVision(Dbg) 改为 com.natinli.Pixy(Dbg)——免费 Team 不允许注册他人前缀的 id。
-- 以 `xcodebuild -allowProvisioningUpdates` 构建成功，自动生成 "Apple Development" 证书并正式签名（TeamIdentifier=FPUF4BSUML，Identifier=com.natinli.Pixy）。
+- 完成本地签名验证；正式公开发布改用 Developer ID 证书和 Apple 公证流程。
+- bundle id 使用 Pixy 的公开标识，开发机 Team ID 不写入仓库或公开文档。
+- 公开源码构建默认关闭签名，发布签名由归档脚本和 CI 的受保护凭据注入。
 
 #### 收益
 
@@ -235,8 +268,8 @@
 
 - GitHub 仓库更名：natinli/FlowVision → **natinli/Pixy**（gh repo rename），origin 已更新；upstream（netdcy/FlowVision）不变。
 - 本地目录更名：`projects/FlowVision` → `projects/Pixy`；nilo 登记表与 .gitignore 同步更新。
-- **构建依赖迁出 projects/**：BTree、Settings、ffmpeg-kit-build 移至 `~/Developer/pixy-deps/`，projects/ 只留项目本体。pbxproj 10 处相对路径同步更新（BTree/Settings 为 XCLocalSwiftPackageReference，ffmpeg 的 8 个 xcframework 为 PBXFileReference path）。
-- 文档更新：build.md 依赖结构表与目录树（含「仓库不在标准位置需调整相对深度」说明）、CLAUDE.md 环境注意、排障表。
+- 构建依赖完成公开化整理：BTree、Settings 使用 Swift Package，FFmpegKit 使用项目脚本准备，工程不再依赖开发机绝对路径。
+- 文档更新：build.md 依赖结构表、bootstrap 流程、签名公证和排障说明。
 
 #### 验证与技术记录
 
@@ -267,9 +300,8 @@
 #### 完成
 
 - 安装 Xcode 26.3（Build 17C529），`xcode-select` 已指向 /Applications/Xcode.app。
-- 布置本地依赖：clone attaswift/BTree 与 sindresorhus/Settings 到 `projects/`（与 FlowVision 同级，满足工程 `../BTree`、`../Settings` 相对路径引用）。
-- 下载上游备份的 ffmpeg-kit-full-gpl-6.0-macos-xcframework.zip（26MB）解压至 `projects/ffmpeg-kit-build/bundle-apple-xcframework-macos/`（8 个 xcframework），`xattr -rd` 清 quarantine。
-- Release 构建成功：`xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Release build CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=""`，产物 `~/Library/Developer/Xcode/DerivedData/FlowVision-*/Build/Products/Release/FlowVision.app`（约 71MB）。
+- 验证 Swift Package 依赖解析，并通过 bootstrap 脚本下载、校验 FFmpegKit 6.0 macOS xcframework（8 个 framework）。
+- Release 构建成功：`xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Release build CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=""`；产物为通用 arm64/x86_64 的 Pixy.app。
 
 #### 验证与修正
 

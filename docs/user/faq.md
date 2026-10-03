@@ -4,14 +4,9 @@
 
 ### 打开提示「已损坏，无法打开」或「无法验证开发者」
 
-应用未经 Apple 公证（签名），macOS Gatekeeper 会拦截，文件本身没有问题。两种解决方式：
+先确认下载的是 [Pixy Releases](https://github.com/natinli/Pixy/releases) 中的正式包。正式包应使用 Developer ID 签名并完成 Apple 公证，正常情况下不需要修改安全设置。
 
-1. 「系统设置 → 隐私与安全性」，找到被拦截的提示，点「仍要打开」。
-2. 终端执行：
-
-```bash
-xattr -rd com.apple.quarantine /Applications/Pixy.app
-```
+如果你运行的是自己编译的源码版本，这是预期现象：源码构建默认不签名，适合开发验证，不适合作为公开分发包。请改用已签名、公证的 release；不要把移除 quarantine 当作公开安装流程。
 
 ### 首次启动看不到任何卷/目录
 
@@ -98,4 +93,4 @@ Pixy 使用高质量缩放算法减轻摩尔纹；继续放大到 100%（长按�
 
 ---
 
-未覆盖的问题可在 [upstream issues](https://github.com/netdcy/FlowVision/issues) 搜索或提出；fork 相关问题在 [fork issues](https://github.com/natinli/Pixy/issues) 提出。
+未覆盖的问题可在 [Pixy issues](https://github.com/natinli/Pixy/issues) 搜索或提出；fork 相关问题在 [fork issues](https://github.com/natinli/Pixy/issues) 提出。

@@ -16,7 +16,8 @@ macOS 瀑布流图片查看器（fork 自 FlowVision，展示名已更改为 Pix
 |---|---|
 | [架构总览](dev/architecture.md) | 技术栈、模块地图、核心数据流、并发模型、全局状态组织 |
 | [模块详解](dev/modules.md) | 逐目录逐文件职责与关键接口，改代码前先查这里 |
-| [构建与调试](dev/build.md) | Xcode 环境、本地包依赖、xcconfig、构建步骤、常见问题 |
+| [构建与调试](dev/build.md) | Xcode 环境、公开依赖、构建、签名、公证和常见问题 |
+| [首发 Smoke Checklist](dev/release-smoke-checklist.md) | 每次签名公证发布前的真实产物验收清单 |
 | [修改指南与 fork 维护](dev/contributing-internal.md) | 常见改动落点、代码约定、上游同步策略 |
 
 ## 仓库级文档
@@ -26,6 +27,9 @@ macOS 瀑布流图片查看器（fork 自 FlowVision，展示名已更改为 Pix
 | [README_zh](../README_zh.md) / [README](../README.md) | 项目简介、功能特性速览 |
 | [CHANGELOG](../CHANGELOG.md) | 版本历史（含 fork 后改动记录） |
 | [CLAUDE.md](../CLAUDE.md) | AI 协作入口：仓库性质、协作约定、文档地图 |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | 面向社区贡献者的开发、验证和提交要求 |
+| [SECURITY.md](../SECURITY.md) | 安全漏洞报告与支持版本 |
+| [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md) | 依赖许可证和发布注意事项 |
 
 ## 维护规则
 

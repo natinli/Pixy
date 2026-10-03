@@ -2,6 +2,16 @@
 
 本文件基于上游 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的 GitHub Releases 整理。fork 后本仓库的改动将以「Fork」条目追加在文件顶部。
 
+## [Fork] 2026-10-03
+
+- 将 BTree、Settings 和 FFmpegKit 的构建依赖收敛到公开可复现的 Swift Package / bootstrap 脚本，不再依赖开发机绝对路径。
+- 增加 FFmpegKit 下载、SHA-256 校验、framework 复制和无视频运行库降级流程。
+- 增加源码构建、Developer ID 签名、公证、DMG/ZIP 归档和 SHA-256 清单脚本，以及 macOS CI 与 tag 发布工作流。
+- 发布脚本分别提交 ZIP 与 DMG 进行公证，保留两种分发格式的可核验公证记录。
+- Xcode 工程签名方式与上游保持 Automatic Signing；发布时由本机或 CI 注入 Pixy 维护者自己的 Team ID，不把上游账户信息写入 fork。
+- 补齐安装、贡献、安全、行为准则和第三方许可证说明，公开文档改为 Pixy Releases 安装路径。
+- Release 构建版本更新为 Pixy 1.0.0，移除开发者个人签名配置；默认图片应用与 Gatekeeper 验收以签名公证包为准。
+
 格式参考 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)，版本号遵循上游。
 
 ## [Fork] 2026-10-01

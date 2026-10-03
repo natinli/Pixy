@@ -22,7 +22,7 @@ macOS 瀑布流图片查看器，应用展示名为 **Pixy**。本仓库是上�
 
 ## 协作约定
 
-- 技术栈：**纯 AppKit**（无 SwiftUI），Swift + Xcode 工程布置，SPM 依赖 SDWebImage(+WebP)、BTree、Settings，FFmpegKit 以 xcframework dlopen 懒加载。
+- 技术栈：**纯 AppKit**（无 SwiftUI），Swift + Xcode 工程布置，SPM 依赖 SDWebImage(+WebP)、BTree、Settings，FFmpegKit 以 xcframework dlopen 懒加载。公开构建通过 `Package.resolved` 锁定依赖；FFmpegKit 由 `scripts/bootstrap-dependencies.sh` 下载并校验。
 - 代码组织是「巨型 ViewController + extension 分文件」：改功能先看 `FlowVision/Sources/ViewControllerExtension/` 是否已有对应扩展文件，把改动放进对应 extension，不往 ViewController.swift 本体堆。
 - 应用展示名为 **Pixy**（见 pbxproj `INFOPLIST_KEY_CFBundleDisplayName` 与 WindowController/DataModel 中字符串）；目录名、scheme、bundle id 仍为 FlowVision，改动时勿混淆。
 - 跨窗口/进程级状态在 `Common/GlobalVariable.swift` 的 `globalVar`；每窗口视图状态在 `ViewController.PublicVar`。不要另造全局单例。
@@ -34,4 +34,6 @@ macOS 瀑布流图片查看器，应用展示名为 **Pixy**。本仓库是上�
 ## 环境注意
 
 - 构建需要完整 Xcode（15.2+）；本机若只有 Command Line Tools 则无法 `xcodebuild`，详见 [docs/dev/build.md](docs/dev/build.md)。
-- 工程引用仓库外本地依赖（BTree、Settings、FFmpegKit），统一放在 `~/Developer/pixy-deps/`，clone 后直接构建会缺包，布置方法见 build.md。
+- 工程依赖通过 `Package.resolved` 和 `scripts/bootstrap-dependencies.sh` 准备，不使用仓库外的绝对路径。
+- 公开发布使用 `scripts/release.sh`，需要本机 Developer ID 证书、notarytool keychain profile 和 `APPLE_TEAM_ID`；凭据不能写入仓库。
+- CI 在 `v*` tag 上运行 `.github/workflows/release.yml`，发布前必须通过 `scripts/check-public-hygiene.sh`。

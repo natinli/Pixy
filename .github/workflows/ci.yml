@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: xcodebuild -version
+
+      - name: Prepare source dependencies
+        run: scripts/bootstrap-dependencies.sh --skip-ffmpeg
+
+      - name: Check public repository hygiene
+        run: scripts/check-public-hygiene.sh
+
+      - name: Check dependency provenance
+        run: scripts/check-dependency-notices.sh
+
+      - name: Build unsigned source package
+        run: |
+          xcodebuild \
+            -project FlowVision.xcodeproj \
+            -scheme FlowVision \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath .build/DerivedData \
+            -onlyUsePackageVersionsFromResolvedFile \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY='' \
+            build
+
+      - name: Upload unsigned artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixy-unsigned-${{ github.sha }}
+          path: |
+            .build/DerivedData/Build/Products/Release/Pixy.app
+            FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          if-no-files-found: error

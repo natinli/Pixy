@@ -10,3 +10,8 @@
 //   #if DEBUG && LOCAL_DEV  (Debug only)
 
 SWIFT_ACTIVE_COMPILATION_CONDITIONS = $(inherited) LOCAL_DEV
+
+// For local signed builds, add your own Apple Developer Team ID here and
+// make sure the keychain has a matching Mac Development certificate.
+// Keep this line only in the ignored LocalDev.xcconfig file:
+// DEVELOPMENT_TEAM = YOUR_TEAM_ID
