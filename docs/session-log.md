@@ -2,6 +2,27 @@
 
 本日志由 Codex、Claude 或人工共同维护。每个会话条目标题必须标注执行者：`[Codex]`、`[Claude]` 或 `[人工]`。**条目按时间倒序排列：最新条目在最顶部。** 项目级日志记录完整细节；外层 nilo 仓库 `docs/session-log.md` 只记简要条目并指向这里。
 
+## 2026-10-13
+
+### [Claude] · Finder 风格侧栏验收确认与任务归档
+
+- TL;DR：用户确认 Finder 风格侧栏实际效果可用，Trellis 任务 `10-01-pixy-sidebar-design` 收尾归档。
+
+#### ✅ 完成
+
+- 用户现场确认侧栏效果，Trellis 任务 `10-01-pixy-sidebar-design`（P2，规划基线 `bcfa8db`）标记完成并归档。
+- 核对实现侧：工作树干净、无未推送提交；侧栏相关代码落在 `8e69a07`（完整复刻）、`79d2856`（导航行为）、`25d8c14`（开源发布）三个提交。
+- 清理本次任务在 `nilo/temp/` 下的构建与验收产物，释放约 4.9GB（5 个 DerivedData、2 个 release 构建、`PixySidebarReview.app`、`Pixy-2026-10-02.zip`、构建日志及一次性编辑脚本）。
+
+#### 验证
+
+- 实现侧静态核对：`projects/Pixy` 工作树干净，`git status` 无改动，`origin/main` 与 HEAD 一致。
+- 视觉与交互验收以用户实机确认为准：浅色窗口此前已与 Finder 实际窗口截图对照；深色、失焦、RTL、分栏缩放及 AC2–AC5 的完整交互清单（三级展开、重复入口唯一选中、跨窗口收藏同步、键盘/滚动/拖放、外部打开跟随）未逐条留档，以用户“已经可以了”的确认作为验收结论。
+
+#### 文档影响
+
+- 本轮未改动 Pixy 代码，`docs/dev/modules.md`、`docs/dev/architecture.md`、`docs/user/usage.md`、`CHANGELOG.md` 沿用前序提交已同步的版本，无新增回写。
+
 ## 2026-10-03
 
 ### [Codex] · Pixy GitHub 开源发布准备
