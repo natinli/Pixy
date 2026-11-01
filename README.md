@@ -33,9 +33,13 @@
 
 ## Installation
 
-Pixy supports macOS 11.0 and later. Published releases are intended to be **Developer ID signed and Apple notarized**, so Finder can use Pixy as the default image viewer without asking users to bypass Gatekeeper. Download the latest `.dmg` or `.zip` from [GitHub Releases](https://github.com/natinli/Pixy/releases), then drag Pixy to Applications.
+Pixy supports macOS 11.0 and later. Download the latest `.dmg` or `.zip` from [GitHub Releases](https://github.com/natinli/Pixy/releases), then drag Pixy to Applications.
 
-If a release is not available yet, build from source with [docs/dev/build.md](docs/dev/build.md). An unsigned source build is for development and may be blocked by Gatekeeper; it is not the release distribution path.
+**Current release status: unsigned pre-release.** Pixy does not have a paid Apple Developer Program membership yet, so 0.x builds are **unsigned and not notarized** (ad-hoc signed). Gatekeeper will block the first launch and you have to allow it manually once; see [the installation guide](docs/user/installation.md) for the steps. In this state Pixy is not recommended as the default handler for image formats.
+
+Once a Developer ID certificate is available, releases switch to **Developer ID signed and Apple notarized**, at which point the first launch needs no workaround and Pixy can serve as the default image viewer.
+
+You can also build from source with [docs/dev/build.md](docs/dev/build.md). Source builds are for development and are not the release distribution path.
 
 For the complete installation and first-launch guide, see [docs/user/installation.md](docs/user/installation.md).
 

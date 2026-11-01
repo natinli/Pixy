@@ -2,6 +2,21 @@
 
 本文件基于上游 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的 GitHub Releases 整理。fork 后本仓库的改动将以「Fork」条目追加在文件顶部。
 
+版本号说明：Pixy 从 `0.0.1` 开始使用**自己的版本线**，与上游 `1.x` 无关；上游历史 tag 随 fork 保留但不再使用。详见 [docs/dev/release.md](docs/dev/release.md)。
+
+## [Fork] 2026-11-01 — 0.0.1
+
+首个公开预发布。此版本**未签名、未公证**（ad-hoc 签名），首次启动需要手动放行，详见 [安装说明](docs/user/installation.md)。
+
+- 版本线从 Pixy 自己的 `0.0.1` 开始，`CURRENT_PROJECT_VERSION` 更新为 `20261101`。
+- `scripts/release.sh` 新增 `--unsigned` 模式：不做 Developer ID 签名与公证，仅 ad-hoc 签名并打包；产物名带 `-unsigned` 后缀，与签名包可区分。
+- 发布工作流在未配置 `APPLE_CERTIFICATE_BASE64` 时自动降级为未签名模式，并把 Release 标记为 pre-release，避免推 tag 后工作流失败。
+- 修复 `scripts/check-public-hygiene.sh` 的 fail-open 缺陷：原先依赖 `rg`（本机与 GitHub Actions runner 均未预装），在 `set -eu` 下调用失败会被当作「未命中」而静默放行，敏感信息扫描形同虚设。现改用系统自带 `git ls-files` + `grep`，逐文件扫描并显式区分 grep 的 0/1/其他退出码，扫描出错时中止而不是通过。
+- 公开仓库门禁改为只检查被跟踪文件，`.gitignore` 中的 `LocalDev.xcconfig`、`dist/`、`.build/` 不再造成误报。
+- `scripts/check-dependency-notices.sh` 同样去掉 `rg` 依赖。
+- 新增 [docs/dev/release.md](docs/dev/release.md)：版本号规则、两种发布模式、CI Secrets 清单、打 tag 步骤。
+- README 与安装文档改为如实说明当前为未签名预发布，并给出放行步骤与「暂不建议设为默认图片应用」的提示。
+
 ## [Fork] 2026-10-03
 
 - 将 BTree、Settings 和 FFmpegKit 的构建依赖收敛到公开可复现的 Swift Package / bootstrap 脚本，不再依赖开发机绝对路径。

@@ -33,9 +33,13 @@
 
 ## 安装
 
-Pixy 支持 macOS 11.0 及以上版本。正式发布包计划使用 **Developer ID 签名并完成 Apple 公证**，这样 Finder 可以把 Pixy 设为默认图片查看器，用户无需绕过 Gatekeeper。发布包可从 [GitHub Releases](https://github.com/natinli/Pixy/releases) 下载 `.dmg` 或 `.zip`，再将 Pixy 拖入「应用程序」。
+Pixy 支持 macOS 11.0 及以上版本，发布包可从 [GitHub Releases](https://github.com/natinli/Pixy/releases) 下载 `.dmg` 或 `.zip`，再将 Pixy 拖入「应用程序」。
 
-如果暂时还没有正式发布包，可按 [docs/dev/build.md](docs/dev/build.md) 从源码编译。未签名源码构建用于开发，可能触发 Gatekeeper 提示，不作为公开发布路径。
+**当前发布状态：未签名预发布。** Pixy 尚未接入付费 Apple Developer Program，因此 0.x 版本是**未签名、未公证**的包（ad-hoc 签名）。首次启动会被 Gatekeeper 拦截，需要手动放行一次；放行步骤见 [安装说明](docs/user/installation.md)。这种情况下不建议把 Pixy 设为图片格式的默认打开应用。
+
+待具备 Developer ID 证书后，发布包会切换为 **Developer ID 签名 + Apple 公证**，届时首次启动无需任何绕过步骤，即可作为默认图片查看器使用。
+
+也可以按 [docs/dev/build.md](docs/dev/build.md) 从源码编译。源码构建用于开发验证，不作为公开发布路径。
 
 完整安装与首次启动说明见 [docs/user/installation.md](docs/user/installation.md)。
 

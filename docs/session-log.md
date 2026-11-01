@@ -2,6 +2,58 @@
 
 本日志由 Codex、Claude 或人工共同维护。每个会话条目标题必须标注执行者：`[Codex]`、`[Claude]` 或 `[人工]`。**条目按时间倒序排列：最新条目在最顶部。** 项目级日志记录完整细节；外层 nilo 仓库 `docs/session-log.md` 只记简要条目并指向这里。
 
+## 2026-11-01
+
+### [Claude] · 建立 0.0.1 发布线，修复发布门禁 fail-open
+
+- TL;DR：Pixy 从自己的 `0.0.1` 起建立版本线，新增免证书的未签名发布路径，并修掉一个会让敏感信息扫描静默失效的门禁漏洞。
+
+#### ✅ 完成
+
+**版本线**
+
+- `MARKETING_VERSION` 由 `1.0.0` 改为 `0.0.1`（Debug/Release 两处），`CURRENT_PROJECT_VERSION` 由 `20261003` 改为 `20261101`。
+- 决定：Pixy 用自有版本线，不复用上游 `1.0`~`1.7.6` 的历史 tag；release tag 一律带 `v` 前缀，与上游无前缀 tag 天然区分。规则写入新建的 [docs/dev/release.md](dev/release.md)。
+
+**发布脚本**
+
+- `scripts/release.sh` 增加 `--unsigned` 模式：不签名、不公证，用 ad-hoc 签名（`codesign --force --deep --sign -`）保证 Apple Silicon 可运行，产物名带 `-unsigned` 后缀与签名包区分。默认模式仍是签名 + 公证。
+- 修掉一处真实 bug：收尾 `echo "版本：$VERSION（build …）"` 里全角括号被 shell 当作变量名的一部分，在 `set -u` 下报 `VERSION?: unbound variable`。改为 `${VERSION}` 显式界定。
+
+**发布门禁（重要）**
+
+- `scripts/check-public-hygiene.sh` 原实现调用 `rg`，但**本机和 GitHub Actions 的 macos-14 runner 都没有预装 ripgrep**；在 `set -eu` 下 `if rg ...` 失败被当作「未命中」分支，整个敏感信息扫描被静默跳过并打印「检查通过」——这是 fail-open，发布门禁形同虚设。
+- 重写为只用系统自带工具：基于 `git ls-files` 逐文件 `grep`，显式区分 grep 的 0（命中）/1（未命中）/>1（出错）退出码，出错即中止。不依赖 `xargs` 退出码约定（BSD 与 GNU 对 1–125 的映射不同，实测 BSD 下会误判）。
+- 改为只检查被跟踪文件：`.gitignore` 的 `LocalDev.xcconfig`（含真实 Team ID）、`dist/`、`.build/` 不再造成本地误报，但一旦误提交仍会被拦下。
+- `scripts/check-dependency-notices.sh` 同样去掉 `rg` 依赖。
+
+**CI**
+
+- `.github/workflows/release.yml` 改为按 `APPLE_CERTIFICATE_BASE64` 是否存在自动选模式：有则签名 + 公证，无则 `--unsigned` 并发 pre-release 且附未签名说明。避免推 tag 后工作流直接失败。
+
+#### 验证
+
+- 门禁**做了破坏性验证**（在 `/tmp` 副本中，不污染仓库）：放入含 `/Users/natinli/...` 的文件 → 退出码 1 并报出行号；`git add -f` 一个 `.dmg` → 退出码 1 报「发布产物」。确认修复后真的会拦截，而不是又一次静默通过。
+- `sh -n` 通过三个脚本；`ruby -ryaml` 解析 `release.yml`、`ci.yml` 通过。
+- `scripts/release.sh --unsigned` 全流程跑通，`FINAL_EXIT=0`：`BUILD SUCCEEDED` → ad-hoc 签名 → 打包 → 校验和。
+- 产物核查：`CFBundleShortVersionString` = `0.0.1`、`CFBundleVersion` = `20261101`；`lipo -archs` = `x86_64 arm64`；`Contents/Frameworks` 含 ffmpegkit 与 7 个 libav* framework 及 libswift_Concurrency.dylib；`codesign -dv` = `Signature=adhoc`、`TeamIdentifier=not set`；`codesign --verify --deep --strict` 通过；DMG 可挂载，内含 `Pixy.app` + `/Applications` 软链；`shasum -a 256 -c` 两个产物均 OK。
+- 确认未公证符合预期：`spctl --assess` = `rejected`，`stapler validate` 报无票据。已在 checklist 中明确这是预期结果，防止后续误宣称已公证。
+
+#### 文档影响
+
+- 新建 `docs/dev/release.md`（版本号规则、两种模式、CI Secrets 清单、打 tag 步骤、已知限制）。
+- `README.md` / `README_zh.md` 安装节改为如实说明「当前未签名预发布」，删除「正式发布包已签名公证」这一与现状不符的承诺。
+- `docs/user/installation.md` 增加放行步骤（系统设置路径与 `xattr` 两种方式）、「每个新版本需重新放行」、以及「未签名时暂不建议设为默认图片应用」。
+- `docs/user/faq.md` 拆分未签名/已签名两种情形的报错处理，新增「双击图片无法用 Pixy 打开」条目。
+- `docs/dev/build.md` 补两种发布模式说明；`docs/dev/release-smoke-checklist.md` 新增未签名预发布验收段并记录 0.0.1；`docs/index.md`、`CLAUDE.md`、`CHANGELOG.md` 同步。
+
+#### 待跟进
+
+- 本机仍只有 Apple Development 身份，**没有 Developer ID Application 证书**，`pixy-notary` profile 不存在；签名 + 公证链路尚未在真实证书下跑通过。
+- GitHub 仓库 `natinli/Pixy` 目前**没有任何 Secret、没有 `v*` tag、没有 Release**。
+- `main` 领先 `origin/main` 1 个提交（`af05208`），本次改动尚未提交推送。
+- 干净用户环境的首次启动放行验证、Intel Mac 实机验证未做（无干净环境/无 Intel 机）。
+
 ## 2026-10-13
 
 ### [Claude] · Finder 风格侧栏验收确认与任务归档

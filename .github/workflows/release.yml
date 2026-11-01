@@ -12,6 +12,9 @@ env:
   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
   NOTARY_PROFILE: pixy-notary
   SIGNING_IDENTITY: Developer ID Application
+  # 只有配置了证书 Secret 才走签名 + 公证链路；
+  # 否则退回未签名预发布，避免 tag 推送后工作流直接失败。
+  HAS_SIGNING: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
 
 jobs:
   release:
@@ -21,6 +24,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Import Developer ID certificate
+        if: env.HAS_SIGNING == 'true'
         env:
           APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -39,6 +43,7 @@ jobs:
           echo "NOTARY_KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
 
       - name: Create notarytool profile
+        if: env.HAS_SIGNING == 'true'
         env:
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
@@ -50,9 +55,22 @@ jobs:
             --keychain "$NOTARY_KEYCHAIN_PATH"
 
       - name: Build, sign, notarize, and package
-        run: scripts/release.sh
+        run: |
+          if [ "$HAS_SIGNING" = "true" ]; then
+            scripts/release.sh
+          else
+            echo "::warning::未配置签名凭据，生成本次未签名预发布包（Gatekeeper 会拦截首次启动）。"
+            scripts/release.sh --unsigned
+          fi
 
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --verify-tag
+        run: |
+          if [ "$HAS_SIGNING" = "true" ]; then
+            gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --verify-tag
+          else
+            gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --verify-tag \
+              --prerelease \
+              --notes "本版本未使用 Developer ID 签名，也未经过 Apple 公证。首次启动需要手动放行，安装步骤见 docs/user/installation.md。"
+          fi

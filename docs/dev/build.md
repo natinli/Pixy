@@ -68,7 +68,9 @@ xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Relea
 
 ## 公开发布：签名、公证和产物
 
-不要把证书、密码、Team ID 或 keychain 配置写入仓库。具备本机证书时，设置以下环境变量后运行：
+不要把证书、密码、Team ID 或 keychain 配置写入仓库。发布脚本有两种模式：
+
+**签名 + 公证（正式发布，需要付费 Apple Developer Program）**
 
 ```bash
 export APPLE_TEAM_ID="你的 Apple Developer Team ID"
@@ -85,7 +87,17 @@ scripts/release.sh
 5. 分别提交 `.zip` 与 `.dmg` 公证，随后 staple App 和 DMG 公证票据；
 6. 运行 `codesign`、`spctl` 并生成 SHA-256 清单。
 
-CI 发布工作流位于 `.github/workflows/release.yml`，只在 `v*` tag 触发。GitHub Secrets 的命名和证书导入步骤见该工作流；本地无需配置 CI Secrets。
+**未签名预发布（没有开发者账号时）**
+
+```bash
+scripts/release.sh --unsigned
+```
+
+不签名、不公证，只用 ad-hoc 签名（`codesign -s -`）让包在 Apple Silicon 上可以运行，产物名带 `-unsigned` 后缀。Gatekeeper 仍会拦截首次启动，用户需要按 [安装说明](../user/installation.md#当前版本是未签名预发布) 放行。
+
+两种模式都会先跑 `check-public-hygiene.sh` 和 `check-dependency-notices.sh`；这两个门禁只检查 `git ls-files` 列出的文件，`.gitignore` 里的 `LocalDev.xcconfig`、`dist/`、`.build/` 不参与检查，但一旦被误提交就会被拦下。
+
+CI 发布工作流位于 `.github/workflows/release.yml`，只在 `v*` tag 触发。工作流根据是否配置了 `APPLE_CERTIFICATE_BASE64` Secret 自动选择签名或未签名模式；未签名模式发布的 Release 会标记为 pre-release。完整的发布流程与 Secret 清单见 [发布流程](release.md)。
 
 ## 调试
 

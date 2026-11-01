@@ -17,6 +17,7 @@ macOS 瀑布流图片查看器（fork 自 FlowVision，展示名已更改为 Pix
 | [架构总览](dev/architecture.md) | 技术栈、模块地图、核心数据流、并发模型、全局状态组织 |
 | [模块详解](dev/modules.md) | 逐目录逐文件职责与关键接口，改代码前先查这里 |
 | [构建与调试](dev/build.md) | Xcode 环境、公开依赖、构建、签名、公证和常见问题 |
+| [发布流程](dev/release.md) | 版本号规则、签名/未签名两种模式、CI Secrets、打 tag 步骤 |
 | [首发 Smoke Checklist](dev/release-smoke-checklist.md) | 每次签名公证发布前的真实产物验收清单 |
 | [修改指南与 fork 维护](dev/contributing-internal.md) | 常见改动落点、代码约定、上游同步策略 |
 

@@ -8,7 +8,7 @@ cd "$ROOT_DIR"
 check_contains() {
     file=$1
     value=$2
-    if ! rg -F -q -- "$value" "$file"; then
+    if ! grep -F -q -- "$value" "$file"; then
         echo "依赖来源检查失败：$file 缺少 $value" >&2
         exit 1
     fi
