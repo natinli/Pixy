@@ -12,7 +12,7 @@
 - [x] `FlowVision/FlowVision.entitlements` 已移除未使用的 Photos Library 权限；文件操作所需 Apple Events 与用户选定文件访问权限保留。
 - [x] 公开仓库敏感信息检查：`scripts/check-public-hygiene.sh` 通过（2026-11-01 起只扫描 `git ls-files` 跟踪文件，且扫描出错即失败）。
 
-## 未签名预发布（`scripts/release.sh --unsigned`）必须验证
+## 未签名版（`scripts/release.sh --unsigned`）必须验证
 
 - [x] 产物为 arm64 + x86_64 通用二进制（`lipo -archs` 同时列出两者）。
 - [x] `codesign -dv` 显示 `Signature=adhoc`、`TeamIdentifier=not set`，符合未签名预期。
@@ -38,7 +38,7 @@
 
 ## 记录
 
-### 0.0.1（未签名预发布）
+### 0.0.1（未签名版）
 
 - Release tag：`v0.0.1`
 - Commit：

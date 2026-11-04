@@ -36,5 +36,6 @@ macOS 瀑布流图片查看器，应用展示名为 **Pixy**。本仓库是上�
 
 - 构建需要完整 Xcode（15.2+）；本机若只有 Command Line Tools 则无法 `xcodebuild`，详见 [docs/dev/build.md](docs/dev/build.md)。
 - 工程依赖通过 `Package.resolved` 和 `scripts/bootstrap-dependencies.sh` 准备，不使用仓库外的绝对路径。
-- 公开发布使用 `scripts/release.sh`，需要本机 Developer ID 证书、notarytool keychain profile 和 `APPLE_TEAM_ID`；凭据不能写入仓库。没有付费开发者账号时用 `scripts/release.sh --unsigned` 产出未签名预发布包（Gatekeeper 会拦截，文档必须如实告知）。版本号规则、两种模式差异和 CI Secrets 见 [docs/dev/release.md](docs/dev/release.md)。
-- CI 在 `v*` tag 上运行 `.github/workflows/release.yml`，未配置签名 Secret 时自动发未签名 pre-release；发布前必须通过 `scripts/check-public-hygiene.sh`。
+- 公开发布使用 `scripts/release.sh`，需要本机 Developer ID 证书、notarytool keychain profile 和 `APPLE_TEAM_ID`；凭据不能写入仓库。没有付费开发者账号时用 `scripts/release.sh --unsigned` 产出未签名包（Gatekeeper 会拦截，文档必须如实告知）。版本号规则、两种模式差异和 CI Secrets 见 [docs/dev/release.md](docs/dev/release.md)。
+- CI 在 `v*` tag 上运行 `.github/workflows/release.yml`，未配置签名 Secret 时自动发未签名 release（**不要**标 pre-release，否则仓库首页侧栏看不到）；发布前必须通过 `scripts/check-public-hygiene.sh`。
+- 分发走个人 Homebrew tap（`natinli/homebrew-pixy`），每次 release 后用 `scripts/update-cask.sh` 同步 cask。tap 不能免除 Gatekeeper 首次放行，原因见 [docs/dev/release.md](docs/dev/release.md)。

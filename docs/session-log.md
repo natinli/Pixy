@@ -4,6 +4,36 @@
 
 ## 2026-11-01
 
+### [Claude] · 新增个人 Homebrew tap 分发
+
+- TL;DR：建了 `natinli/homebrew-pixy`，`brew install --cask natinli/pixy/pixy` 可用。原先的假设「brew 用 curl 下载所以不带隔离标记、能免掉 Gatekeeper 放行」被实测推翻，文档按实测结论改写。
+
+#### 关键更正
+
+- 最初的理由是「brew 用 curl 下载，不写 `com.apple.quarantine`，装完直接能开」。实测不成立：Homebrew 7.0.7 会给下载产物打隔离标记，装好的 `Pixy.app` 上 `xattr` 读到的仍是 `0381;6aeb3c97;;8AB73E39-…`，`spctl --assess` 仍是 `rejected`。`--no-quarantine` 选项在这个版本里已经没有。
+- 结论如实写进 README、安装文档和 release.md：tap 省掉的是「下载 → 挂载 DMG → 拖拽」和干净卸载，**不是**签名这一步；每个新版本首次启动仍要放行一次。
+
+#### 处理
+
+- 新建 `natinli/homebrew-pixy`，`Casks/pixy.rb` 锁 `0.0.1` + sha256 `5bdfb42f…`，`livecheck` 用 `:github_latest`，`zap trash` 登记偏好、缓存、saved state 和 `~/Library/Application Support/FlowVision`。
+- 踩到两条 Homebrew 7 的废弃告警并修掉：`verified:` 参数已废弃（改用默认 URL 校验）、`depends_on macos: ">= :big_sur"` 的字符串比较已废弃（改为 `depends_on :macos`）。
+- `brew style` 干净。`brew audit --cask` 有两项**固有**失败且无法修：`Signature verification failed`（没有 Developer ID）、`GitHub fork (not canonical repository)`（`natinli/Pixy` 确实是 fork）。个人 tap 安装时不跑 audit。
+- 新增 `scripts/update-cask.sh`：读 `SHA256SUMS.txt` 的校验和改写 cask 并提交推送，幂等，`--no-push` 可只改本地。`docs/dev/release.md` 增加 Homebrew 分发一节，发布步骤补第 8 步。
+- 全仓把「未签名预发布」统一为「未签名」：`--prerelease` 已经移除，继续叫预发布自相矛盾。顺带修掉 `faq.md`、`build.md` 里指向 `#当前版本是未签名预发布` 的两个失效锚点。
+
+#### 代价与被规避的风险
+
+- 实测时用 `HOMEBREW_CASK_OPTS=--appdir=/tmp/...` 把 cask 装到临时目录，**没有动** `/Applications/Pixy.app`（用户正在用的那份）和 `~/Library` 下的真实偏好。安装后的 `/Applications` 与用户偏好均未改动。
+- 没有执行 `brew uninstall --zap`：cask 的 zap 列表含 `~/Library/Application Support/FlowVision`，本机跑一次会删掉真实数据。zap 路径按磁盘实际存在的目录确定，未做删除验证。
+
+#### 验证
+
+- `brew install --cask`（显式全名与已 tap 后只写 `pixy` 两种路径）均成功，无告警。
+- 装出的 app `CFBundleIdentifier` = `com.natinli.Pixy`，`CFBundleShortVersionString` = `0.0.1`。
+- Homebrew 缓存里的 zip sha256 = `5bdfb42f…`，与 `SHA256SUMS.txt` 一致。
+- `brew livecheck pixy` 输出 `0.0.1 ==> 0.0.1`；`brew style` 无 offense。
+- `update-cask.sh` 在临时 clone 上验证了「版本/校验和写错 → 脚本改写并生成提交」的完整路径，以及对已同步状态的幂等跳过。
+
 ### [Claude] · v0.0.1 产物就地重建，并去掉 pre-release 标记
 
 - TL;DR：用户要求版本号保持 `0.0.1`。删除旧 release 与 tag，在同一 tag 名上按当前 `main` 重建产物并重新发布，同时修掉「仓库首页看不到 release」的问题。

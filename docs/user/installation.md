@@ -10,14 +10,26 @@
 
 Pixy 的功能在本机运行，不需要联网账号。首次访问图片目录时，macOS 会按目录请求文件权限；只授予你需要浏览的位置即可。
 
-## 方式一：GitHub Releases（推荐）
+## 方式一：Homebrew（推荐）
+
+```bash
+brew install --cask natinli/pixy/pixy
+```
+
+升级用 `brew upgrade --cask pixy`，卸载用 `brew uninstall --cask pixy`；加上 `--zap` 会一并删掉偏好设置、缓存和搜索索引，回到干净状态。
+
+cask 来自个人 tap [natinli/homebrew-pixy](https://github.com/natinli/homebrew-pixy)。Pixy 没有进入官方 `homebrew/cask`，原因是官方库要求 cask 能通过 Gatekeeper 检查，而未签名的 Pixy 通不过——详见 [发布流程](../dev/release.md)。
+
+> **Homebrew 安装后首次启动仍要放行一次。** Homebrew 会给下载的产物打上隔离标记（旧版的 `--no-quarantine` 选项已被移除），所以隔离属性照样存在。放行方式见下一节。
+
+## 方式二：GitHub Releases
 
 1. 打开 [Pixy Releases](https://github.com/natinli/Pixy/releases)。
 2. 下载最新的 `.dmg` 或 `.zip`。发布包是 arm64 + x86_64 通用二进制，Apple Silicon 和 Intel Mac 通用。
 3. 打开 `.dmg` 并将 Pixy 拖到「应用程序」，或将 `.zip` 中的 Pixy 拖到「应用程序」。
 4. 从「应用程序」启动 Pixy。
 
-### 当前版本是未签名预发布
+### 当前版本未签名
 
 Pixy 目前没有付费 Apple Developer Program 账号，因此 0.x 版本**未使用 Developer ID 签名，也没有经过 Apple 公证**。这不会影响功能，但 macOS 首次启动时会拦截。
 
@@ -47,11 +59,11 @@ xattr -dr com.apple.quarantine /Applications/Pixy.app
 
 ### 关于 Homebrew
 
-Pixy **还没有** Homebrew cask，`brew install pixy` 目前不可用。
+不要用 `brew install flowvision`——那是上游 FlowVision 自己的包，装出来是上游的 FlowVision，**不是 Pixy**，也不包含 Pixy 的侧栏与界面改动。Pixy 的 cask 名是 `pixy`，并且只在自己的 tap 里。
 
-上游 FlowVision 提供 `brew install flowvision`，但那是上游自己的包，装出来是上游的 FlowVision，**不是 Pixy**，也不包含 Pixy 的侧栏与界面改动。等 Pixy 有了稳定的签名包、满足 Homebrew 的收录条件后再考虑提供 cask。
+设置 `HOMEBREW_CASK_OPTS` 之类的全局选项不会让 Pixy 免于首次放行，原因见方式一里的说明。
 
-## 方式二：从源码编译
+## 方式三：从源码编译
 
 见 [构建与调试](../dev/build.md)。需要完整 Xcode 15.2+：
 
@@ -78,7 +90,7 @@ xcodebuild \
 
 ## 设为默认图片应用
 
-> 只有在使用 **Developer ID 签名并公证** 的 release 包时才建议执行本节。未签名预发布版本设为默认应用后，macOS 可能在系统重新校验签名时拦截双击打开，表现为图片打不开。
+> 只有在使用 **Developer ID 签名并公证** 的 release 包时才建议执行本节。未签名版本设为默认应用后，macOS 可能在系统重新校验签名时拦截双击打开，表现为图片打不开。
 
 1. 在 Finder 中选中一张 JPEG 或 PNG 图片，按 `⌘I` 打开「显示简介」。
 2. 在「打开方式」中选择 Pixy。

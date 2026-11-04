@@ -39,6 +39,16 @@
 - 界面截图更新为当前版本（浅色/深色），替换 fork 初期的旧图。
 - 发布不再标记 pre-release：pre-release 不计入仓库的 `latestRelease`，会导致仓库首页侧栏看起来没有 release。
 
+### 2026-11-04 Homebrew 分发
+
+新增个人 tap [natinli/homebrew-pixy](https://github.com/natinli/homebrew-pixy)，`brew install --cask natinli/pixy/pixy` 可用，`brew upgrade --cask pixy` 升级，`brew uninstall --cask --zap pixy` 干净卸载。
+
+需要说清的一点：**Homebrew 并不能免除 Gatekeeper 首次放行**。Homebrew 会给下载产物打 `com.apple.quarantine`（旧版 `--no-quarantine` 选项已移除），实测装好的 app 仍带隔离标记、`spctl --assess` 仍为 rejected，所以每个新版本的首次启动照样要放行一次。tap 省掉的是下载、挂载 DMG、拖拽这一串动作。Pixy 也因此进不了官方 `homebrew/cask`（官方库要求 cask 通过 Gatekeeper 检查）。
+
+- 新增 `scripts/update-cask.sh`：从 release 的 `SHA256SUMS.txt` 读校验和，改写 tap 里的 cask 并提交推送，重复执行幂等。
+- `docs/dev/release.md` 增加 Homebrew 分发一节，记录 audit 的两项固有失败、隔离属性实测结果和 `--zap` 的副作用。
+- 安装文档与 FAQ 增加 Homebrew 路径，并把「未签名预发布」统一改为「未签名」——`--prerelease` 标记已经移除，继续叫预发布会和实际发布状态矛盾。
+
 ## [Fork] 2026-10-03
 
 - 将 BTree、Settings 和 FFmpegKit 的构建依赖收敛到公开可复现的 Swift Package / bootstrap 脚本，不再依赖开发机绝对路径。

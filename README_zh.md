@@ -61,17 +61,29 @@ Pixy 是 [netdcy/FlowVision](https://github.com/netdcy/FlowVision) 的二次开�
 
 Pixy 需要 **macOS 11.0 及以上版本**，发布包是 Apple Silicon 与 Intel 通用的二进制。
 
+### Homebrew
+
+```sh
+brew install --cask natinli/pixy/pixy
+```
+
+升级用 `brew upgrade --cask pixy`，彻底卸载（含偏好、缓存、搜索索引）用
+`brew uninstall --cask --zap pixy`。tap 仓库在 [natinli/homebrew-pixy](https://github.com/natinli/homebrew-pixy)。
+
+### 手动下载
+
 从 [GitHub Releases](https://github.com/natinli/Pixy/releases) 下载最新的 `.dmg` 或 `.zip`，把 Pixy 拖进「应用程序」。
 
 > ### ⚠️ 当前版本没有签名
 >
 > Pixy 还没有付费 Apple Developer Program 账号，所以 0.x 版本**未签名、未公证**（只做了 ad-hoc 签名）。
-> macOS 会拦截首次启动，需要手动放行一次：
+> macOS 会拦截首次启动，需要手动放行一次——**Homebrew 安装也一样**，因为 Homebrew 会给下载的
+> 产物打上隔离标记：
 >
 > - **图形界面**：双击 Pixy 被拦截后点「完成」→ 打开「系统设置 → 隐私与安全性」→ 底部点「仍要打开」。
 > - **终端**：`xattr -dr com.apple.quarantine /Applications/Pixy.app`
 >
-> **每个新版本下载后都要重新放行**。这个状态下 Pixy **不建议**设为图片格式的默认打开应用——
+> **每个新版本装完都要重新放行**。这个状态下 Pixy **不建议**设为图片格式的默认打开应用——
 > macOS 会定期重新校验签名，双击图片可能突然打不开。
 >
 > 等具备 Developer ID 证书后，发布包会切换为签名 + 公证，这个放行步骤随之消失。详见

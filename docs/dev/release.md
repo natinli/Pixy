@@ -79,6 +79,33 @@ base64 -i developer-id.p12 | pbcopy              # 粘贴到 APPLE_CERTIFICATE_B
 5. 打 tag 并推送：`git tag -a v0.0.1 -m "Pixy 0.0.1" && git push origin v0.0.1`。
 6. 等待工作流完成，核对 Release 页面的产物与本地 `SHA256SUMS.txt`。
 7. 下载一次产物，在干净用户环境中验证首次启动。
+8. 同步 Homebrew tap：`scripts/update-cask.sh`（见下节）。
+
+## Homebrew 分发
+
+Pixy 通过个人 tap [natinli/homebrew-pixy](https://github.com/natinli/homebrew-pixy) 提供
+`brew install --cask natinli/pixy/pixy`。
+
+**进不了官方 `homebrew/cask`**：官方库要求 cask 能过 Homebrew 自己的 Gatekeeper 检查，ad-hoc 签名的 `Pixy.app` 必然失败。`brew audit --cask` 目前有且只有两项失败，都是设计使然：
+
+- `Signature verification failed for Pixy.app` —— 没有 Developer ID，这是未签名版的固有结果；
+- `GitHub fork (not canonical repository)` —— `natinli/Pixy` 在 GitHub 意义上确实是 fork。
+
+个人 tap 安装时不跑 audit，所以这两项不阻碍安装。`brew style` 是干净的。
+
+**brew 并不会绕过 Gatekeeper。** 这一点值得说清楚，因为很容易想当然：Homebrew 给下载产物打上了 `com.apple.quarantine`（旧版的 `--no-quarantine` 选项已被移除），实测装好的 app 仍带 `0381;...` 隔离标记，`spctl --assess` 仍是 rejected。所以每个新版本的首次启动**照样要手动放行一次**。tap 省掉的是「下载 → 挂载 DMG → 拖进应用程序」和干净卸载，不是签名这一步。
+
+每个 release 之后同步 cask：
+
+```bash
+scripts/update-cask.sh              # 版本号取 MARKETING_VERSION
+scripts/update-cask.sh 0.1.0        # 或显式指定
+scripts/update-cask.sh --no-push    # 只改本地 tap，不推送
+```
+
+脚本从 release 的 `SHA256SUMS.txt` 读校验和，改写 tap 里的 `Casks/pixy.rb` 并提交推送，重复执行是幂等的。tap 默认用 Homebrew 自己克隆的那份（`brew tap natinli/pixy` 之后才有），`PIXY_TAP_DIR` 可指向别的 checkout。
+
+cask 里 `zap trash` 登记了 `~/Library/Application Support/FlowVision`——**Pixy 复用了上游的数据目录名**（`FinderTag.swift`、`Log.swift`、`Common.swift` 都写死 `FlowVision`）。同时装了 FlowVision 的用户执行 `brew uninstall --cask --zap pixy` 会把上游的搜索索引一起删掉。
 
 ## 已知限制
 

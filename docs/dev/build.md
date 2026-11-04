@@ -87,13 +87,13 @@ scripts/release.sh
 5. 分别提交 `.zip` 与 `.dmg` 公证，随后 staple App 和 DMG 公证票据；
 6. 运行 `codesign`、`spctl` 并生成 SHA-256 清单。
 
-**未签名预发布（没有开发者账号时）**
+**未签名版（没有开发者账号时）**
 
 ```bash
 scripts/release.sh --unsigned
 ```
 
-不签名、不公证，只用 ad-hoc 签名（`codesign -s -`）让包在 Apple Silicon 上可以运行，产物名带 `-unsigned` 后缀。Gatekeeper 仍会拦截首次启动，用户需要按 [安装说明](../user/installation.md#当前版本是未签名预发布) 放行。
+不签名、不公证，只用 ad-hoc 签名（`codesign -s -`）让包在 Apple Silicon 上可以运行，产物名带 `-unsigned` 后缀。Gatekeeper 仍会拦截首次启动，用户需要按 [安装说明](../user/installation.md#当前版本未签名) 放行。
 
 两种模式都会先跑 `check-public-hygiene.sh` 和 `check-dependency-notices.sh`；这两个门禁只检查 `git ls-files` 列出的文件，`.gitignore` 里的 `LocalDev.xcconfig`、`dist/`、`.build/` 不参与检查，但一旦被误提交就会被拦下。
 

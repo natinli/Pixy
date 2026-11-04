@@ -64,6 +64,18 @@ full-image view.
 
 Pixy requires **macOS 11.0 or later**. Releases are universal binaries for Apple Silicon and Intel.
 
+### Homebrew
+
+```sh
+brew install --cask natinli/pixy/pixy
+```
+
+Upgrade with `brew upgrade --cask pixy`, remove completely (app, preferences, caches, search
+index) with `brew uninstall --cask --zap pixy`. The tap lives at
+[natinli/homebrew-pixy](https://github.com/natinli/homebrew-pixy).
+
+### Manual download
+
 Download the latest `.dmg` or `.zip` from [GitHub Releases](https://github.com/natinli/Pixy/releases),
 then drag Pixy into Applications.
 
@@ -71,12 +83,12 @@ then drag Pixy into Applications.
 >
 > Pixy does not have a paid Apple Developer Program membership yet, so 0.x builds are **unsigned and
 > not notarized** (ad-hoc signed only). macOS will block the first launch and you have to allow it
-> once:
+> once — this applies to the Homebrew install too, since Homebrew quarantines what it downloads:
 >
 > - **GUI:** try to open Pixy → "Done" → System Settings → Privacy & Security → **Open Anyway**.
 > - **Terminal:** `xattr -dr com.apple.quarantine /Applications/Pixy.app`
 >
-> You have to repeat this for every new version you download. In this state Pixy is **not recommended
+> You have to repeat this for every new version you install. In this state Pixy is **not recommended
 > as the default handler** for image files — macOS re-validates the signature periodically and
 > double-clicking an image can stop working.
 >
