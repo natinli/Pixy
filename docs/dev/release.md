@@ -81,6 +81,12 @@ base64 -i developer-id.p12 | pbcopy              # 粘贴到 APPLE_CERTIFICATE_B
 7. 下载一次产物，在干净用户环境中验证首次启动。
 8. 同步 Homebrew tap：`scripts/update-cask.sh`（见下节）。
 
+## Release 也会撞上 runner 配额
+
+发布工作流同样跑在 `macos-14`（arm64）上。GitHub 的 macOS arm64 托管 runner 配额紧张时，作业会排队约 15 分钟后直接失败，注解是 `The job was not acquired by Runner of type hosted`——tag 已经推上去了，但产物没出来。
+
+处理方式：等几分钟后在 Actions 页面点 `Re-run failed jobs`。tag 不需要重推，工作流会照常读那个 tag 构建。这个失败模式不能靠改工作流消除，只能重跑；`ci-build.yml` 的 `paths-ignore` 只降低了日常推送对同一份配额的占用。
+
 ## Homebrew 分发
 
 Pixy 通过个人 tap [natinli/homebrew-pixy](https://github.com/natinli/homebrew-pixy) 提供
