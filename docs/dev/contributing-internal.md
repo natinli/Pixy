@@ -51,10 +51,24 @@ git merge upstream/main        # 或 rebase，视本地分叉程度
 
 - 根 `README.md` / `README_zh.md` 已完全重写 → **必然冲突**，保留本仓库版本，把上游新增的功能点合并进 `docs/user/usage.md` 与 CHANGELOG。
 - `docs/` 下新增的子目录（user/、dev/、index.md、session-log.md）上游不存在 → 一般无冲突；上游 `docs/` 内的预览图变更直接接受。
-- `CLAUDE.md`、`CHANGELOG.md` 为本仓库新增 → 无冲突。
-- 源码分叉：若在 fork 上改过 `.swift` 文件且上游同区域有更新，逐处人工合并；fork 目前以「文档体系 + 少量定制」为边界，**尽量不改上游源码**，定制需求优先评估能否通过配置/上游 issue 解决。
+- `CLAUDE.md`、`CHANGELOG.md`、`.github/workflows/` 为本仓库新增 → 无冲突。
+- 源码已不是「只改文档」的分叉。Pixy 相对上游 `1.7.6` 的实质改动集中在下列文件，合并上游时需逐处人工确认：
 
-上游发布新版本后：更新 `CHANGELOG.md`（翻译整理上游 release notes），必要时更新 `docs/dev/modules.md` 中受影响文件。
+| 文件 | 改动性质 |
+|---|---|
+| `Common/DataModel.swift` | 侧栏数据模型：`TreeViewModel`/`TreeNode`/`SidebarNodeRole`、`rebuildSidebar`、`sidebarCandidates` |
+| `ViewControllerExtension/DirTree.swift` | 目录跟随与侧栏定位重写（`treeReLocate`） |
+| `Views/CustomOutlineViewManager.swift`、`CustomOutlineView.swift` | 侧栏渲染：分组、行高、选中态、OneDrive 图标、推出按钮 |
+| `ViewController+SidebarCard.swift`（新增） | 两段式布局：圆角裁剪、共享材质、工具栏避让 |
+| `WindowController+ToolbarBlend.swift`（新增） | 大图模式透明标题栏与底部标题胶囊 |
+| `ViewControllerExtension/LayoutManagement.swift` | 侧栏刷新与展开状态保存 |
+| `WindowController.swift`、`ViewController.swift` | 装配新扩展、工具栏与菜单入口调整 |
+| `ViewControllerExtension/EventHandler.swift`、`KeyShortcut.swift`、`FileSystem.swift`、`LargeImage.swift`、`Views/CustomSplitView.swift` | 侧栏导航、快捷键跳过分组行、进入子目录清除选中态、大图融合联动 |
+| `Resources/Localizable.xcstrings`、`mul.lproj/Main.xcstrings` | 中文化与文案 |
+
+其余上游文件保持原样。**新增定制优先新建 extension 文件**（如 `ViewController+SidebarCard.swift`），减少与上游同区域的冲突面。
+
+上游发布新版本后：更新 `CHANGELOG.md`（翻译整理上游 release notes），必要时更新 `docs/dev/modules.md` 中受影响文件；上表文件是合并时的重点核对对象。
 
 ## 提交约定
 

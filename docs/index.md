@@ -6,9 +6,25 @@ macOS 瀑布流图片查看器（fork 自 FlowVision，展示名已更改为 Pix
 
 | 文档 | 内容 |
 |---|---|
-| [安装](user/installation.md) | Homebrew / 源码编译安装，系统要求，隐私与安全性 |
+| [安装](user/installation.md) | 下载安装、首次启动放行、源码编译、设为默认应用 |
 | [使用说明](user/usage.md) | 浏览操作、右键手势、快捷键、视频播放、标签与评级、设置全览 |
 | [常见问题](user/faq.md) | 打不开、缩略图、HDR/RAW、视频、性能等问题排查 |
+
+## 按任务找文档
+
+| 我想… | 看这里 |
+|---|---|
+| 装到自己的 Mac 上 | [user/installation.md](user/installation.md) |
+| 学会右键手势与快捷键 | [user/usage.md](user/usage.md) |
+| 排查启动被拦截、视频放不了 | [user/faq.md](user/faq.md) |
+| 改侧栏 / 目录树行为 | [dev/modules.md](dev/modules.md) 的 `DataModel.swift`、`DirTree.swift`、`CustomOutlineView` 段，配合 [dev/architecture.md](dev/architecture.md)「Finder 风格侧栏」 |
+| 改缩略图布局算法 | [dev/modules.md](dev/modules.md) 的 `LayoutManagement.swift`、`Layout.swift` 段 |
+| 改大图模式 / 视频控制条 | [dev/modules.md](dev/modules.md) 的 `LargeImage.swift`、`LargeImageView.swift`、`VideoPlayerControlsView.swift` 段 |
+| 加新功能 | [dev/contributing-internal.md](dev/contributing-internal.md) 的落点规则 |
+| 编译 / 调试 | [dev/build.md](dev/build.md) |
+| 发版 / 打 tag / 配 CI 凭据 | [dev/release.md](dev/release.md) |
+| 了解为什么某处这样设计 | [dev/architecture.md](dev/architecture.md) 与 [CHANGELOG](../CHANGELOG.md) |
+| 和上游同步 | [dev/contributing-internal.md](dev/contributing-internal.md) |
 
 ## 开发与 AI 协作文档（docs/dev/）
 

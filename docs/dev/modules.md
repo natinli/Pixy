@@ -1,6 +1,6 @@
 # 模块详解
 
-> 逐目录逐文件的一句话职责 + 关键接口。行数截至 fork 时（上游 1.7.6，53 个 Swift 文件）。查找文件用 ⌘F；模块间关系见 [architecture.md](architecture.md)。
+> 逐目录逐文件的一句话职责 + 关键接口。行数截至 2026-11 整理时（56 个 Swift 文件）。查找文件用 ⌘F；模块间关系见 [architecture.md](architecture.md)。
 
 ## 根级（3 文件）
 
@@ -37,6 +37,12 @@
 - `applyContentCardStyle` — 侧边栏和内容圆角外侧共享 behindWindow/sidebar 材质，背景位于 NSSplitView 同级，不参与分栏布局；内容面采用 leading 侧 8pt 填充圆角，并让主滚动区避开透明标题栏下方的工具栏保护带。
 - `updateContentToolbarInsets` — 按内容面板与 `window.contentLayoutRect` 的几何关系重设主滚动区高度，确保滚动内容不穿过工具栏。
 - `updateContentCornerMask` — 按内容面板尺寸更新整层裁剪，覆盖 scroll/clip/collection 的绘制；支持 RTL，布局时同步更新。
+
+### WindowController+ToolbarBlend.swift（133 行）
+大图模式的标题栏透明融合与底部标题胶囊。
+- `enableToolbarBlend` — 进入大图模式：`titlebarAppearsTransparent` + `fullSizeContentView`，内容延伸到标题栏后方，工具栏浮在毛玻璃上，并调起底部标题条。
+- `disableToolbarBlend` — 退出大图模式：保持两段式结构（透明标题栏），只隐藏底部标题胶囊。
+- `setupBottomTitleBar` / `makeBottomTitleBar` — 在内容区底部中央生成「文件名 · 张数」胶囊，张数做弱化处理，浮在毛玻璃上。
 
 ## Common/（11 文件）
 
@@ -155,6 +161,6 @@
 ## 工程配置要点
 
 - 部署目标 **macOS 11.0**（xcodeproj 4 处配置一致）
-- SPM：SDWebImageWebPCoder 0.14.6（远程）；**BTree、Settings 为本地包 `../BTree`、`../Settings`**（相对仓库外目录，clone 后需按 build.md 布置）
-- `ffmpegkit.xcframework` 嵌入 CopyFiles（CodeSignOnCopy），运行时 dlopen
+- SPM 依赖全部来自公开仓库，版本由 `FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` 锁定：SDWebImageWebPCoder、SDWebImage、libwebp-xcode、**BTree**、**Settings**。clone 后无需在仓库外准备任何本地包。
+- `ffmpegkit.xcframework` 嵌入 CopyFiles（CodeSignOnCopy），运行时 dlopen；由 `scripts/bootstrap-dependencies.sh` 下载并校验 SHA-256。
 - `LocalDev.xcconfig.template` → 复制为 `LocalDev.xcconfig`（gitignored）启用 `LOCAL_DEV` 编译条件；Base.xcconfig 用 `#include?` 可选引入

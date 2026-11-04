@@ -6,21 +6,23 @@
 
 - **纯 AppKit**（无 SwiftUI），Swift + Xcode 工程（`FlowVision.xcodeproj`）
 - 部署目标：macOS 11.0
-- SPM 依赖：
-  - SDWebImageWebPCoder 0.14.6（连带 SDWebImage 5.21.0、libwebp-xcode 1.5.0）——远程包
-  - **BTree**、**Settings**——**仓库外本地包**（相对路径 `../BTree`、`../Settings`），clone 后需按 build.md 组织目录
+- SPM 依赖（版本由 `Package.resolved` 锁定，全部来自公开仓库）：
+  - SDWebImageWebPCoder 0.14.6（连带 SDWebImage 5.21.0、libwebp-xcode 1.5.0）
+  - **BTree**、**Settings**——公开 Swift Package，clone 后无需在仓库外准备本地包
 - FFmpegKit：`ffmpegkit.xcframework` 嵌入 Bundle，`dlopen` 懒加载，未加载时全部 FFmpeg 功能静默降级
 - 并发模型：传统 GCD / OperationQueue / 常驻 Thread 为主，少量 `Task{}`；自建 `TaskPool` 管理后台任务
 
 ## 模块地图
 
 ```
-FlowVision/Sources/（53 个 Swift 文件，约 3.3 万行）
+FlowVision/Sources/（56 个 Swift 文件，约 3.36 万行）
 ├── AppDelegate.swift          应用入口：生命周期、窗口创建、Finder 打开分发、菜单
 ├── WindowController.swift     单窗口壳：工具栏、标题栏、全屏、窗口状态持久化
+├── WindowController+ToolbarBlend.swift  大图模式透明标题栏融合与底部标题胶囊
 ├── ViewController.swift       核心中枢（~2500 行）：持有数据/布局/线程池，协调全链路
 │                              ├── CustomProfile      布局外观配置（UserDefaults 持久化）
 │                              └── PublicVar          每窗口运行时状态
+├── ViewController+SidebarCard.swift  侧栏/内容区圆角与共享材质、工具栏避让裁剪
 ├── ViewControllerExtension/   主控制器功能拆分（16 个 extension 文件）
 │   ├── FileSystem.swift       目录扫描与导航状态机（treeTraversal / switchDirByDirection / switchFolder）
 │   ├── LayoutManagement.swift 布局计算唯一真源（recalcLayout）

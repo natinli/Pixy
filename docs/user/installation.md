@@ -45,6 +45,12 @@ xattr -dr com.apple.quarantine /Applications/Pixy.app
 
 如果 macOS 显示的签名团队或下载来源与 GitHub Releases 不一致，请先停止安装并在仓库提交问题。
 
+### 关于 Homebrew
+
+Pixy **还没有** Homebrew cask，`brew install pixy` 目前不可用。
+
+上游 FlowVision 提供 `brew install flowvision`，但那是上游自己的包，装出来是上游的 FlowVision，**不是 Pixy**，也不包含 Pixy 的侧栏与界面改动。等 Pixy 有了稳定的签名包、满足 Homebrew 的收录条件后再考虑提供 cask。
+
 ## 方式二：从源码编译
 
 见 [构建与调试](../dev/build.md)。需要完整 Xcode 15.2+：

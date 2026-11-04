@@ -10,4 +10,8 @@
 
 ## 发布安全
 
-公开发布包应由 Developer ID 签名并完成 Apple 公证。证书、notarytool 凭据和 GitHub Actions Secrets 只保存在本机 keychain 或 GitHub Secrets 中，不写入仓库。
+Pixy 当前**没有付费 Apple Developer Program 账号**，因此 0.x 版本是未签名、未公证的预发布包（仅 ad-hoc 签名）。用户需要按[安装说明](docs/user/installation.md)手动放行，这一点在发布页与文档中都明确标注，不存在"已公证"的宣称。
+
+证书、notarytool 凭据和 GitHub Actions Secrets 只保存在本机 keychain 或 GitHub Secrets 中，不写入仓库。`scripts/check-public-hygiene.sh` 会在每次发布前扫描被跟踪文件，拦截开发机路径、Team ID 与凭据文件。
+
+后续若具备 Developer ID 证书，发布包将切换为签名 + 公证，发布工作流会依据 `APPLE_CERTIFICATE_BASE64` Secret 是否配置自动选择模式。详见 [docs/dev/release.md](docs/dev/release.md)。
