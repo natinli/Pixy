@@ -22,6 +22,11 @@ on:
 permissions:
   contents: read
 
+# 同一分支连续推送时取消上一轮：macOS 配额紧张时，排队中的旧作业会和新作业抢同一份配额。
+concurrency:
+  group: ci-build-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: macos-14

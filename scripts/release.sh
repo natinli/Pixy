@@ -16,7 +16,7 @@ usage() {
 --unsigned：
   不签名、不公证，仅做 ad-hoc 签名后打包。
   产物名带 -unsigned 后缀，Gatekeeper 会拦截，用户需手动放行。
-  用于没有付费开发者账号时的预发布。
+  用于没有付费开发者账号时的未签名产物。
 EOF
 }
 
@@ -30,8 +30,8 @@ for argument in "$@"; do
 done
 
 if [ "$unsigned" -eq 0 ]; then
-    : "${APPLE_TEAM_ID:?请设置 APPLE_TEAM_ID，或使用 --unsigned 生成未签名预发布包}"
-    : "${NOTARY_PROFILE:?请设置 NOTARY_PROFILE，或使用 --unsigned 生成未签名预发布包}"
+    : "${APPLE_TEAM_ID:?请设置 APPLE_TEAM_ID，或使用 --unsigned 生成未签名包}"
+    : "${NOTARY_PROFILE:?请设置 NOTARY_PROFILE，或使用 --unsigned 生成未签名包}"
 fi
 
 SIGNING_IDENTITY="${SIGNING_IDENTITY:-Developer ID Application}"
@@ -156,7 +156,7 @@ if [ "$unsigned" -eq 0 ]; then
     xcrun stapler validate "$DMG_PATH"
     spctl --assess --type execute --verbose=4 "$APP_PATH"
 else
-    echo "注意：这是未签名、未公证的预发布包，Gatekeeper 会拦截首次启动。" >&2
+    echo "注意：这是未签名、未公证的包，Gatekeeper 会拦截首次启动。" >&2
 fi
 
 (

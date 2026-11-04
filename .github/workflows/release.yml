@@ -13,12 +13,20 @@ env:
   NOTARY_PROFILE: pixy-notary
   SIGNING_IDENTITY: Developer ID Application
   # 只有配置了证书 Secret 才走签名 + 公证链路；
-  # 否则退回未签名预发布，避免 tag 推送后工作流直接失败。
+  # 否则退回未签名发布（不标 pre-release），避免 tag 推送后工作流直接失败。
   HAS_SIGNING: ${{ secrets.APPLE_CERTIFICATE_BASE64 != '' }}
+
+# 同一个 tag 出现两轮运行（重推 tag、或失败后 rerun 时手滑点了两次）会互相抢
+# `gh release create`，因此按 tag 串行化。这里**故意**不 cancel-in-progress：
+# 取消一次已经走到「上传产物」的运行，会留下一个附件不全的 release。
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
   release:
     runs-on: macos-14
+    timeout-minutes: 40
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -59,7 +67,7 @@ jobs:
           if [ "$HAS_SIGNING" = "true" ]; then
             scripts/release.sh
           else
-            echo "::warning::未配置签名凭据，生成本次未签名预发布包（Gatekeeper 会拦截首次启动）。"
+            echo "::warning::未配置签名凭据，生成本次未签名包（Gatekeeper 会拦截首次启动）。"
             scripts/release.sh --unsigned
           fi
 

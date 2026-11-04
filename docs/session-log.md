@@ -2,6 +2,28 @@
 
 本日志由 Codex、Claude 或人工共同维护。每个会话条目标题必须标注执行者：`[Codex]`、`[Claude]` 或 `[人工]`。**条目按时间倒序排列：最新条目在最顶部。** 项目级日志记录完整细节；外层 nilo 仓库 `docs/session-log.md` 只记简要条目并指向这里。
 
+## 2026-11-05
+
+### [Claude] · 补齐 CI 硬化：`release.yml` 串行化与 `ci-build.yml` 的 concurrency
+
+- TL;DR：上一轮拆分 CI 时漏了两处——`ci-build.yml` 实际**没有**加 `concurrency`（文档却写了「两个工作流都加了」），`release.yml` 也没有 `concurrency` / `timeout-minutes`，两个同 tag 的发布运行会同时抢配额并争着 `gh release create`。这次补齐，并修掉 `release.sh` 与工作流里残留的「预发布」措辞。
+
+#### 处理
+
+- `ci-build.yml` 补 `concurrency: {group: ci-build-${{ github.ref }}, cancel-in-progress: true}`。macOS 配额紧张时，排队中的旧作业会和新作业抢同一份配额，取消旧的才有意义。
+- `release.yml` 补 `concurrency: {group: release-${{ github.ref }}, cancel-in-progress: false}`。这里**故意**不取消：取消一次已经走到「Publish GitHub Release」的运行，会留下附件不全的 release（`gh release create` 已经创建但 `dist/*` 只传了一半）。串行化至少保证同一个 tag 不会有两个发布在跑。
+- `release.yml` 补 `timeout-minutes: 40`，避免作业卡死后占满默认 6 小时上限。
+- `release.yml` 里「否则退回未签名预发布」的注释与 `::warning::` 文案、`scripts/release.sh` 的 `usage()` / 参数校验提示 / 收尾提示，全部把「预发布」改为「未签名」——`--prerelease` 早前已移除，继续叫预发布自相矛盾。上一轮声称全仓统一过，但漏了这两处。
+
+#### 明确不修
+
+GitHub 不支持 `runs-on` 的「拿不到就换一个池」兜底，配额失败发生在作业分配阶段，连 `if: failure()` 的补偿作业也一样排不上队。所以 `The job was not acquired` 这个失败模式只能靠重跑处理；工作流能做的只有降低撞上的概率（`paths-ignore`）和缩短撞上后的损失（`concurrency` + `timeout-minutes`）。
+
+#### 验证
+
+- `ruby -ryaml` 解析三个工作流通过；`sh -n scripts/release.sh` 通过。
+- 文档 `docs/dev/build.md` 的 concurrency 段落改写为三个工作流各自的语义，`docs/dev/release.md` 补充「不能靠改工作流消除」的原因与 `gh run rerun --failed` 命令，`CLAUDE.md` 同步并标注 `release.yml` 不能改成立即取消。
+
 ## 2026-11-01
 
 ### [Claude] · 拆分 CI：文档改动不再占用 macOS runner 配额

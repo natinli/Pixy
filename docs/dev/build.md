@@ -106,7 +106,9 @@ CI 分成两个工作流，区别在于要不要占用 macOS runner：
 
 **为什么拆开**：macOS arm64 runner 配额紧张时，作业会排队约 15 分钟后直接以 `The job was not acquired by Runner of type hosted` 失败——这不是代码问题。而本仓库绝大多数提交是文档，没必要为此占用 macOS 配额。卫生检查反而**不能**跳过文档改动（敏感信息最常出现在文档与日志里），所以它单独放在 ubuntu 上，对任何改动都跑。
 
-两个工作流都加了 `concurrency` + `cancel-in-progress`，同一分支连续推送时取消上一轮，避免排队堆积。遇到 runner 配额失败时，等几分钟在 Actions 页面 `Re-run failed jobs` 即可。
+三个工作流都带 `concurrency`，但语义不同：`ci.yml` 和 `ci-build.yml` 用 `cancel-in-progress: true`，同一分支连续推送时取消上一轮，避免排队堆积抢配额；`release.yml` 用 `cancel-in-progress: false` 按 tag 串行，因为取消一次已经在上传产物的发布运行会留下附件不全的 release。三者都有 `timeout-minutes`（检查 10、构建 45、发布 40），防止作业卡死后占满 6 小时的默认上限。
+
+遇到 runner 配额失败时，等几分钟在 Actions 页面 `Re-run failed jobs` 即可，tag 不用重推。
 
 发布工作流 `.github/workflows/release.yml` 只在 `v*` tag 触发，根据是否配置了 `APPLE_CERTIFICATE_BASE64` Secret 自动选择签名或未签名模式。完整的发布流程与 Secret 清单见 [发布流程](release.md)。
 
