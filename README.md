@@ -143,7 +143,7 @@ Troubleshooting: [docs/user/faq.md](docs/user/faq.md).
 | `FlowVision/Resources/` | Assets, storyboards, localization |
 | `scripts/` | Dependency bootstrap, release packaging, repository hygiene checks |
 | `docs/` | User and developer documentation |
-| `.github/workflows/` | CI (build on push/PR) and release (on `v*` tags) |
+| `.github/workflows/` | Checks (ubuntu, every push) · Build (macOS, code changes only) · Release (`v*` tags) |
 
 Display name is **Pixy**; the Xcode project, scheme and bundle identifiers remain `FlowVision`-based
 for upstream compatibility. See [CLAUDE.md](CLAUDE.md) for the AI-assistance entry point and

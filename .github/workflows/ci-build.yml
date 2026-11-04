@@ -1,0 +1,59 @@
+name: CI build
+
+# 完整构建：依赖 macOS 与 Xcode，是排队最久、也最容易因 runner 配额而失败的一环。
+#
+# 因此这里按 `paths-ignore` 跳过纯文档改动——只改 Markdown / docs / 任务记录时
+# 不占用 macOS 配额。真正的门禁（公开仓库卫生检查、依赖来源检查）在 ci.yml 里，
+# 那部分对文档改动同样会跑。
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".trellis/**"
+  pull_request:
+    paths-ignore:
+      - "docs/**"
+      - "**.md"
+      - ".trellis/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-14
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: xcodebuild -version
+
+      - name: Prepare source dependencies
+        run: scripts/bootstrap-dependencies.sh --skip-ffmpeg
+
+      - name: Build unsigned source package
+        run: |
+          xcodebuild \
+            -project FlowVision.xcodeproj \
+            -scheme FlowVision \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath .build/DerivedData \
+            -onlyUsePackageVersionsFromResolvedFile \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY='' \
+            build
+
+      - name: Upload unsigned artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pixy-unsigned-${{ github.sha }}
+          path: |
+            .build/DerivedData/Build/Products/Release/Pixy.app
+            FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
+          if-no-files-found: error

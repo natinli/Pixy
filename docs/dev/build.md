@@ -97,7 +97,18 @@ scripts/release.sh --unsigned
 
 两种模式都会先跑 `check-public-hygiene.sh` 和 `check-dependency-notices.sh`；这两个门禁只检查 `git ls-files` 列出的文件，`.gitignore` 里的 `LocalDev.xcconfig`、`dist/`、`.build/` 不参与检查，但一旦被误提交就会被拦下。
 
-CI 发布工作流位于 `.github/workflows/release.yml`，只在 `v*` tag 触发。工作流根据是否配置了 `APPLE_CERTIFICATE_BASE64` Secret 自动选择签名或未签名模式；未签名模式发布的 Release 会标记为 pre-release。完整的发布流程与 Secret 清单见 [发布流程](release.md)。
+CI 分成两个工作流，区别在于要不要占用 macOS runner：
+
+| 工作流 | runner | 触发 | 跑什么 |
+|---|---|---|---|
+| `.github/workflows/ci.yml`（CI checks） | `ubuntu-latest` | 每次 push / PR | `check-public-hygiene.sh`、`check-dependency-notices.sh` |
+| `.github/workflows/ci-build.yml`（CI build） | `macos-14` | push / PR，但 `paths-ignore` 掉 `docs/**`、`**.md`、`.trellis/**` | bootstrap 依赖 + `xcodebuild` Release 构建 + 上传产物 |
+
+**为什么拆开**：macOS arm64 runner 配额紧张时，作业会排队约 15 分钟后直接以 `The job was not acquired by Runner of type hosted` 失败——这不是代码问题。而本仓库绝大多数提交是文档，没必要为此占用 macOS 配额。卫生检查反而**不能**跳过文档改动（敏感信息最常出现在文档与日志里），所以它单独放在 ubuntu 上，对任何改动都跑。
+
+两个工作流都加了 `concurrency` + `cancel-in-progress`，同一分支连续推送时取消上一轮，避免排队堆积。遇到 runner 配额失败时，等几分钟在 Actions 页面 `Re-run failed jobs` 即可。
+
+发布工作流 `.github/workflows/release.yml` 只在 `v*` tag 触发，根据是否配置了 `APPLE_CERTIFICATE_BASE64` Secret 自动选择签名或未签名模式。完整的发布流程与 Secret 清单见 [发布流程](release.md)。
 
 ## 调试
 

@@ -1,4 +1,10 @@
-name: CI
+name: CI checks
+
+# 廉价且必跑的检查：不依赖 Xcode，放在 ubuntu 上。
+#
+# 这些检查不能因为「只改了文档」而跳过——敏感信息泄漏恰恰最常见于文档与日志里，
+# 之前 `docs/session-log.md` 就触发过一次隐私路径拦截。
+# macOS 构建单独放在 ci-build.yml，按 paths-ignore 跳过文档改动。
 
 on:
   push:
@@ -8,43 +14,21 @@ on:
 permissions:
   contents: read
 
+# 同一分支连续推送时取消上一轮，避免排队堆积（macOS runner 配额紧张时尤其重要）。
+concurrency:
+  group: ci-checks-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  build:
-    runs-on: macos-14
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Show toolchain
-        run: xcodebuild -version
-
-      - name: Prepare source dependencies
-        run: scripts/bootstrap-dependencies.sh --skip-ffmpeg
 
       - name: Check public repository hygiene
         run: scripts/check-public-hygiene.sh
 
       - name: Check dependency provenance
         run: scripts/check-dependency-notices.sh
-
-      - name: Build unsigned source package
-        run: |
-          xcodebuild \
-            -project FlowVision.xcodeproj \
-            -scheme FlowVision \
-            -configuration Release \
-            -destination 'platform=macOS' \
-            -derivedDataPath .build/DerivedData \
-            -onlyUsePackageVersionsFromResolvedFile \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGN_IDENTITY='' \
-            build
-
-      - name: Upload unsigned artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: pixy-unsigned-${{ github.sha }}
-          path: |
-            .build/DerivedData/Build/Products/Release/Pixy.app
-            FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
-          if-no-files-found: error

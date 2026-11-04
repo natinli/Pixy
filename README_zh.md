@@ -136,7 +136,7 @@ xcodebuild -project FlowVision.xcodeproj -scheme FlowVision \
 | `FlowVision/Resources/` | 资源、storyboard、本地化 |
 | `scripts/` | 依赖准备、发布打包、仓库卫生检查 |
 | `docs/` | 用户向与开发向文档 |
-| `.github/workflows/` | CI（push/PR 构建）与 Release（`v*` tag 触发） |
+| `.github/workflows/` | 检查（ubuntu，每次推送）· 构建（macOS，仅代码改动）· Release（`v*` tag） |
 
 展示名是 **Pixy**，而 Xcode 工程、scheme 和 bundle id 仍保留 `FlowVision` 命名以便与上游保持一致。
 AI 协作入口与约定见 [CLAUDE.md](CLAUDE.md)。
