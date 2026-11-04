@@ -4,6 +4,32 @@
 
 ## 2026-11-01
 
+### [Claude] · 合入上游 16 个提交（Trellis 任务 11-04-pixy-merge-upstream）
+
+- TL;DR：把上游自 `1.7.6` 起的 16 个提交并入 main（合并提交 `0220d84`），只有 2 个文件真冲突，Pixy 的侧栏/两段式布局/工具栏融合全部保留。任务全程走 Trellis（prd/design/implement + 冲突判定依据预先写入 design.md）。
+
+#### 判定：为什么 `DirTree.swift` 取本地
+
+上游 `614f5da` 在 `treeReLocate` 里修「文件名含 `%` 被当 URL 编码再解一次」，改法是 `removingPercentEncoding ?? $0` + 把外部卷名与编码路径分开。Pixy 把这个函数整块重写成基于 URL 的实现，`normalizedURL` 对以 `/` 开头的路径走 `URL(fileURLWithPath:)`（不解码），对 `file://` 字符串才走 `URL(string:)`（此时解码才是对的），`removingPercentEncoding` 一条都不存在。上游那两个 hunk 全部落在被重写的函数体内，整块取本地。丢掉的不是修复，是被取代的旧实现。
+
+#### 判定：为什么 `EventHandler.swift` 两侧合并
+
+同一行被两边改：Pixy 把 `toggleSidebar` 的展开宽度 `270 → 238`，上游加了 RTL 换算。合成 `setPosition(isRTL ? bounds.width - dividerThickness - 238 : 238, ofDividerAt: 0)`，宽度和 RTL 都保留。
+
+#### 验证
+
+- `xcodebuild -configuration Debug` → `BUILD SUCCEEDED`。
+- **逐行校验**（比人眼扫可靠）：统计上游自基点起新增的每一行是否存在于合并后代码，18 个上游改动文件里 16 个全中；`DirTree.swift` 缺 7/8、`EventHandler.swift` 缺 1/11，合计 8 行，全部来自上述两处有意取舍，无意外丢失。
+- 数据丢失修复的 4 处 `source does not exist` 守卫在 `FileOperation.swift:491/549/795/853` 全部在位，该文件与上游版本逐字一致。
+- 合并后与上游差距 `0 落后 / 38 领先`（`git rev-list --left-right --count upstream/main...HEAD`）。
+- 运行时实测：构造 `percent%20name.jpg`、NFC `café`、NFD `café`、`plain.jpg` 四条用例放进同一目录，Debug 构建打开后四张全部正常加载；侧栏分组与两段式圆角布局无回归。
+- 验证全程用 Debug 产物 `PixyDbg.app`，未触碰 `/Applications/Pixy.app`。
+
+#### 备注
+
+- 8 个自动合入文件里，`FileSystem.swift`、`LayoutManagement.swift`、`Common.swift` 的上游改动本质是重构（反复解包 `fileDB.db[...]!` 改成 `guard let dirModel`），不是行为修改；Pixy 的改动在别的区域，互不干扰。
+- `ViewController.swift` 的上游改动把 `videoView` 变成可选（惰性创建），编译通过说明 Pixy 的装配没被挤出。
+
 ### [Claude] · 内部标识符去上游化（数据目录 / 日志 / 队列标签）
 
 - TL;DR：把运行时还在用上游名字的三类标识符改成 Pixy 自己的。用户可见的只有数据目录和日志文件名；目录名、工程名、storyboard 模块字段经查证无害，刻意保留并写进文档。

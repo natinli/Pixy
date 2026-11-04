@@ -47,6 +47,10 @@ git fetch upstream
 git merge upstream/main        # 或 rebase，视本地分叉程度
 ```
 
+**当前同步状态**：已合并到上游 `8fadf43`（2026-11-04），即 `1.7.6` 之后的 16 个提交全部并入，合并提交为 `0220d84`。合并时只有 2 个文件真冲突（`DirTree.swift` 2 处、`EventHandler.swift` 1 处），其余 16 个上游改动文件自动合入，逐行校验无意外丢失。同期的标识符改名（数据目录、日志名、`com.flowvision.*`）见 [CHANGELOG](../../CHANGELOG.md) 的「未发布」一节。
+
+下一次同步从 `8fadf43` 之后开始即可。
+
 分叉点与冲突预期：
 
 - 根 `README.md` / `README_zh.md` 已完全重写 → **必然冲突**，保留本仓库版本，把上游新增的功能点合并进 `docs/user/usage.md` 与 CHANGELOG。
