@@ -4,6 +4,26 @@
 
 ## 2026-11-01
 
+### [Claude] · 公开仓库设置收尾
+
+- TL;DR：关掉空的 Wiki 与 Projects，开 Discussions，清掉指向自身的 Homepage，补齐 security/Dependabot 告警，并把这套设置写进 `contributing-internal.md`，避免以后被改回去。
+
+#### 处理
+
+- `has_wiki` 关：文档全在 `docs/`，wiki 从来没有内容，等于侧栏多一个空入口，而且和仓库内容容易分叉。全仓无任何指向 wiki 的链接，关掉不影响现有文档。
+- `has_projects` 关：没用它排期。
+- `has_discussions` 开：0 issue 的仓库，讨论区比 issue 门槛低。开启后默认分类（Announcements / General / Ideas / Polls / Q&A / Show and tell）已自动生成，确认可用。
+- `homepage` 清空：原值就是 `https://github.com/natinli/Pixy` 本身，侧栏等于重复显示同一个链接。
+- `delete_branch_on_merge`、`allow_update_branch` 开：单人仓库，合入后留分支只会堆积；开 update branch 让外部 PR 能一键跟上 `main`。
+- `dependabot_security_updates` 开：`Package.resolved` 里的 SPM 依赖有漏洞时自动提 PR。
+- `secret_scanning` 与 `secret_scanning_push_protection` 本就是开着的（公开仓库免费），与 `scripts/check-public-hygiene.sh` 形成双重兜底。
+- 设置清单与理由写成 `contributing-internal.md` 的「GitHub 仓库设置」表。
+
+#### 未完成
+
+- `secret_scanning_validity_checks` 仍是 disabled。个人账号仓库上开不了，PATCH 返回 200 但值不变，不影响 secret scanning 本身。
+- **Social preview 仍需手动上传**：GitHub 没有对应 API，只能在 Settings → Social preview 传 `docs/social-preview.png`。
+
 ### [Claude] · 新增个人 Homebrew tap 分发
 
 - TL;DR：建了 `natinli/homebrew-pixy`，`brew install --cask natinli/pixy/pixy` 可用。原先的假设「brew 用 curl 下载所以不带隔离标记、能免掉 Gatekeeper 放行」被实测推翻，文档按实测结论改写。

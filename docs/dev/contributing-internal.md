@@ -74,3 +74,21 @@ git merge upstream/main        # 或 rebase，视本地分叉程度
 
 - 提交信息用中文，一句话说清改动目的（与 nilo 仓库风格一致）：`docs: xxx` / `fix: xxx` / `feat: xxx`。
 - 文档与源码改动分开提交，便于 cherry-pick 回上游时拆分。
+
+## GitHub 仓库设置
+
+公开前的收尾项，记录在此以免以后被无意改回去：
+
+| 设置 | 状态 | 理由 |
+|---|---|---|
+| Wiki | 关 | 文档全在 `docs/`，wiki 是空入口，且与仓库内容容易分叉 |
+| Projects | 关 | 没用它排期 |
+| Discussions | 开 | 0 issue 的仓库，讨论区比 issue 门槛低；用默认分类 |
+| Homepage | 留空 | 原先填的是仓库地址本身，侧栏重复显示同一个链接 |
+| 合入后删除源分支 | 开 | 单人仓库，分支留着只会堆积 |
+| PR 分支允许更新 | 开 | 外部提 PR 时一键跟上 `main` |
+| Secret scanning + push protection | 开 | 公开仓库免费，配合 `scripts/check-public-hygiene.sh` 双重兜底 |
+| Dependabot 安全更新 | 开 | `Package.resolved` 里的 SPM 依赖有漏洞时自动提 PR |
+| Social preview | **需手动上传** | GitHub 无 API，仓库 Settings → Social preview 传 `docs/social-preview.png` |
+
+`secret_scanning_validity_checks` 仍是关闭状态——个人账号仓库上开不了，不影响上面两项。
