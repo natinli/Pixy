@@ -4,6 +4,29 @@
 
 ## 2026-11-01
 
+### [Claude] · 拆分 CI：文档改动不再占用 macOS runner 配额
+
+- TL;DR：今天两次 CI 失败都是 `The job was not acquired by Runner of type hosted`——macOS arm64 runner 配额不足，排队约 15 分钟后放弃，不是代码问题。把检查与构建拆成两个工作流，纯文档提交不再排 macOS 队。
+
+#### 诊断
+
+- 两次失败（15:19、15:54）的注解一致：`The job was not acquired by Runner of type hosted even after multiple attempts`，配套提示 `Due to capacity constraints, jobs targeting macOS arm64 runners may experience longer queue times`。近 30 次运行 9 成 5 败，失败里两次是这次的基础设施问题，其余是历史上的真实失败（全角括号变量名、发布工作流配置）。
+- 结构性问题两条：`runs-on: macos-14`（arm64，最紧俏的池），以及**没有 concurrency**——连续推送的作业只会排队堆积，互相抢同一份稀缺配额。
+- 更没道理的是：这个仓库绝大多数提交是文档，每推一次文档就排一个完整的 macOS 构建。失败的 `docs: 记录上游合并的判定与验证` 就是纯文档提交。
+
+#### 处理
+
+- `ci.yml` 改为「CI checks」，跑在 `ubuntu-latest`：卫生检查 + 依赖来源检查。**任何改动都跑**——敏感信息最常出现在文档与日志里，`docs/session-log.md` 之前就触发过一次隐私路径拦截，这部分不能因为「只改文档」而跳过。
+- 新增 `ci-build.yml`（「CI build」，`macos-14`）：bootstrap + `xcodebuild` Release + 上传产物，用 `paths-ignore` 跳过 `docs/**`、`**.md`、`.trellis/**`。
+- 两个工作流都加 `concurrency: {group, cancel-in-progress: true}` 与 `timeout-minutes`（检查 10 分钟、构建 45 分钟）。
+- `docs/dev/build.md` 新增 CI 章节说明拆分理由与「配额失败怎么处理」，顺带修掉「未签名 Release 会标记 pre-release」这句过时说明；README 中英与 `CLAUDE.md` 的引用同步。
+
+#### 验证
+
+- `ruby -ryaml` 解析两个工作流通过。
+- 拆分后首次推送：`CI checks` 45 秒成功（顺带证明两个脚本在 ubuntu 上可跑——只用 `git ls-files` + `grep` + `mktemp -d`，没有 BSD-only 构造），`CI build` 也拿到 runner 并成功。
+- 本条 session-log 提交本身是纯文档改动，推上去后应当只触发 `CI checks`、不产生 `CI build`——这就是 `paths-ignore` 是否生效的实测。
+
 ### [Claude] · 合入上游 16 个提交（Trellis 任务 11-04-pixy-merge-upstream）
 
 - TL;DR：把上游自 `1.7.6` 起的 16 个提交并入 main（合并提交 `0220d84`），只有 2 个文件真冲突，Pixy 的侧栏/两段式布局/工具栏融合全部保留。任务全程走 Trellis（prd/design/implement + 冲突判定依据预先写入 design.md）。
