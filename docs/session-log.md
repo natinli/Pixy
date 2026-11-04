@@ -4,6 +4,64 @@
 
 ## 2026-11-01
 
+### [Claude] · 开源前整理：清理、文档重整、README 与实机截图
+
+- TL;DR：把仓库从「fork 过来改了 UI」整理成规范的二次开发公开项目：删掉上游遗留与死文件、修正会让新贡献者踩坑的过时文档、重写中英文 README、用当前代码重拍界面图。
+
+#### ✅ 完成
+
+**清理（提交 `06c8e7a`）**
+
+- 删除 `docs/preview.jpg`：全仓库零引用。
+- 删除 `.github/funding.yml`：内容是 `buy_me_a_coffee: netdcyn`，即**上游作者**的收款账户，fork 上保留会把捐赠导向上游。
+- 删除 `.vscode/settings.json`：唯一内容是 `problems.visibility: false`，对贡献者有害。
+
+**代码指向修正（提交 `e179db1`）**
+
+- `OFFICIAL_WEBSITE`：`https://flowvision.app` → `https://github.com/natinli/Pixy`
+- `FINDER_TAG_LEARN_MORE_URL`：`https://flowvision.app/tag` → 仓库内 `docs/user/usage.md`（上游那个专门页面 Pixy 没有等价物）
+- `INFOPLIST_KEY_NSHumanReadableCopyright`：`© 2024 netdcy` → `© 2024 netdcy · Pixy fork © 2026 natinli`
+- 核对两个常量的用途：只在 `AppDelegate.swift:1257` 和 `Tagging.swift:183` 用于 `open(url)`，不参与布局，无排版风险。
+
+**文档重整（提交 `4815708`）**
+
+- `docs/dev/modules.md`：文件数 53 → 56（实测 `Sources/**.swift`）；补 `WindowController+ToolbarBlend.swift`（133 行，大图模式透明标题栏 + 底部标题胶囊）。
+- `docs/dev/modules.md` + `docs/dev/architecture.md`：删除「BTree、Settings 是仓库外本地包 `../BTree`、`../Settings`」——实际早已改为公开 Swift Package 并由 `Package.resolved` 锁定，按旧描述搭建环境会直接失败。
+- `docs/dev/architecture.md`：Swift 行数改为约 3.36 万（实测 33,632），模块树补两个 fork 新增文件。
+- `SECURITY.md`：发布安全段改为「当前未签名预发布 + 未来签名后的目标」，不再声称已公证。
+- `docs/dev/contributing-internal.md`：删掉「fork 以文档体系 + 少量定制为边界，尽量不改上游源码」的过时定位，补上相对上游实际分叉的 13 个文件清单（DataModel、DirTree、CustomOutlineView 系、SidebarCard、ToolbarBlend 等），供上游合并时核对。
+- `docs/index.md`：新增「按任务找文档」映射表（改侧栏 / 改布局 / 改大图 / 发版 …）。
+- `docs/user/installation.md`：新增「关于 Homebrew」——Pixy 没有 cask，`brew install flowvision` 装的是上游原版、不含 Pixy 改动。
+- `docs/user/usage.md`：补大图模式透明标题栏与底部「文件名 · 张数」胶囊。
+
+**README（提交 `4815708`）**
+
+- 中英文重写：以 Pixy 自身定位为主语，上游血缘移到「致谢」节；功能列表按导航/浏览/整理/性能/界面分组；补充徽章、目录结构、开发要求。
+- 安装段如实标注「当前未签名预发布」，给出图形界面与 `xattr` 两种放行方式，并明确「不建议设为默认图片应用」。
+
+**仓库元信息**
+
+- description 由上游原句改为 Pixy 定位；homepage 由 `flowvision.app` 改为仓库地址；新增 7 个 topics（macos / appkit / swift / image-viewer / photo-management / video-player / finder）；启用 Issues。
+
+**截图**
+
+- 用脚本生成 24 张合成渐变图作为示例图库（不涉及任何真实照片），启动当前构建逐个截图，浅色/深色各一张，`screencapture -l <windowid>` 只抓目标窗口。
+- 替换 `docs/preview_1.png`（深色）与 `docs/preview_2.png`（浅色），统一为 1234×734。
+- 截图结束后退出测试实例、删除 `com.natinli.Pixy` 的临时 appearance 设置、清理示例图库。用户自用的 `/Applications/Pixy.app` 全程未触碰。
+
+#### 验证
+
+- `xcodebuild` Release 构建 `BUILD SUCCEEDED`（含上述源码改动）。
+- `scripts/check-public-hygiene.sh`、`scripts/check-dependency-notices.sh` 均通过（在干净 PATH 下运行，确认不依赖 rg）。
+- 全部 Markdown 相对链接检查：0 个断链。
+
+#### 待跟进
+
+- 本次未改动已发布的 `v0.0.1` Release；这些整理与截图变更需等下一个 tag 才会体现在发布包和仓库首页。
+- 深色截图依赖应用自身的 appearance 设置，截完已删除该 defaults 键。
+
+## 2026-11-01
+
 ### [Claude] · 建立 0.0.1 发布线，修复发布门禁 fail-open
 
 - TL;DR：Pixy 从自己的 `0.0.1` 起建立版本线，新增免证书的未签名发布路径，并修掉一个会让敏感信息扫描静默失效的门禁漏洞。
