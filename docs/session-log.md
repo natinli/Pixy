@@ -4,6 +4,39 @@
 
 ## 2026-11-01
 
+### [Claude] · 内部标识符去上游化（数据目录 / 日志 / 队列标签）
+
+- TL;DR：把运行时还在用上游名字的三类标识符改成 Pixy 自己的。用户可见的只有数据目录和日志文件名；目录名、工程名、storyboard 模块字段经查证无害，刻意保留并写进文档。
+
+#### 为什么只改这三类
+
+盘点后把上游痕迹分成三类，只动第一类：
+
+- **有实际后果**：`~/Library/Application Support/FlowVision` 被 `Common.swift`、`Log.swift`、`FinderTag.swift` 三处写死。同时装了上游 FlowVision 时，两个 App 会往同一个目录写 `EnhancedIndex.json` 和 `TempFileForSound.txt`，互相覆盖；cask 的 `--zap` 也会连带删掉上游数据。
+- **看似问题实则无害**：storyboard / xib 里的 `customModule="FlowVision"`。查了实际二进制，Swift 模块名已是 `Pixy`（符号前缀 `$s4Pixy`，由 `PRODUCT_NAME` 决定），这些字段带 `customModuleProvider="target"`，运行时按当前 target 解析，是过时元数据。
+- **不能动的**：`FlowVision/` 目录与 `FlowVision.xcodeproj`、scheme 名。这是唯一影响上游合并的一类：当前分叉点 `d16f20e`（上游 1.7.6），落后上游 36 个提交但只涉及 7 个文件，追平成本是 3 个冲突。改路径会让上游每个提交都变成路径冲突。
+
+#### 处理
+
+- `GlobalVariable.swift` 新增 `APP_SUPPORT_DIRECTORY_NAME = "Pixy"` 与 `LOG_FILE_NAME = "Pixy.log"`，三处硬编码改为引用常量，避免以后再次分叉。`FinderTag.swift` 里同名局部变量 `flowVisionDir` 一并改成 `appSupportDir`。
+- 日志兜底路径 `~/.FlowVision.log` → `~/.Pixy.log`。
+- GCD 队列标签 `com.flowvision.EnhancedIndex.{save,scan}`，以及三处 `NSPasteboard` 类型（excludePathRow / customTagRow / favorites.row）改为 `com.natinli.Pixy.*`。后三类只有 Instruments 和跨视图拖拽时可见。
+- tap 的 `Casks/pixy.rb` 中 `zap trash` 由 `Application Support/FlowVision` 改为 `Application Support/Pixy`。
+- `contributing-internal.md` 补上这批文件，并新增「刻意保留的上游命名」表，把目录名、`customModule`、`FlowVisionTitleFolder` 哨兵值、`netdcy.flowvision.jfif` UTI 各自保留的理由写清楚，避免下次重新讨论。
+- `docs/dev/release.md` 里关于 `--zap` 副作用的那段按新事实改写。
+
+#### 未做
+
+- **不做数据迁移**。旧目录不读不写，也不会自动清理。标签索引是重建得回来的缓存，本机上该目录本来就只有 `.DS_Store` 和 0 字节的 `TempFileForSound.txt`，没有索引可迁。代价是跑过旧版 fork 的用户会留下一个孤立目录，已在 release.md 写明。
+- **`Info.plist` 的 `netdcy.flowvision.jfif` UTI 未改**。这是上游反向域名命名空间下的标识符，改名为 `com.natinli.Pixy.jfif` 更合适，但要同时改 `LSItemContentTypes` 与 `UTTypeIdentifier` 两处，且会动到 LaunchServices 类型声明，留待单独确认。
+- `FileOperation.swift` 的 `FlowVisionPromisedFiles-` 临时目录前缀在 `/tmp` 下不可见，未改。
+
+#### 验证
+
+- `xcodebuild -configuration Debug build` → `BUILD SUCCEEDED`。
+- 启动 Debug 构建实测：`~/Library/Application Support/Pixy` 被创建；旧目录 `FlowVision` 的 mtime 仍是 9 月 14 日，确认不再被写入。调试实例随后被关掉。
+- `git grep 'com\.flowvision'` 在源码中已无命中。
+
 ### [Claude] · 公开仓库设置收尾
 
 - TL;DR：关掉空的 Wiki 与 Projects，开 Discussions，清掉指向自身的 Homepage，补齐 security/Dependabot 告警，并把这套设置写进 `contributing-internal.md`，避免以后被改回去。

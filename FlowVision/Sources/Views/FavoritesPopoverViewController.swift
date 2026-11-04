@@ -120,7 +120,7 @@ class FavoritesPopoverViewController: NSViewController, NSTableViewDataSource, N
     private let addButton = NSButton()
     private let addSeparatorButton = NSButton()
     private let emptyLabel = NSTextField(labelWithString: "")
-    private static let dragType = NSPasteboard.PasteboardType("com.flowvision.favorites.row")
+    private static let dragType = NSPasteboard.PasteboardType("com.natinli.Pixy.favorites.row")
     private static let cellId = NSUserInterfaceItemIdentifier("FavoritesCellView")
     private static let separatorCellId = NSUserInterfaceItemIdentifier("FavoritesSeparatorCellView")
     

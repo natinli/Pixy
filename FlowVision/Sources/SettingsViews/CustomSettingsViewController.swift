@@ -159,7 +159,7 @@ final class CustomSettingsViewController: NSViewController, SettingsPane {
 
 class ThumbnailExcludeView: NSView {
 
-    private static let dragType = NSPasteboard.PasteboardType("com.flowvision.excludePathRow")
+    private static let dragType = NSPasteboard.PasteboardType("com.natinli.Pixy.excludePathRow")
 
     private var paths: [String] = []
     private var tableView: NSTableView!

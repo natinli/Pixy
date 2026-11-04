@@ -257,16 +257,15 @@ class Logger {
                 create: true
             )
 
-            let appDirectory = appSupportDirectory.appendingPathComponent("FlowVision", isDirectory: true)
+            let appDirectory = appSupportDirectory.appendingPathComponent(APP_SUPPORT_DIRECTORY_NAME, isDirectory: true)
             if !fileManager.fileExists(atPath: appDirectory.path) {
                 try fileManager.createDirectory(at: appDirectory, withIntermediateDirectories: true, attributes: nil)
             }
 
-            let logFileName = "FlowVision.log"
-            logFileURL = appDirectory.appendingPathComponent(logFileName)
-            
+            logFileURL = appDirectory.appendingPathComponent(LOG_FILE_NAME)
+
         } catch {
-            let logFileName = ".FlowVision.log"
+            let logFileName = ".\(LOG_FILE_NAME)"
             let userDirectory = fileManager.homeDirectoryForCurrentUser
             logFileURL = userDirectory.appendingPathComponent(logFileName)
         }

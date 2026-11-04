@@ -65,8 +65,24 @@ git merge upstream/main        # 或 rebase，视本地分叉程度
 | `WindowController.swift`、`ViewController.swift` | 装配新扩展、工具栏与菜单入口调整 |
 | `ViewControllerExtension/EventHandler.swift`、`KeyShortcut.swift`、`FileSystem.swift`、`LargeImage.swift`、`Views/CustomSplitView.swift` | 侧栏导航、快捷键跳过分组行、进入子目录清除选中态、大图融合联动 |
 | `Resources/Localizable.xcstrings`、`mul.lproj/Main.xcstrings` | 中文化与文案 |
+| `Common/GlobalVariable.swift`、`Common/Common.swift`、`Common/Log.swift`、`Common/FinderTag.swift`、`SettingsViews/CustomSettingsViewController.swift`、`SettingsViews/TaggingSettingsViewController.swift`、`Views/FavoritesPopoverViewController.swift` | 标识符去上游化：数据目录与日志文件名改为 `Pixy`，GCD 队列标签与 `NSPasteboard` 类型改为 `com.natinli.Pixy.*` |
 
-其余上游文件保持原样。**新增定制优先新建 extension 文件**（如 `ViewController+SidebarCard.swift`），减少与上游同区域的冲突面。
+除此之外的上游文件保持原样。
+
+## 刻意保留的上游命名
+
+改名前先看这一节，别再重复讨论：
+
+| 保留项 | 为什么不动 |
+|---|---|
+| `FlowVision/` 目录、`FlowVision.xcodeproj`、scheme `FlowVision` | 只影响开发者命令和文档，用户完全看不到（App 名、bundle id 都已是 Pixy）。改路径会让上游每个提交都变成路径冲突，永久失去自动合并能力 |
+| 每个文件头的 `// FlowVision` 注释 | 56 个文件，纯噪音，改了只会增加冲突面 |
+| storyboard / xib 里的 `customModule="FlowVision"` | Swift 模块名实际已是 `Pixy`（`PRODUCT_NAME` 决定），这些字段带 `customModuleProvider="target"`，运行时按当前 target 解析，是过时但无害的元数据 |
+| `DataModel.swift` 的 `file:///FlowVisionTitleFolder/` | 内部哨兵值，显示名已被覆盖为 `Pixy`；`CustomPathControl.swift` 也按这个字符串判断，两处必须一致 |
+| `Info.plist` 的 `netdcy.flowvision.jfif` UTI | **待定**。这是上游反向域名命名空间下的 UTI 标识符，改成 `com.natinli.Pixy.jfif` 更合适（两处引用必须同时改），但会动到 LaunchServices 的类型声明，等确认后再做 |
+| `FileOperation.swift` 的 `FlowVisionPromisedFiles-` 临时目录前缀 | 在 `/tmp` 下，用户不可见 |
+
+**新增定制优先新建 extension 文件**（如 `ViewController+SidebarCard.swift`），减少与上游同区域的冲突面。
 
 上游发布新版本后：更新 `CHANGELOG.md`（翻译整理上游 release notes），必要时更新 `docs/dev/modules.md` 中受影响文件；上表文件是合并时的重点核对对象。
 

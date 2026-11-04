@@ -747,7 +747,7 @@ func triggerFinderSound() {
         
         // 创建应用专用目录
         // Create application-specific directory
-        let appDirectory = appSupportDirectory.appendingPathComponent("FlowVision", isDirectory: true)
+        let appDirectory = appSupportDirectory.appendingPathComponent(APP_SUPPORT_DIRECTORY_NAME, isDirectory: true)
         if !fileManager.fileExists(atPath: appDirectory.path) {
             try fileManager.createDirectory(at: appDirectory, withIntermediateDirectories: true, attributes: nil)
         }

@@ -105,7 +105,9 @@ scripts/update-cask.sh --no-push    # 只改本地 tap，不推送
 
 脚本从 release 的 `SHA256SUMS.txt` 读校验和，改写 tap 里的 `Casks/pixy.rb` 并提交推送，重复执行是幂等的。tap 默认用 Homebrew 自己克隆的那份（`brew tap natinli/pixy` 之后才有），`PIXY_TAP_DIR` 可指向别的 checkout。
 
-cask 里 `zap trash` 登记了 `~/Library/Application Support/FlowVision`——**Pixy 复用了上游的数据目录名**（`FinderTag.swift`、`Log.swift`、`Common.swift` 都写死 `FlowVision`）。同时装了 FlowVision 的用户执行 `brew uninstall --cask --zap pixy` 会把上游的搜索索引一起删掉。
+cask 里 `zap trash` 登记的是 `~/Library/Application Support/Pixy`。早期版本这里写的是 `FlowVision`——因为 fork 初期沿用了上游的数据目录名，同时装了上游 FlowVision 的用户执行 `--zap` 会把上游的搜索索引一起删掉。2026-11-04 已把数据目录、日志文件名和 `com.flowvision.*` 内部标识符全部改为 Pixy 自己的，这个副作用随之消失。
+
+改动前留下的 `~/Library/Application Support/FlowVision` 不再被读写，也不在 zap 列表里——如果用户之前跑过旧的 fork 版本，那个目录需要手动删。索引是重建得回来的缓存，不做迁移。
 
 ## 已知限制
 

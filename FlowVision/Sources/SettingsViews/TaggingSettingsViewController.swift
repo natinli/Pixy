@@ -40,7 +40,7 @@ final class TaggingSettingsViewController: NSViewController, SettingsPane {
 class CustomTagView: NSView {
     
     static let userDefaultsKey = "customLabels"
-    private static let dragType = NSPasteboard.PasteboardType("com.flowvision.customTagRow")
+    private static let dragType = NSPasteboard.PasteboardType("com.natinli.Pixy.customTagRow")
     
     fileprivate var tags: [(name: String, colorIndex: Int?)] = []
     private var tableView: NSTableView!

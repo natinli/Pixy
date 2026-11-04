@@ -19,6 +19,11 @@ let INFO_VIEW_DURATION = 0.3
 let OFFICIAL_WEBSITE = "https://github.com/natinli/Pixy"
 let FINDER_TAG_LEARN_MORE_URL = "https://github.com/natinli/Pixy/blob/main/docs/user/usage.md"
 
+// 应用数据目录名。不能沿用上游的 "FlowVision"：同时装了上游 App 时两边会往同一个目录写
+// EnhancedIndex.json 和 TempFileForSound.txt，互相覆盖。
+let APP_SUPPORT_DIRECTORY_NAME = "Pixy"
+let LOG_FILE_NAME = "Pixy.log"
+
 var ROOT_NAME: String { return getSystemVolumeName() ?? "Macintosh HD" }
 
 let COLOR_COLLECTIONVIEW_BG_LIGHT = "#FFFFFF"

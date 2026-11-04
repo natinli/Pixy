@@ -305,18 +305,18 @@ class EnhancedIndex {
     private static let initLock = NSLock()
     private static var isInitializing = false
     private static var pendingWorkItem: DispatchWorkItem?
-    private static let saveQueue = DispatchQueue(label: "com.flowvision.EnhancedIndex.save")
+    private static let saveQueue = DispatchQueue(label: "com.natinli.Pixy.EnhancedIndex.save")
     private static let debounceInterval: TimeInterval = 2.0
 
-    private static let scanQueue = DispatchQueue(label: "com.flowvision.EnhancedIndex.scan")
+    private static let scanQueue = DispatchQueue(label: "com.natinli.Pixy.EnhancedIndex.scan")
     private static var currentScanID = 0
     private static let scanIDLock = NSLock()
 
     private static var dataFileURL: URL {
         let appSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let flowVisionDir = appSupport.appendingPathComponent("FlowVision")
-        try? FileManager.default.createDirectory(at: flowVisionDir, withIntermediateDirectories: true)
-        return flowVisionDir.appendingPathComponent("EnhancedIndex.json")
+        let appSupportDir = appSupport.appendingPathComponent(APP_SUPPORT_DIRECTORY_NAME)
+        try? FileManager.default.createDirectory(at: appSupportDir, withIntermediateDirectories: true)
+        return appSupportDir.appendingPathComponent("EnhancedIndex.json")
     }
 
     // MARK: - 初始化

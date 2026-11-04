@@ -4,6 +4,15 @@
 
 版本号说明：Pixy 从 `0.0.1` 开始使用**自己的版本线**，与上游 `1.x` 无关；上游历史 tag 随 fork 保留但不再使用。详见 [docs/dev/release.md](docs/dev/release.md)。
 
+## [Fork] 未发布
+
+内部标识符去上游化，用户可见的变化只有两处：
+
+- **数据目录改为 `~/Library/Application Support/Pixy`**。原先沿用上游的 `FlowVision`，同时装上游 FlowVision 的用户会让两个 App 往同一个目录写 `EnhancedIndex.json` 和 `TempFileForSound.txt`，互相覆盖。旧目录不再被读写，也不会自动清理；标签索引是重建得回来的缓存，不做迁移。
+- **日志文件改为 `Pixy.log`**（兜底的 `~/.Pixy.log`）。
+- GCD 队列标签与 `NSPasteboard` 类型由 `com.flowvision.*` 改为 `com.natinli.Pixy.*`。这两类只有 Instruments 和跨视图拖拽时才看得到，改动不影响行为。
+- 命名的取舍（目录名、工程名、storyboard 的 `customModule` 为什么保留）记在 [docs/dev/contributing-internal.md](docs/dev/contributing-internal.md) 的「刻意保留的上游命名」。
+
 ## [Fork] 2026-11-01 — 0.0.1
 
 首个公开版本。此版本**未签名、未公证**（ad-hoc 签名），首次启动需要手动放行，详见 [安装说明](docs/user/installation.md)。
