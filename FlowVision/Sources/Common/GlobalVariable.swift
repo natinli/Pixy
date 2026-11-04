@@ -16,8 +16,8 @@ let PRELOAD_THUMB_RANGE_NEXT = 40
 let RESET_VIEW_FILE_NUM_THRESHOLD = 5000
 let INFO_VIEW_DURATION = 0.3
 
-let OFFICIAL_WEBSITE = "https://flowvision.app"
-let FINDER_TAG_LEARN_MORE_URL = "https://flowvision.app/tag"
+let OFFICIAL_WEBSITE = "https://github.com/natinli/Pixy"
+let FINDER_TAG_LEARN_MORE_URL = "https://github.com/natinli/Pixy/blob/main/docs/user/usage.md"
 
 var ROOT_NAME: String { return getSystemVolumeName() ?? "Macintosh HD" }
 
