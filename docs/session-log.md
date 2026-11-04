@@ -33,7 +33,7 @@
 
 #### 验证
 
-- 门禁**做了破坏性验证**（在 `/tmp` 副本中，不污染仓库）：放入含 `/Users/natinli/...` 的文件 → 退出码 1 并报出行号；`git add -f` 一个 `.dmg` → 退出码 1 报「发布产物」。确认修复后真的会拦截，而不是又一次静默通过。
+- 门禁**做了破坏性验证**（在 `/tmp` 副本中，不污染仓库）：放入一个含本机用户主目录绝对路径的文件 → 退出码 1 并报出行号；`git add -f` 一个 `.dmg` → 退出码 1 报「发布产物」。确认修复后真的会拦截，而不是又一次静默通过。
 - `sh -n` 通过三个脚本；`ruby -ryaml` 解析 `release.yml`、`ci.yml` 通过。
 - `scripts/release.sh --unsigned` 全流程跑通，`FINAL_EXIT=0`：`BUILD SUCCEEDED` → ad-hoc 签名 → 打包 → 校验和。
 - 产物核查：`CFBundleShortVersionString` = `0.0.1`、`CFBundleVersion` = `20261101`；`lipo -archs` = `x86_64 arm64`；`Contents/Frameworks` 含 ffmpegkit 与 7 个 libav* framework 及 libswift_Concurrency.dylib；`codesign -dv` = `Signature=adhoc`、`TeamIdentifier=not set`；`codesign --verify --deep --strict` 通过；DMG 可挂载，内含 `Pixy.app` + `/Applications` 软链；`shasum -a 256 -c` 两个产物均 OK。
