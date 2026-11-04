@@ -4,6 +4,35 @@
 
 ## 2026-11-01
 
+### [Claude] · v0.0.1 产物就地重建，并去掉 pre-release 标记
+
+- TL;DR：用户要求版本号保持 `0.0.1`。删除旧 release 与 tag，在同一 tag 名上按当前 `main` 重建产物并重新发布，同时修掉「仓库首页看不到 release」的问题。
+
+#### 问题
+
+- 旧 `v0.0.1` 的 tag 指向 `3ef6356`，落后 `main` 5 个提交。下载到的包里「官方网站」仍指向 `flowvision.app`、版权仍是 `© 2024 netdcy`。
+- 旧 release 标了 `--prerelease`。GitHub 不把 pre-release 计入仓库的 `latestRelease`，所以仓库首页侧栏显示成没有 release。
+
+#### 处理
+
+- `MARKETING_VERSION` 保持 `0.0.1`，`CURRENT_PROJECT_VERSION` 保持 `20261101`；把整理内容写进 CHANGELOG 的同一个 `0.0.1` 条目下（新增「2026-11-04 重新构建」小节）。
+- 发布工作流去掉 `--prerelease`，标题改为「Pixy 0.0.1（未签名）」；未签名的风险改由 release 说明承担。`docs/dev/release.md` 记录了这条副作用。
+- `gh release delete v0.0.1 --cleanup-tag` 删除旧 release 与远端 tag，本地重新在 `f1dba5f` 打同名 tag 并推送，CI 重新构建发布。
+
+#### 验证（从 Release 页面重新下载后核对）
+
+- `shasum -a 256 -c SHA256SUMS.txt`：zip 与 dmg 均 OK。
+- `CFBundleShortVersionString` = `0.0.1`，`CFBundleVersion` = `20261101`。
+- `NSHumanReadableCopyright` = `© 2024 netdcy · Pixy fork © 2026 natinli` —— 证明产物确实来自整理后的代码，不是旧 tag。
+- 二进制字符串：`flowvision.app` 出现 0 次，`github.com/natinli/Pixy` 出现 4 次。
+- `codesign -dv`：`Signature=adhoc`、`TeamIdentifier=not set`；`lipo -archs`：`x86_64 arm64`。
+- Release 状态：`isPrerelease=false`，`latestRelease` 已指向它。
+
+#### 已知影响
+
+- 重写了一个已公开的 tag。该 tag 创建于 1 天前、下载量为 0，且用户明确要求沿用 `0.0.1`，因此选择就地替换而不是升版本号。
+- release 说明与 README 现在一致指向「未签名」；`docs/social-preview.png` 已备好，但 GitHub 不提供上传 API，需在仓库 Settings → Social preview 手动上传。
+
 ### [Claude] · 开源前整理：清理、文档重整、README 与实机截图
 
 - TL;DR：把仓库从「fork 过来改了 UI」整理成规范的二次开发公开项目：删掉上游遗留与死文件、修正会让新贡献者踩坑的过时文档、重写中英文 README、用当前代码重拍界面图。
