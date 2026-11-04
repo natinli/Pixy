@@ -72,6 +72,6 @@ jobs:
             gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --verify-tag
           else
             gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --prerelease \
-              --title "Pixy $VERSION（未签名预发布）" \
+              --title "Pixy ${VERSION}（未签名预发布）" \
               --notes-file .github/release-notes-unsigned.md
           fi

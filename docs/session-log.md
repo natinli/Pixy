@@ -47,12 +47,26 @@
 - `docs/user/faq.md` 拆分未签名/已签名两种情形的报错处理，新增「双击图片无法用 Pixy 打开」条目。
 - `docs/dev/build.md` 补两种发布模式说明；`docs/dev/release-smoke-checklist.md` 新增未签名预发布验收段并记录 0.0.1；`docs/index.md`、`CLAUDE.md`、`CHANGELOG.md` 同步。
 
+#### 发布结果
+
+- 已推送 `main`（`25d8c14..3ef6356`），打并推送 tag `v0.0.1`，CI 自动构建并发布：
+  <https://github.com/natinli/Pixy/releases/tag/v0.0.1>
+- Release 状态：`isPrerelease=true`，产物 3 个 —— `Pixy-0.0.1-universal-unsigned.dmg`（35.9 MB）、`.zip`（31.0 MB）、`SHA256SUMS.txt`。
+- 工作流 `Release` 与 `CI` 均 success（Release 2m31s，CI 3m5s，macos-14 runner）。
+- 从 Release 重新下载产物复核：版本 `0.0.1`/`20261101`、`lipo -archs` = `x86_64 arm64`、9 个 Frameworks 条目、`Signature=adhoc`、`TeamIdentifier=not set`、`codesign --verify --deep --strict` 通过、`shasum -a 256 -c` 两个产物均 OK。CI 产物与本地构建结论一致。
+
+#### 过程中踩到并修掉的坑
+
+- **门禁抓到了我自己**：第一次推 tag 后 `CI` 与 `Release` 都在 9–12 秒内失败，原因是 `check-public-hygiene.sh` 扫到了本文件里写的本机绝对路径示例。这反过来证明 fail-open 修复真的生效了（旧版本会静默通过）。已把示例改成文字描述。
+- **同一个全角括号 bug 踩了两次**：workflow 里 `--title "Pixy $VERSION（未签名预发布）"` 与 `release.sh` 收尾 echo 是同一问题——全角括号的字节被 shell 并入变量名。首次发布的 Release 标题因此被写成 `Pixy ��未签名预发布）`，已用 `gh release edit` 修正，并把 workflow 改为 `${VERSION}`。
+- **操作失误**：验证 `gh release create` 的参数互斥性时，命令被直接执行，在公开仓库创建了 `__nonexistent_tag__` 的 release 和 tag。已用 `gh release delete --cleanup-tag` 完全删除并核对（release 列表为空、tag 恢复为 39 个上游历史 tag）。教训：`gh release create` 没有 dry-run，验证参数不能用真实仓库当沙箱。
+
 #### 待跟进
 
-- 本机仍只有 Apple Development 身份，**没有 Developer ID Application 证书**，`pixy-notary` profile 不存在；签名 + 公证链路尚未在真实证书下跑通过。
-- GitHub 仓库 `natinli/Pixy` 目前**没有任何 Secret、没有 `v*` tag、没有 Release**。
-- `main` 领先 `origin/main` 1 个提交（`af05208`），本次改动尚未提交推送。
+- 本机仍只有 Apple Development 身份，**没有 Developer ID Application 证书**，`pixy-notary` profile 不存在；签名 + 公证链路尚未在真实证书下跑通过。用户已决定暂不购买付费账号，0.x 阶段维持未签名预发布。
+- GitHub 仓库 `natinli/Pixy` 目前**没有任何 Secret**，发布工作流走的是未签名分支。
 - 干净用户环境的首次启动放行验证、Intel Mac 实机验证未做（无干净环境/无 Intel 机）。
+- Homebrew 分发未做：上游 FlowVision 走官方 homebrew-cask（`brew install flowvision`），但该 cask 能进官方仓库的前提是**已签名公证 + 足够 notable**。Pixy 当前未签名且 0 star，短期内只能考虑自建 tap。
 
 ## 2026-10-13
 
