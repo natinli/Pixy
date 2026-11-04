@@ -67,10 +67,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          VERSION="${GITHUB_REF_NAME#v}"
           if [ "$HAS_SIGNING" = "true" ]; then
             gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --verify-tag
           else
-            gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --verify-tag \
-              --prerelease \
-              --notes "本版本未使用 Developer ID 签名，也未经过 Apple 公证。首次启动需要手动放行，安装步骤见 docs/user/installation.md。"
+            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --prerelease \
+              --title "Pixy $VERSION（未签名预发布）" \
+              --notes-file .github/release-notes-unsigned.md
           fi
