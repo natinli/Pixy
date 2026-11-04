@@ -71,7 +71,9 @@ jobs:
           if [ "$HAS_SIGNING" = "true" ]; then
             gh release create "$GITHUB_REF_NAME" dist/* --generate-notes --verify-tag
           else
-            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --prerelease \
-              --title "Pixy ${VERSION}（未签名预发布）" \
+            # 不再标记 --prerelease：pre-release 不计入仓库的 latestRelease，
+            # GitHub 首页侧栏会显示成「没有 release」。未签名的风险由 release 说明承担。
+            gh release create "$GITHUB_REF_NAME" dist/* --verify-tag \
+              --title "Pixy ${VERSION}（未签名）" \
               --notes-file .github/release-notes-unsigned.md
           fi

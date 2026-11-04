@@ -16,9 +16,9 @@ Pixy 使用**自己的版本线**，从 `0.0.1` 开始，与上游 FlowVision �
 | 模式 | 前提 | 产物 | Gatekeeper |
 |---|---|---|---|
 | 签名 + 公证 | 付费 Apple Developer Program、Developer ID Application 证书、notarytool 凭据 | `Pixy-<版本>-universal.{zip,dmg}` | 首次启动无拦截，可设为默认图片应用 |
-| 未签名预发布 | 无 | `Pixy-<版本>-universal-unsigned.{zip,dmg}` | 拦截，用户需放行一次 |
+| 未签名版 | 无 | `Pixy-<版本>-universal-unsigned.{zip,dmg}` | 拦截，用户需放行一次 |
 
-macOS 的 Developer ID 证书和公证**都要求付费开发者账号**，没有免费途径。因此 0.x 阶段使用未签名预发布，把版本、产物、校验和、Release 页面这条链路先跑通；拿到证书后无需改动版本体系，直接切到签名模式。
+macOS 的 Developer ID 证书和公证**都要求付费开发者账号**，没有免费途径。因此 0.x 阶段使用未签名版，把版本、产物、校验和、Release 页面这条链路先跑通；拿到证书后无需改动版本体系，直接切到签名模式。
 
 ## 本地发布
 
@@ -59,7 +59,8 @@ scripts/release.sh --unsigned
 | `APPLE_APP_PASSWORD` | App 专用密码（appleid.apple.com 生成） |
 | `APPLE_TEAM_ID` | Team ID |
 
-只要 `APPLE_CERTIFICATE_BASE64` 为空，工作流就走未签名模式并把 Release 标记为 pre-release。
+只要 `APPLE_CERTIFICATE_BASE64` 为空，工作流就走未签名模式，标题带「（未签名）」。
+**不要**标记 `--prerelease`：GitHub 不把 pre-release 计入仓库的 `latestRelease`，仓库首页侧栏会显示成没有 release。未签名的风险由 release 说明承担。
 
 导出证书：
 

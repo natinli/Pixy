@@ -4,6 +4,26 @@
 
 版本号说明：Pixy 从 `0.0.1` 开始使用**自己的版本线**，与上游 `1.x` 无关；上游历史 tag 随 fork 保留但不再使用。详见 [docs/dev/release.md](docs/dev/release.md)。
 
+## [Fork] 2026-11-04 — 0.0.2
+
+开源前整理版。仍为**未签名、未公证**（ad-hoc 签名），首次启动需要手动放行。
+
+界面与行为修正：
+
+- 应用内「官方网站」由 `flowvision.app` 改为 Pixy 仓库地址，不再跳转到上游站点。
+- Finder 标签的「了解更多」改为指向仓库内的用法文档（上游没有等价页面）。
+- 版权署名保留上游署名并追加 fork 署名：`© 2024 netdcy · Pixy fork © 2026 natinli`。
+
+仓库整理：
+
+- 删除 `.github/funding.yml`（内容是上游作者的收款账户，fork 上保留会把捐赠导向上游）。
+- 删除零引用的 `docs/preview.jpg` 与隐藏编译警告的 `.vscode/settings.json`。
+- 修正 `docs/dev/modules.md`、`architecture.md` 中「BTree、Settings 是仓库外本地包」的过时描述（实际已是公开 Swift Package），并订正 Swift 文件数 53 → 56、补齐 `WindowController+ToolbarBlend.swift`。
+- `SECURITY.md` 改为如实说明当前未签名现状；`contributing-internal.md` 补上相对上游实际分叉的文件清单。
+- 中英文 README 重写，以 Pixy 自身定位为主语；`docs/index.md` 新增「按任务找文档」映射表。
+- 界面截图更新为当前版本（浅色/深色），替换 fork 初期的旧图。
+- 发布不再标记 pre-release：pre-release 不计入仓库的 `latestRelease`，会导致仓库首页侧栏看起来没有 release。
+
 ## [Fork] 2026-11-01 — 0.0.1
 
 首个公开预发布。此版本**未签名、未公证**（ad-hoc 签名），首次启动需要手动放行，详见 [安装说明](docs/user/installation.md)。

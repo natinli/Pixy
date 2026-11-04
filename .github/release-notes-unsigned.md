@@ -20,6 +20,10 @@ xattr -dr com.apple.quarantine /Applications/Pixy.app
 - 功能完整，包括视频播放（FFmpegKit 已内置）。
 - 产物是 arm64 + x86_64 通用二进制，Apple Silicon 与 Intel 通用。
 
+### 本版变化
+
+完整更新记录见 [CHANGELOG](https://github.com/natinli/Pixy/blob/main/CHANGELOG.md)。
+
 ### 校验下载
 
 ```bash
