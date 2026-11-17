@@ -722,10 +722,11 @@ class TreeViewModel {
             node.hasChild = role == .directory || role == .volume || (role == .tag && url.path == "/VirtualFinderTagsFolder")
             return node
         }
-        func specialEntry(_ id: String, key: String, symbol: String,
+        func specialEntry(_ id: String, key: String, fallback: String, symbol: String,
                           resource: String? = nil, previous: [TreeNode]) -> TreeNode {
-            let node = previous.first { $0.entryID == id } ?? TreeNode(name: NSLocalizedString(key, comment: "Finder sidebar special item"))
-            node.name = NSLocalizedString(key, comment: "Finder sidebar special item")
+            let name = NSLocalizedString(key, value: fallback, comment: "Finder sidebar special item")
+            let node = previous.first { $0.entryID == id } ?? TreeNode(name: name)
+            node.name = name
             node.localizedName = node.name
             node.fullPath = ""
             node.role = .special
@@ -736,7 +737,7 @@ class TreeViewModel {
             node.hasChild = false
             return node
         }
-        let favorites = group("favorites", NSLocalizedString("sidebar-favorites", comment: "个人收藏"))
+        let favorites = group("favorites", NSLocalizedString("sidebar-favorites", value: "Favorites", comment: "个人收藏"))
         let oldFavorites = favorites.children ?? []
         var entries: [TreeNode] = []
         var seen = Set<String>()
@@ -777,20 +778,20 @@ class TreeViewModel {
         favorites.children = entries
 
         // Finder 的 iCloud 分组位于个人收藏与位置之间，只保留 iCloud 云盘入口。
-        let icloud = group("icloud", NSLocalizedString("sidebar-icloud", comment: "iCloud"))
+        let icloud = group("icloud", NSLocalizedString("sidebar-icloud", value: "iCloud", comment: "iCloud"))
         let oldICloud = icloud.children ?? []
         let cloudDocs = FileManager.default.homeDirectoryForCurrentUser
             .appendingPathComponent("Library/Mobile Documents/com~apple~CloudDocs", isDirectory: true)
         var icloudEntries: [TreeNode] = []
         if FileManager.default.fileExists(atPath: cloudDocs.path) {
             icloudEntries.append(entry(cloudDocs, id: "icloud:drive", role: .directory, symbol: "icloud",
-                                       displayName: NSLocalizedString("sidebar-icloud-drive", comment: "iCloud 云盘"), previous: oldICloud))
+                                       displayName: NSLocalizedString("sidebar-icloud-drive", value: "iCloud Drive", comment: "iCloud 云盘"), previous: oldICloud))
         } else {
-            icloudEntries.append(specialEntry("icloud:drive", key: "sidebar-icloud-drive", symbol: "icloud", previous: oldICloud))
+            icloudEntries.append(specialEntry("icloud:drive", key: "sidebar-icloud-drive", fallback: "iCloud Drive", symbol: "icloud", previous: oldICloud))
         }
         icloud.children = icloudEntries
 
-        let locations = group("locations", NSLocalizedString("sidebar-locations", comment: "位置"))
+        let locations = group("locations", NSLocalizedString("sidebar-locations", value: "Locations", comment: "位置"))
         let oldLocations = locations.children ?? []
         let computerName = (Host.current().localizedName ?? "Mac")
             .replacingOccurrences(of: "的", with: " 的 ")
@@ -846,8 +847,8 @@ class TreeViewModel {
                                          symbol: "externaldrive", previous: oldLocations))
         }
         locations.children = locationEntries
-        let tags = group("tags", NSLocalizedString("sidebar-tags", comment: "标签"))
-        let tagRoot = TreeNode(name: NSLocalizedString("sidebar-all-tags", comment: "所有标签"), fullPath: "file:///VirtualFinderTagsFolder/")
+        let tags = group("tags", NSLocalizedString("sidebar-tags", value: "Tags", comment: "标签"))
+        let tagRoot = TreeNode(name: NSLocalizedString("sidebar-all-tags", value: "All Tags…", comment: "所有标签"), fullPath: "file:///VirtualFinderTagsFolder/")
         tagRoot.role = .tag
         tagRoot.entryID = "tags"
         expand(node: tagRoot, isLookSub: false)

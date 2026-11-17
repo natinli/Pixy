@@ -4,6 +4,23 @@
 
 ## 2026-11-17
 
+### [Claude] · 修侧栏标题在非中英文界面下显示原始 key（`sidebar-*`）
+
+- TL;DR：德文等语言下侧栏露出 `sidebar-favorites` 等原始 key，原因是这 6 个 key 在 `Localizable.xcstrings` 里只有 ar/en/zh-Hans/zh-Hant，`NSLocalizedString` 又没有 `value:` 回退。补齐 13 种语言译文并给所有调用加英文回退；不发版、不打 tag。由 v0.0.3 发布会话在验证 B2 文案德文回退时顺带发现（`8e69a07` 引入）。
+
+#### 改动
+
+- `Localizable.xcstrings`：`sidebar-favorites/icloud/icloud-drive/locations/tags/all-tags` 补 de/es/fr/it/ja/ko/nl/pl/pt-BR/pt-PT/ru/sv/tr，用词对齐 Finder 侧栏（如德文 Favoriten / Orte / Tags，日文 よく使う項目 / 場所 / タグ），而不是复用通用词条 `Favorites`/`Tag`（那些是「收藏夹」「标签」语境，与 zh-Hans 侧栏用「个人收藏」同理）。同一提交引入的 `Eject`（推出按钮的辅助功能名称）此前没有条目，补了 en + 11 种语言；nl/pl/sv/tr/ar 没有把握，回落英文 key。文件整体按 Xcode 风格重排，`sidebar-airdrop/recents/shared` 三块因此有格式性改动，内容未变。
+- `DataModel.swift`：`rebuildSidebar` 里 6 处 `NSLocalizedString` 加英文 `value:`；`specialEntry` 新增 `fallback` 参数（原先用变量 key 取值，无处写回退）。
+- 文档：`modules.md`（TreeViewModel 补侧栏文案约定、行数更新）、`contributing-internal.md`（改动落点表加「新增界面文案」行：key 非英文原句时必须带 `value:`）、`CHANGELOG.md` 新增「[Fork] 未发布」段。
+
+#### 验证
+
+- Debug 构建（`CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=''`，`com.natinli.PixyDbg`）通过；产物 `de.lproj/Localizable.strings` 等 15 个语言包均含新 key（`plutil -extract` 抽查）。
+- 界面：`-AppleLanguages '(de)'`、`(ja)`、`(ru)` 下侧栏分别显示 Favoriten / iCloud / iCloud Drive / Orte / Tags / Alle Tags…、よく使う項目 / 場所 / タグ / すべてのタグ…、Избранное / Места / Теги / Все теги…，无 `sidebar-` 字样；`(zh-Hans)` 回归不变（个人收藏 / iCloud 云盘 / 位置 / 标签 / 所有标签…）。测试目录在 `/tmp`，未碰 `/Applications/Pixy.app`；验证完已退出 PixyDbg。
+- 审计：全工程 427 个 `NSLocalizedString` key 全部存在于 xcstrings 或自带英文 key；仍只有部分语言的 key 是 `quick-search-*`（已带 `value:`）和三个已无调用的 `sidebar-airdrop/recents/shared`（保留未动，若将来重新启用需先补译文与回退）。
+- 未覆盖：`value:` 回退路径本身没有单独跑一遍（所有语言现已有译文，已无法在界面上触发）；fr/es/it/ko/nl/pl/pt/sv/tr 只抽查了编译产物、没逐一截图；ar（RTL）未看。
+
 ### [Claude] · 发布 v0.0.3：缩放保持位置、快速搜索提示（Trellis 任务 11-17-pixy-ux-improvements · M2）
 
 - TL;DR：缩放缩略图后不再丢失浏览位置（上游 #214），快速搜索补上用法提示、无匹配反馈和编辑菜单入口；界面验证中又发现并修掉两个问题，随后发 `v0.0.3`、同步 tap。用户外出期间自主推进。

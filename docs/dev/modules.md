@@ -48,13 +48,14 @@
 
 ## Common/（11 文件）
 
-### DataModel.swift（1042 行）
+### DataModel.swift（1279 行）
 核心数据结构，全部基于 BTree 有序 Map。
 - `SortKey/SortKeyFile/SortKeyDir` — Comparable 排序键；`<` 是**全项目排序唯一真源**（path/日期/size/exif/rating/tag + SortType/folderFirst/randomSeed）；`writeExifInfo`/`writeTagInfo` 惰性加载
 - `FileModel` — 单文件：path/ext/type/image/thumbSize/originalSize/rotate/finderTags/lock/ver
 - `DirModel` — `files: Map<SortKeyFile,FileModel>` + layoutCalcPos（增量布局游标）+ keepScrollPos；`changeSortType` 重建排序
 - `DatabaseModel` — `db: Map<SortKeyDir,DirModel>` + curFolder + `ver`（版本号，使旧任务失效）
 - `TreeViewModel`/`TreeNode` — Finder 风格侧栏分组与目录树数据；`SidebarNodeRole` 隔离分组、目录、卷、标签、文件、特殊入口及分隔线，`entryID` + 规范路径组成节点身份；`rebuildSidebar` 是初建与刷新的共同入口，构建精简的个人收藏、iCloud、位置和标签四组，并过滤系统虚拟入口与 TimeMachine；`sidebarCandidates` 负责虚拟域隔离和入口排名，`activeSidebarEntryID` 由用户选择／展开建立，随后成功程序定位更新当前分支。
+  - 侧栏文案：分组标题与 iCloud 云盘、「所有标签」走 `sidebar-*` key，`NSLocalizedString(key, value: <英文>, comment:)` 带英文回退（`specialEntry` 的 `fallback` 参数同理），`Localizable.xcstrings` 里 6 个在用 key 补齐 17 种语言、沿用 Finder 侧栏用词（如德文「Favoriten / Orte / Tags」）；`sidebar-airdrop/recents/shared` 已无调用，仅保留 en/zh/ar。
 - `normalizedURL`/`isVirtualTagURL`/`contains` — 统一文件 URL 规范化与路径组件祖先关系；不按显示名称定位、不解析符号链接改变路径语义；虚拟标签域隔离真实目录候选和文件操作。
 - `TaskPool` — 多队列优先级任务池（makeQueue/push/pop/setMostPriority）
 

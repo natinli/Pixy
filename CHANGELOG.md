@@ -4,6 +4,16 @@
 
 版本号说明：Pixy 从 `0.0.1` 开始使用**自己的版本线**，与上游 `1.x` 无关；上游历史 tag 随 fork 保留但不再使用。详见 [docs/dev/release.md](docs/dev/release.md)。
 
+## [Fork] 未发布
+
+### 侧栏标题在其他语言下不再显示 `sidebar-*`
+
+此前把界面语言设成德文、法文、日文等中英文以外的语言时，Finder 风格侧栏的分组标题和条目会直接显示 `sidebar-favorites`、`sidebar-icloud`、`sidebar-locations`、`sidebar-tags`、`sidebar-icloud-drive`、`sidebar-all-tags` 这类原始 key（自 2026-10-02 侧栏复刻起）。现在：
+
+- 这 6 个文案补齐 xcstrings 里已有的全部 17 种语言，用词对齐 Finder 侧栏（德文「Favoriten / Orte / Tags」、日文「よく使う項目 / 場所 / タグ」等）；
+- 代码里的 `NSLocalizedString` 都加了英文回退，以后即使漏翻某种语言，显示的也是英文而不是 key；
+- 磁盘行推出按钮的辅助功能名称「Eject」补上 11 种语言译文（其余语言仍显示英文）。
+
 ## [Fork] 2026-11-17 — 0.0.3
 
 仍为**未签名**版本，升级后首次启动需再放行一次（[安装说明](docs/user/installation.md)）。
