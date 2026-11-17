@@ -83,11 +83,13 @@ base64 -i developer-id.p12 | pbcopy              # 粘贴到 APPLE_CERTIFICATE_B
 
 ## Release 也会撞上 runner 配额
 
-发布工作流同样跑在 `macos-14`（arm64）上。GitHub 的 macOS arm64 托管 runner 配额紧张时，作业会排队约 15 分钟后直接失败，注解是 `The job was not acquired by Runner of type hosted`——tag 已经推上去了，但产物没出来。
+发布工作流同样跑在 `macos-15`（arm64）上。GitHub 的 macOS arm64 托管 runner 配额紧张时，作业会排队约 15 分钟后直接失败，注解是 `The job was not acquired by Runner of type hosted`——tag 已经推上去了，但产物没出来。
 
 处理方式：等几分钟后在 Actions 页面点 `Re-run failed jobs`，或命令行 `gh run rerun <run-id> --failed -R natinli/Pixy`。tag 不需要重推，工作流会照常读那个 tag 构建。
 
 **这个失败模式不能靠改工作流消除**：GitHub 不支持给 `runs-on` 配「拿不到就换一个池」的兜底，作业在分配阶段就死了，任何 `if: failure()` 的补偿作业也一样排不上队。工作流能做的只有降低撞上的概率和缩短撞上后的损失——`concurrency` 按 tag 串行，避免两次发布运行同时抢配额并争着 `gh release create`；`timeout-minutes: 40` 避免卡死后占满默认 6 小时；`ci-build.yml` 的 `paths-ignore` 让日常文档推送不再占用同一份配额。
+
+**另一种秒级失败是镜像停用**：作业 1–3 秒内显示 `cancelled`，注解为 `The configuration 'macos-NN-arm64-…' is not supported`。这不是配额问题，重跑也没用——GitHub 下线了该 macOS 镜像。2026-11-17 发 0.0.2 时 `macos-14` 就是这样失效的，`ci-build.yml` 与 `release.yml` 已改为 `macos-15`。tag 触发的运行读的是 tag 所指提交里的工作流文件，所以改完 `runs-on` 后，还没产出 release 的 tag 要移到新提交上才能重新发布。
 
 ## Homebrew 分发
 
