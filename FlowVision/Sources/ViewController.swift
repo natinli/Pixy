@@ -236,6 +236,12 @@ class PublicVar{
         return isFiltered
     }
     var isInFindingClosestState = false
+    // 缩放缩略图前记下的浏览位置，目录重新布局后恢复一次（见 LayoutManagement.swift）
+    // Browsing position captured before a thumbnail zoom, restored once after relayout (see LayoutManagement.swift)
+    var scrollAnchor: ScrollAnchor? = nil
+    // 上一次缩放恢复到的锚点文件；它仍在可视区内时下一次缩放继续锚定它，避免每次重选「顶部行首」导致位置逐次漂移
+    // File the last zoom restored to; reused while still visible so repeated zooms do not drift row by row
+    weak var lastZoomAnchorFile: FileModel? = nil
     
     var HandledImageAndRawExtensions: [String] = []
     var HandledVideoExtensions: [String] = []
@@ -1392,6 +1398,7 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
                                     collectionView.reloadData()
                                     collectionView.selectionIndexPaths = savedSelection
                                     collectionView.numberOfItems(inSection:0)
+                                    restoreScrollAnchorIfReady(folder: dir, ver: ver, isFinal: true)
                                     setProgress(1.0)
                                 }
                                 
@@ -1432,6 +1439,21 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
                                                 collectionView.insertItems(at: Set(newIndexPaths))
                                                 setProgress(Double(curItemCount+newIndexPaths.count)/Double(count))
                                                 selectItemsNewChanged(isFinal: false, checkRange: indexPaths)
+                                                // 清空重插路径（>5000 文件）：等全部插入后、下一个 runloop 再恢复；插入过程中途强制布局并滚动会让网格空白
+                                                // Clear-then-insert path (>5000 files): restore only after the last batch, on the next run loop; scrolling mid-insert left the grid blank
+                                                if nowLayoutCalcPos == count {
+                                                    DispatchQueue.main.async { [weak self] in
+                                                        guard let self, let anchor = self.publicVar.scrollAnchor,
+                                                              anchor.folder == dir, anchor.dirVer == ver else { return }
+                                                        // 与 ≤5000 路径一致：先整体重载再恢复。分批插入后直接滚到远处，那里的 item 视图不会显示
+                                                        // Same as the ≤5000 path: reload first, then restore; after batched inserts, items far down never show up otherwise
+                                                        let savedSelection = self.collectionView.selectionIndexPaths
+                                                        self.collectionView.reloadData()
+                                                        self.collectionView.selectionIndexPaths = savedSelection
+                                                        self.collectionView.numberOfItems(inSection: 0)
+                                                        self.restoreScrollAnchorIfReady(folder: dir, ver: ver, isFinal: true)
+                                                    }
+                                                }
                                             }
                                             
                                             if nowLayoutCalcPos == count {

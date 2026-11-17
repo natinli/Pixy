@@ -89,7 +89,12 @@ extension ViewController {
     func useCustomProfile(_ styleName: String){
         coreAreaView.showInfo(String(format: NSLocalizedString("switch-to-custom-profile", comment: "切换至自定义配置"), styleName), timeOut: 1, cannotBeCleard: true)
         let newStyle = CustomProfile.loadFromUserDefaults(withKey: "CustomStyle_v2_"+styleName)
-        
+
+        // 缩略图大小：须先于排序与边栏切换，changeThumbSize 要按当前排序和可视区捕获缩放锚点（changeSortType 会立即重排 fileDB）
+        // Thumbnail size: must run before sort and sidebar changes, since changeThumbSize captures the zoom anchor from the current order and viewport (changeSortType re-sorts fileDB immediately)
+        if newStyle.thumbSize != publicVar.profile.thumbSize {
+            changeThumbSize(thumbSize: newStyle.thumbSize, doNotRefresh: true)
+        }
         // 布局类型
         // Layout type
         if newStyle.layoutType != publicVar.profile.layoutType {
@@ -112,11 +117,6 @@ extension ViewController {
         // Sort
         if newStyle.sortType != publicVar.profile.sortType || newStyle.isSortFolderFirst != publicVar.profile.isSortFolderFirst || newStyle.isSortUseFullPath != publicVar.profile.isSortUseFullPath || newStyle.sortType == .random {
             changeSortType(sortType: newStyle.sortType, isSortFolderFirst: newStyle.isSortFolderFirst, isSortUseFullPath: newStyle.isSortUseFullPath, doNotRefresh: true)
-        }
-        // 缩略图大小
-        // Thumbnail size
-        if newStyle.thumbSize != publicVar.profile.thumbSize {
-            changeThumbSize(thumbSize: newStyle.thumbSize, doNotRefresh: true)
         }
         // 样式
         // Style

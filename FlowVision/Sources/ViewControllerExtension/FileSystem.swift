@@ -886,6 +886,9 @@ extension ViewController {
             let dirModel = fileDB.db[SortKeyDir(path)]!
             let ver = dirModel.ver
             fileDB.unlock()
+            // 缩放锚点只属于缩放触发的这一轮加载；切到别的目录或又一轮加载则作废
+            // The zoom anchor belongs to this load only; another folder or a later load drops it
+            bindScrollAnchorToLoad(folder: path, ver: ver)
             readInfoTaskPoolLock.lock()
             for (i, key) in keys.enumerated(){
                 readInfoTaskPool.append((path,dirModel,key.0,key.1,dirModel.ver,OtherTaskInfo()))
