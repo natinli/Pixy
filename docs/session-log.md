@@ -2,6 +2,35 @@
 
 本日志由 Codex、Claude 或人工共同维护。每个会话条目标题必须标注执行者：`[Codex]`、`[Claude]` 或 `[人工]`。**条目按时间倒序排列：最新条目在最顶部。** 项目级日志记录完整细节；外层 nilo 仓库 `docs/session-log.md` 只记简要条目并指向这里。
 
+## 2026-11-17
+
+### [Claude] · 发布 v0.0.2，本机改用 Homebrew 安装（Trellis 任务 11-17-pixy-ux-improvements · M1）
+
+- TL;DR：用 0.0.1 之后积累的 26 个提交发 `v0.0.2`；发版时撞上 GitHub 停用 `macos-14` 镜像，改 `macos-15` 后重新打 tag 发出。本机从 9 月自编的 1.7.6 换成 brew 安装的 0.0.2，偏好保留。
+
+#### 背景
+
+本机 `/Applications/Pixy.app` 是 `1.7.6 (20260908)`，早于 Finder 风格侧栏、圆角收口和上游合并，用户两个月来一直在用旧版；main 上 `v0.0.1..HEAD` 有 26 个提交未发版。
+
+#### 处理
+
+- `MARKETING_VERSION 0.0.2`、`CURRENT_PROJECT_VERSION 20261117`；CHANGELOG「未发布」段转为 0.0.2（提交 `783f782`）。
+- 本地 `scripts/release.sh --unsigned` 产物按 checklist 未签名段验收：通用二进制、ad-hoc、`codesign --verify --deep --strict` 通过、`spctl` rejected（预期）、DMG 结构与哈希正确。界面回归由用户在本地产物上自行点检后指示继续，**未逐项回报**；AI 申请操作 Pixy 被拒，未独立验证。RTL、Intel、干净用户环境未覆盖。均已写入 checklist 0.0.2 段。
+- 推 tag 后 Release 与 CI build 1–3 秒即 `cancelled`，注解 `The configuration 'macos-14-arm64-us-default' is not supported`——GitHub 下线了 `macos-14` 镜像，与配额失败不同，重跑无效。`ci-build.yml`、`release.yml` 改 `macos-15`（提交 `70d5ddd`），release.md 补这种失败的识别方式。macos-15 上 CI build 4m22s 成功后，经用户同意把还没产出 release 的 `v0.0.2` 强制移到 `70d5ddd`，Release 工作流成功。
+- `scripts/update-cask.sh 0.0.2`：tap 提交 `0d1c7f6`，sha256 `21c51e36…`。
+- 本机：旧 app 移到废纸篓（`~/.Trash/Pixy-1.7.6.app`，可放回）→ `brew install --cask natinli/pixy/pixy`。
+
+#### 验证
+
+- GitHub Latest = `v0.0.2`，非 pre-release、非草稿；下载三个附件 `shasum -c` 全部 OK，zip 内为 `0.0.2`、`x86_64 arm64`、签名校验通过。
+- `brew list --cask` 含 `pixy`，`/Applications/Pixy.app` 为 `0.0.2 (20261117)`，带 `com.apple.quarantine`（预期，首次启动需放行）。
+- 偏好：安装前 `defaults export` 备份，安装后 13 个键全部保留，仅 `hasNormalExit` 因测试实例运行而变化。
+
+#### 未完成
+
+- 首次启动放行与"能正常打开"需用户确认（AC-3 的最后一项）。
+- M2（缩放锚定、快搜提示）代码已写完、Debug 构建通过，未提交，待界面验证后随 0.0.3 发布。
+
 ## 2026-11-05
 
 ### [Claude] · 补齐 CI 硬化：`release.yml` 串行化与 `ci-build.yml` 的 concurrency
