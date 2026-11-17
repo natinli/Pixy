@@ -25,6 +25,7 @@
 
 - TL;DR：把 `b022305`（德/日/俄等界面侧栏不再显示 `sidebar-*` 原始 key）发为 `v0.0.4`，build `2026111703`。仅影响非中英文界面。
 - 发版前审了该提交的 diff：6 个 key 补齐 17 种语言，用词对齐 Finder；`NSLocalizedString` 全部加英文回退。本地 `--unsigned` 产物验收通过（通用二进制、ad-hoc、`codesign --verify` 通过、哈希一致、DMG 结构正确），详见 checklist 0.0.4 段。
+- 推 tag 后 Release 第一次因 macOS runner 配额排队 15 分钟失败（`The job was not acquired`），按 release.md 用 `gh run rerun --failed` 重跑，tag 未动，第二次成功；附件 `shasum -c` OK、build `2026111703`、Latest 非 pre-release。tap 已同步。
 - 用户本机的 Pixy 不在本次发版中替换。
 
 ### [Claude] · 发布 v0.0.3：缩放保持位置、快速搜索提示（Trellis 任务 11-17-pixy-ux-improvements · M2）
