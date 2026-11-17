@@ -8,7 +8,7 @@ Pixy 使用**自己的版本线**，从 `0.0.1` 开始，与上游 FlowVision �
 
 - 上游 `1.0` ~ `1.7.6` 的 tag 随 fork 一并带到了本仓库，属于历史 tag，**不要复用**。
 - Pixy 的 release tag 一律带 `v` 前缀：`v0.0.1`、`v0.1.0`、`v1.0.0`。这与上游的无前缀 tag 天然区分，也是发布工作流的触发条件。
-- 版本号写在 `FlowVision.xcodeproj/project.pbxproj` 的 `MARKETING_VERSION`（Debug 与 Release 两处），`CURRENT_PROJECT_VERSION` 用作递增的 build 号。
+- 版本号写在 `FlowVision.xcodeproj/project.pbxproj` 的 `MARKETING_VERSION`（Debug 与 Release 两处），`CURRENT_PROJECT_VERSION` 用作递增的 build 号，取发布日期 `YYYYMMDD`；同一天再发一版时在日期后加两位序号（如 0.0.3 的 `2026111702`），保证只增不减。
 - 0.x 表示 API 与界面仍在变动、且尚未具备签名分发条件；接入 Developer ID 后发布 `v1.0.0`。
 
 ## 两种发布模式
