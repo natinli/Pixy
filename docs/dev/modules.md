@@ -11,6 +11,7 @@
 - `application(_:openFiles:)` — Finder 双击入口：目录打开 or 文件大图打开
 - `openImageInMainWindow` / `openImageInTargetWindow` — 写 `publicVar.openFromFinderPath` 触发定位
 - `menuNeedsUpdate` / `validateMenuItem` — 主菜单动态构建
+- `showQuickSearch` — 编辑菜单「快速搜索（Q）」入口，转发 `ViewController.startQuickSearch()`；菜单项不注册无修饰键的 key equivalent（避免抢走文本框里的 q），`validateMenuItem` 在大图模式或搜索浮层打开时置灰
 
 ### WindowController.swift（2052 行）
 单窗口壳。
@@ -23,7 +24,7 @@
 ### ViewController.swift（2479 行）
 核心中枢，文件内含三个类：
 - `CustomProfile: Codable` — 布局外观配置（layoutType、thumbSize、CellPadding 等派生属性）；UserDefaults key `"CustomStyle_v2_current"`
-- `PublicVar` — 每窗口状态：视图模式、过滤、folderStepStack 历史栈、isInLargeView、三个布局实例、`setFileExtensions()`
+- `PublicVar` — 每窗口状态：视图模式、过滤、folderStepStack 历史栈、isInLargeView、三个布局实例、`setFileExtensions()`；`scrollAnchor` 为缩放缩略图前捕获的浏览位置锚点（类型 `ScrollAnchor` 定义在 LayoutManagement.swift），`lastZoomAnchorFile`（weak）为上一次缩放恢复到的锚点文件
 - `ViewController`：
   - `viewDidLoad` — 装配 manager 们、读 UserDefaults、按 profile 选布局、注册 7 类 NSEvent monitor
   - `startBackgroundTaskThread` — 启动三条常驻线程（readInfo / thumb / memMonitor）
@@ -31,6 +32,7 @@
   - `startWatchingDirectory` / `scheduledRefresh` — 目录监听 + 防抖刷新
   - `_rightMouseDown/Dragged/Up` — 手势轨迹采集（增量式，阈值 4px）
   - `afterFinishLoad` — 决定启动目录 → 启动后台线程
+  - readInfo 主循环回到主线程后：≤5000 文件保持位置路径在最后一次 `reloadData` 后调用 `restoreScrollAnchorIfReady`；清空重插路径（>5000）只在最后一批 `insertItems` 之后、下一个 runloop 调用（插入中途强制布局并滚动会让网格空白，见 session-log 2026-11-17）
 
 ### ViewController+SidebarCard.swift
 - `applySidebarCardStyle` — 目录树与 scroll/clip 背景透明，共享窗口背后动态 sidebar 材质，目录顶部根据 window.contentLayoutRect 避让工具栏，再保留 15pt 内容间距；关闭横纵滚动条，保留滚动容器。
@@ -93,7 +95,7 @@
 ### FileSystem.swift（1812 行）— 扫描与导航核心
 - `treeTraversal(folderURL:round:initURL:direction:sameLevel:skip:dryRun:)` — 递归扫描：过滤隐藏/搜索/标签/评级 → 分离 subFolders/files → 写 DirModel；按 direction 前序/后序递归
 - `switchDirByDirection(direction:dest:...)` — 导航状态机：zero/left/right/up/down/forward；维护历史栈；`fileDB.ver+=1`；定位 → treeReLocate + switchFolder；内容区进入新目录后清除侧栏选中态，侧栏入口发起的导航保留选中。
-- `switchFolder(path:)` — 清任务池、快照渐隐动画、处理 Finder 打开定位、文件推入 readInfoTaskPool
+- `switchFolder(path:)` — 清任务池、快照渐隐动画、处理 Finder 打开定位、文件推入 readInfoTaskPool；推任务前 `bindScrollAnchorToLoad` 把缩放锚点绑定到本轮加载（换目录或又一轮加载则作废）
 - `scanFiles` / `scanVirtualFiles` — 递归模式枚举 / 按标签聚合的虚拟目录
 - `handleGetInfo` 系列 — 文件信息窗口数据组装
 
@@ -101,6 +103,7 @@
 - `refreshTreeView` 按稳定节点身份保存、刷新和恢复用户手动展开／选中状态；与初建共享 `rebuildSidebar`，保持原目录排序。默认导航不自动展开当前路径，目录仍可通过披露箭头按需展开。
 - `recalcLayout(targetFolder)` — 增量计算（从 layoutCalcPos 起）：justified 宽高比凑行 / waterfall·grid 固定列宽 → 写 FileModel.thumbSize/lineNo
 - `switchToJustifiedView/GridView/WaterfallView/DetailView`、`changeThumbSize`、`refreshAll`
+- 缩放锚定（`ScrollAnchor`）：`changeThumbSize` 是所有缩放入口（`+`/`-`/`0`、工具栏尺寸菜单、布局配置切换）的汇合点，改尺寸前 `captureScrollAnchorForZoom` 记下锚点——可视区内第一个选中项，否则顶部第一个至少露出一半的项；记录 FileModel 身份、路径、距可视区顶边的偏移（扣除 contentInsets）和缩放前选中项；原本在顶部则不锚定视口。连续缩放时沿用尚未恢复的旧锚点；上一次恢复到的锚点文件（`PublicVar.lastZoomAnchorFile`，weak）仍在可视区内时继续锚定它，否则每次重选顶部行首会让连续缩放逐行往前漂。已知取舍：缩放后手动滚动、而该文件仍在可视区内时，下一次缩放仍锚定它（它保持在屏幕原位），而不是改锚顶部那张。`restoreScrollAnchorIfReady` 按文件身份（`files.elementSafe(atOffset: file.id)?.1 === file`，失败按路径兜底）找回 index，布局就绪后无动画滚到 `frame.minY - offset`（夹到合法范围），并选回原选中项；只恢复一次，本轮加载结束仍无法恢复则丢弃
 
 ### 其他 extension
 | 文件 | 职责 / 关键接口 |
@@ -109,7 +112,7 @@
 | FileOperation.swift（1735） | handleCopy/Paste/Move/Delete/Rename（批量面板）、mergeFolder 冲突状态机、handleFilePromiseDrop（Finder 拖入）、操作后同步 EnhancedIndex |
 | KeyShortcut.swift（996） | `KeyShortcutManager(event:)` 单函数全快捷键分发，含输入焦点判断；目录上下键通过可选行扫描跨越分组、分隔线及失效入口 |
 | EventHandler.swift（441） | 菜单动作实现层：历史导航、约 25 个 toggle、前往文件夹、操作日志 |
-| Search.swift（520） | showSearchOverlay、performSearch（正则/拼音/全路径）、applyFilter（过滤条件由 treeTraversal 应用）、quickSearch 防抖 |
+| Search.swift | showSearchOverlay、performSearch（正则/拼音/全路径）、applyFilter（过滤条件由 treeTraversal 应用）、quickSearch 防抖：空输入时浮层提示「输入文件名 · Esc 退出」，前缀与包含两次匹配都失败时显示「无匹配」；`startQuickSearch` 为菜单入口，等同按 Q |
 | ArrowKeyLocate.swift（280） | `findClosestItem` 方向键导航：grid 列偏移 / waterfall 4×列数邻域 / justified 同行，选屏幕中心最近 |
 | Tagging.swift（262） | 标签/评级动作与过滤器（与/或、反向）；依赖 FinderTag.swift |
 | RightMouseGesture.swift（135） | `analyzeGesture` 方向组合→动作：1 方向（左右上下）、2 方向（up+right=平级下一个、down+right=关闭）；RTL 左右互换 |
@@ -117,7 +120,7 @@
 | MemoryManagement.swift（87） | LRUMemRecord（目录访问 LRU）、内存 footprint 报告 |
 | AutoScrollPlay.swift（149） | 自动滚动（Timer 连续滚动）与自动播放（定时 nextLargeImage） |
 | DirTree.swift | `treeReLocate` 按真实 URL 选择当前入口／最深收藏祖先／位置；开启跟随当前目录时才逐级展开，默认只选中目标；`expandSidebarGroups` 和收藏变更通知入口 |
-| LayoutProfileConfig.swift（127） | 自定义布局风格保存/切换 |
+| LayoutProfileConfig.swift | 自定义布局风格保存/切换；`useCustomProfile` 先改缩略图尺寸，再切布局类型、边栏、排序（缩放锚点须按切换前的排序和可视区捕获） |
 | ProgressBar.swift（219） | 底部细进度条，sessionId 防串台 |
 
 ## Views/（19 文件）
