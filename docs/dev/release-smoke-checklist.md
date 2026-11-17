@@ -38,6 +38,21 @@
 
 ## 记录
 
+### 0.0.2（未签名版）
+
+- Release tag：`v0.0.2`
+- macOS / Xcode：macOS 15.7.9 / Xcode 26.3（17C529）
+- 架构：arm64 + x86_64（`lipo -archs` 已核对）
+- 签名身份：ad-hoc；`codesign --verify --deep --strict` 通过；`spctl --assess` 为 rejected（预期）
+- 本地产物（`scripts/release.sh --unsigned`，用于验收；Release 页附件由 CI 重新构建，哈希以 Release 的 `SHA256SUMS.txt` 为准）：
+  - ZIP `0d04d7c323cb23a4f6748db999aa4ae9851a967bb7c21f96a99a227a659838d1`
+  - DMG `9444429773b0c5936f8ca22552eae1e2b894d24e474ce8a7dde97d0fdb5c4025`
+- DMG 内容：`Pixy.app` + `/Applications` 软链接；`Contents/Frameworks` 含 8 个 FFmpegKit framework 与 `libswift_Concurrency.dylib`
+- 界面回归（侧栏三级目录、标签、收藏、导航历史、右键/键盘、深色/失焦、缩略图缩放）：用户在本地产物上自行点检后指示继续，未逐项回报；AI 未获界面操作授权，未独立验证
+- 未覆盖：RTL、Intel Mac、干净用户环境首次启动
+- 公证提交 ID：无（未公证）
+- 日期：2026-11-17
+
 ### 0.0.1（未签名版）
 
 - Release tag：`v0.0.1`
