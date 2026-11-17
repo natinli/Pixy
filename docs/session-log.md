@@ -21,6 +21,12 @@
 - 审计：全工程 427 个 `NSLocalizedString` key 全部存在于 xcstrings 或自带英文 key；仍只有部分语言的 key 是 `quick-search-*`（已带 `value:`）和三个已无调用的 `sidebar-airdrop/recents/shared`（保留未动，若将来重新启用需先补译文与回退）。
 - 未覆盖：`value:` 回退路径本身没有单独跑一遍（所有语言现已有译文，已无法在界面上触发）；fr/es/it/ko/nl/pl/pt/sv/tr 只抽查了编译产物、没逐一截图；ar（RTL）未看。
 
+### [Claude] · 发布 v0.0.4：侧栏多语言文案
+
+- TL;DR：把 `b022305`（德/日/俄等界面侧栏不再显示 `sidebar-*` 原始 key）发为 `v0.0.4`，build `2026111703`。仅影响非中英文界面。
+- 发版前审了该提交的 diff：6 个 key 补齐 17 种语言，用词对齐 Finder；`NSLocalizedString` 全部加英文回退。本地 `--unsigned` 产物验收通过（通用二进制、ad-hoc、`codesign --verify` 通过、哈希一致、DMG 结构正确），详见 checklist 0.0.4 段。
+- 用户本机的 Pixy 不在本次发版中替换。
+
 ### [Claude] · 发布 v0.0.3：缩放保持位置、快速搜索提示（Trellis 任务 11-17-pixy-ux-improvements · M2）
 
 - TL;DR：缩放缩略图后不再丢失浏览位置（上游 #214），快速搜索补上用法提示、无匹配反馈和编辑菜单入口；界面验证中又发现并修掉两个问题，随后发 `v0.0.3`、同步 tap。用户外出期间自主推进。

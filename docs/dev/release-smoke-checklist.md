@@ -38,6 +38,18 @@
 
 ## 记录
 
+### 0.0.4（未签名版）
+
+- Release tag：`v0.0.4`；build `2026111703`（同日第三版）
+- macOS / Xcode：macOS 15.7.9 / Xcode 26.3（17C529）
+- 架构：arm64 + x86_64；签名 ad-hoc，`codesign --verify --deep --strict` 通过；`spctl --assess` 为 rejected（预期）；DMG 结构正确
+- 本地产物（Release 页附件由 CI 重建，哈希以 Release 的 `SHA256SUMS.txt` 为准）：
+  - ZIP `2f31f2885a8d661ee05b8a7dfb739bfaadb3f2f20eb9bbad10010200b65d4f89`
+  - DMG `8a5de10fbc7bd01bc7bd3f5c34f320b442de2423929f26024bb121b936fd2d2d`
+- 本版仅侧栏多语言文案（提交 `b022305`）。界面验证由该提交的执行会话在 Debug 构建上完成：de / ja / ru 侧栏标题正确，zh-Hans 回归不变；本次发版未再启动发布包。
+- 未覆盖：RTL、Intel Mac、干净用户环境首次启动
+- 日期：2026-11-17
+
 ### 0.0.3（未签名版）
 
 - Release tag：`v0.0.3`；build `2026111702`（同日第二版，见 release.md 版本号规则）
