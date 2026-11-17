@@ -1,6 +1,57 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "quick-search-hint" : {
+      "comment" : "快速搜索：输入文件名 · Esc 退出",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Search: type a file name · Esc to exit"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速搜索：输入文件名 · Esc 退出"
+          }
+        }
+      }
+    },
+    "quick-search-text" : {
+      "comment" : "快速搜索：<文本>",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Search: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速搜索：%@"
+          }
+        }
+      }
+    },
+    "quick-search-no-match" : {
+      "comment" : "快速搜索：<文本>（无匹配）",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Search: %@ (no match)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速搜索：%@（无匹配）"
+          }
+        }
+      }
+    },
     "sidebar-favorites" : {
       "localizations" : {
         "en" : {

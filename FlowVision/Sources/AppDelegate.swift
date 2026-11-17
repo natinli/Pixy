@@ -850,6 +850,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuItemVa
                 return false
             }
         }
+        // 快速搜索：大图模式、搜索浮层打开时不可用
+        // Quick search: unavailable in large image view or while the search overlay is open
+        if menuItem.action == #selector(showQuickSearch(_:)) {
+            if mainViewController.publicVar.isInLargeView || mainViewController.publicVar.isInSearchState {
+                return false
+            }
+        }
         // 取消选择
         // Deselect
         if menuItem.action == #selector(deselectAll(_:)) {
@@ -1275,6 +1282,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuItemVa
     
     @IBAction func showSearch(_ sender: NSMenuItem){
         getMainViewController()?.toggleSearchOverlay()
+    }
+
+    // 「快速搜索」菜单项只标注 Q，不注册无修饰键的 key equivalent，避免抢走文本框里的 q；按键本身仍由 KeyShortcut 处理
+    // The Quick Search item only labels Q without a modifier-less key equivalent, so text fields keep their q; the key itself is handled in KeyShortcut
+    @IBAction func showQuickSearch(_ sender: NSMenuItem){
+        getMainViewController()?.startQuickSearch()
     }
 }
 

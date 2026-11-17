@@ -496,14 +496,25 @@ extension ViewController {
             quickSearchText += character
         }
         
-        // 执行搜索
-        // Execute search
+        // 执行搜索：先按文件名前缀，失败再按包含
+        // Execute search: filename prefix first, then substring
+        var isMatched = true
         if quickSearchText != "" {
             if !performSearch(searchText: "^"+quickSearchText, isEnterKey: false, forceUseRegex: true, firstMatch: true) {
-                _ = performSearch(searchText: quickSearchText, isEnterKey: false, forceUseRegex: false, firstMatch: true)
+                isMatched = performSearch(searchText: quickSearchText, isEnterKey: false, forceUseRegex: false, firstMatch: true)
             }
         }
-        coreAreaView.showInfo(NSLocalizedString("Quick Search", comment: "快速搜索")+": "+quickSearchText, timeOut: quickSearchAutoHideDuration, duration: 0.1, cannotBeCleard: true)
+        // 浮层：空输入时提示用法，无匹配时明确反馈
+        // Overlay: show usage while empty, explicit feedback when nothing matches
+        let quickSearchInfo: String
+        if quickSearchText == "" {
+            quickSearchInfo = NSLocalizedString("quick-search-hint", value: "Quick Search: type a file name · Esc to exit", comment: "快速搜索：输入文件名 · Esc 退出")
+        } else if !isMatched {
+            quickSearchInfo = String(format: NSLocalizedString("quick-search-no-match", value: "Quick Search: %@ (no match)", comment: "快速搜索：<文本>（无匹配）"), quickSearchText)
+        } else {
+            quickSearchInfo = String(format: NSLocalizedString("quick-search-text", value: "Quick Search: %@", comment: "快速搜索：<文本>"), quickSearchText)
+        }
+        coreAreaView.showInfo(quickSearchInfo, timeOut: quickSearchAutoHideDuration, duration: 0.1, cannotBeCleard: true)
         
         if !publicVar.isCollectionViewFirstResponder {
             view.window?.makeFirstResponder(collectionView)
@@ -515,6 +526,19 @@ extension ViewController {
         quickSearchTimer = Timer.scheduledTimer(withTimeInterval: quickSearchAutoHideDuration, repeats: false) { [weak self] _ in
             self?.quickSearchText = ""
             self?.quickSearchState = false
+        }
+    }
+
+    /// 菜单「快速搜索」入口，等同于在网格中按 Q。
+    /// Menu entry for Quick Search, equivalent to pressing Q in the grid.
+    func startQuickSearch() {
+        if publicVar.isInLargeView || publicVar.isInSearchState { return }
+        if quickSearchState {
+            // 已在快搜中：只重新显示当前状态，不删字
+            // Already active: refresh the overlay without deleting a character
+            quickSearch("")
+        } else {
+            quickSearch("backspace")
         }
     }
 }

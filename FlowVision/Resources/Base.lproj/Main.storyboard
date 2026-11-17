@@ -216,6 +216,11 @@ Gw
                                                 <action selector="showSearch:" target="Voe-Tx-rLC" id="Ug6-0o-NDH"/>
                                             </connections>
                                         </menuItem>
+                                        <menuItem title="Quick Search (Q)" id="qkS-rc-Qm1">
+                                            <connections>
+                                                <action selector="showQuickSearch:" target="Voe-Tx-rLC" id="qkS-ac-Qm2"/>
+                                            </connections>
+                                        </menuItem>
                                         <menuItem title="Find" hidden="YES" enabled="NO" id="4EN-yA-p0u">
                                             <modifierMask key="keyEquivalentModifierMask"/>
                                             <menu key="submenu" title="Find" id="1b7-l0-nxx">

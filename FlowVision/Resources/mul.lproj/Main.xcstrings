@@ -13609,6 +13609,24 @@
         }
       }
     },
+    "qkS-rc-Qm1.title" : {
+      "comment" : "Class = \"NSMenuItem\"; title = \"Quick Search (Q)\"; ObjectID = \"qkS-rc-Qm1\";",
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Search (Q)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速搜索（Q）"
+          }
+        }
+      }
+    },
     "rbD-Rh-wIN.title" : {
       "comment" : "Class = \"NSMenuItem\"; title = \"Check Spelling While Typing\"; ObjectID = \"rbD-Rh-wIN\";",
       "extractionState" : "extracted_with_value",
