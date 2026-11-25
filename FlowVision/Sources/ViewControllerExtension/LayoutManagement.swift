@@ -8,8 +8,8 @@ import Cocoa
 import AVFoundation
 import DiskArbitration
 
-/// 缩略图缩放前的浏览位置锚点。按文件对象身份恢复，不依赖像素偏移或 index。
-/// Browsing-position anchor captured before a thumbnail zoom; restored by file identity, not pixel offset or index.
+/// 目录重载前的浏览位置锚点（缩放、大目录的监听刷新）。按文件对象身份恢复，不依赖像素偏移或 index。
+/// Browsing-position anchor captured before a directory reload (zoom, watcher refresh of a large folder); restored by file identity, not pixel offset or index.
 struct ScrollAnchor {
     let folder: String
     /// 视口锚定的文件；缩放前在顶部时为 nil（恢复后仍在顶部，只恢复选中）。
@@ -41,9 +41,9 @@ extension ViewController {
                       height: max(0, clipView.bounds.height - insets.top - insets.bottom))
     }
 
-    /// 缩放前捕获锚点：可视区内有选中项取第一个，否则取顶部第一个可见项。
-    /// Capture before zoom: first selected item inside the visible area, else the topmost visible item.
-    func captureScrollAnchorForZoom() {
+    /// 目录重载前捕获锚点：可视区内有选中项取第一个，否则取顶部第一个可见项。
+    /// Capture before a directory reload: first selected item inside the visible area, else the topmost visible item.
+    func captureScrollAnchor() {
         fileDB.lock()
         let curFolder = fileDB.curFolder
         fileDB.unlock()
@@ -141,6 +141,18 @@ extension ViewController {
             viewportHeight: visibleRect.height,
             selectedFiles: selectedFiles,
             dirVer: nil)
+    }
+
+    /// 文件监听触发刷新前调用：>5000 文件的目录会清空重插而回到顶部，先记下浏览位置；
+    /// ≤5000 的目录由 reloadData 自身保持位置，无需锚点。目录文件数恰好跨过阈值（刷新后才超过）时也捕获。
+    /// Before a watcher-triggered refresh: folders over the threshold are cleared and re-inserted (view jumps to the top), so remember the position;
+    /// smaller folders keep it through reloadData. A folder about to cross the threshold is captured too.
+    func captureScrollAnchorForRefresh() {
+        fileDB.lock()
+        let fileNum = fileDB.db[SortKeyDir(fileDB.curFolder)]?.files.count ?? 0
+        fileDB.unlock()
+        guard fileNum >= RESET_VIEW_FILE_NUM_THRESHOLD else { return }
+        captureScrollAnchor()
     }
 
     /// 目录加载开始时调用：锚点绑定到这一轮加载；换了目录或又一轮加载则作废。
@@ -385,7 +397,7 @@ extension ViewController {
     func changeThumbSize(thumbSize: Int, doNotRefresh: Bool = false){
         // 所有缩放入口都经过这里：改尺寸前记下正在看的内容，重新布局后再按文件身份找回。
         // Every zoom entry funnels through here: remember what is on screen before the size changes.
-        captureScrollAnchorForZoom()
+        captureScrollAnchor()
         publicVar.profile.thumbSize = thumbSize
         // UserDefaults.standard.set(thumbSize, forKey: "thumbSize")
         publicVar.profile.saveToUserDefaults(withKey: "CustomStyle_v2_current")

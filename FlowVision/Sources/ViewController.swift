@@ -2310,6 +2310,9 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
             folderMonitorTimer?.invalidate()
             folderMonitorTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { [weak self] _ in
                 self?.dirURLCache.removeAll()
+                // 大目录刷新会清空重插、视图回到顶部：先记下浏览位置，加载完成后恢复
+                // A large folder is cleared and re-inserted on refresh (view jumps to the top): remember the position, restore after loading
+                self?.captureScrollAnchorForRefresh()
                 self?.refreshAll(needStopAutoScroll: false, needLoadThumbPriority: true)
             }
         }

@@ -105,7 +105,7 @@
 - `refreshTreeView` 按稳定节点身份保存、刷新和恢复用户手动展开／选中状态；与初建共享 `rebuildSidebar`，保持原目录排序。默认导航不自动展开当前路径，目录仍可通过披露箭头按需展开。
 - `recalcLayout(targetFolder)` — 增量计算（从 layoutCalcPos 起）：justified 宽高比凑行 / waterfall·grid 固定列宽 → 写 FileModel.thumbSize/lineNo
 - `switchToJustifiedView/GridView/WaterfallView/DetailView`、`changeThumbSize`、`refreshAll`
-- 缩放锚定（`ScrollAnchor`）：`changeThumbSize` 是所有缩放入口（`+`/`-`/`0`、工具栏尺寸菜单、布局配置切换）的汇合点，改尺寸前 `captureScrollAnchorForZoom` 记下锚点——可视区内第一个选中项，否则顶部第一个至少露出一半的项；记录 FileModel 身份、路径、距可视区顶边的偏移（扣除 contentInsets）和缩放前选中项；原本在顶部则不锚定视口。连续缩放时沿用尚未恢复的旧锚点；上一次恢复到的锚点文件（`PublicVar.lastZoomAnchorFile`，weak）仍在可视区内时继续锚定它，否则每次重选顶部行首会让连续缩放逐行往前漂。已知取舍：缩放后手动滚动、而该文件仍在可视区内时，下一次缩放仍锚定它（它保持在屏幕原位），而不是改锚顶部那张。`restoreScrollAnchorIfReady` 按文件身份（`files.elementSafe(atOffset: file.id)?.1 === file`，失败按路径兜底）找回 index，布局就绪后无动画滚到 `frame.minY - offset`（夹到合法范围），并选回原选中项；只恢复一次，本轮加载结束仍无法恢复则丢弃
+- 缩放锚定（`ScrollAnchor`）：`changeThumbSize` 是所有缩放入口（`+`/`-`/`0`、工具栏尺寸菜单、布局配置切换）的汇合点，改尺寸前 `captureScrollAnchor` 记下锚点——可视区内第一个选中项，否则顶部第一个至少露出一半的项；记录 FileModel 身份、路径、距可视区顶边的偏移（扣除 contentInsets）和缩放前选中项；原本在顶部则不锚定视口。连续缩放时沿用尚未恢复的旧锚点；上一次恢复到的锚点文件（`PublicVar.lastZoomAnchorFile`，weak）仍在可视区内时继续锚定它，否则每次重选顶部行首会让连续缩放逐行往前漂。已知取舍：缩放后手动滚动、而该文件仍在可视区内时，下一次缩放仍锚定它（它保持在屏幕原位），而不是改锚顶部那张。`restoreScrollAnchorIfReady` 按文件身份（`files.elementSafe(atOffset: file.id)?.1 === file`，失败按路径兜底）找回 index，布局就绪后无动画滚到 `frame.minY - offset`（夹到合法范围），并选回原选中项；只恢复一次，本轮加载结束仍无法恢复则丢弃。同一套锚点也用于大目录的监听刷新：`scheduledRefresh` 在 `refreshAll` 前调用 `captureScrollAnchorForRefresh`，仅当目录文件数 ≥ `RESET_VIEW_FILE_NUM_THRESHOLD` 时才捕获（这类目录刷新走清空重插，视图会回到顶部；≤5000 的目录由 `reloadData` 自身保持像素位置，不需要锚点；上游 #120）
 
 ### 其他 extension
 | 文件 | 职责 / 关键接口 |
