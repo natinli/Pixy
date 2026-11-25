@@ -642,6 +642,39 @@ class TreeNode: NSObject {
     }
 }
 
+// 侧栏「位置」分组里与具体机器、账号、语言无关的命名与排序规则；抽成无状态函数，便于单测。
+enum SidebarNaming {
+    // 「的」紧邻 ASCII 字母数字时，在紧邻的一侧补空格：natinli的Mac mini → natinli 的 Mac mini；我的电脑原样。
+    static func spacedComputerName(_ name: String) -> String {
+        name.replacingOccurrences(of: "([A-Za-z0-9])的", with: "$1 的", options: .regularExpression)
+            .replacingOccurrences(of: "的([A-Za-z0-9])", with: "的 $1", options: .regularExpression)
+    }
+
+    // 枚举 CloudStorage 下名为 "OneDrive" 或 "OneDrive-<账号>" 的目录，按名称排序。
+    // 账号后缀随系统语言变化（个人 / Personal / …），无法穷举，因此用数量决定显示名：
+    // 只有一个时叫 "OneDrive"；有多个时，带后缀的显示为 "OneDrive - <后缀>"。
+    static func oneDriveEntries(in cloudStorage: URL, fileManager: FileManager = .default) -> [(url: URL, displayName: String)] {
+        guard let names = try? fileManager.contentsOfDirectory(atPath: cloudStorage.path) else { return [] }
+        let folders = names.filter { name in
+            guard name == "OneDrive" || name.hasPrefix("OneDrive-") else { return false }
+            var isDirectory: ObjCBool = false
+            return fileManager.fileExists(atPath: cloudStorage.appendingPathComponent(name).path, isDirectory: &isDirectory)
+                && isDirectory.boolValue
+        }.sorted { $0.localizedStandardCompare($1) == .orderedAscending }
+        let hasSeveral = folders.count > 1
+        return folders.map { name in
+            let suffix = name == "OneDrive" ? "" : String(name.dropFirst("OneDrive-".count))
+            let displayName = (hasSeveral && !suffix.isEmpty) ? "OneDrive - \(suffix)" : "OneDrive"
+            return (cloudStorage.appendingPathComponent(name, isDirectory: true), displayName)
+        }
+    }
+
+    // 位置分组内的排序档位：磁盘在前、云存储在后（与 Finder 一致）；同档位按名称自然排序。
+    static func volumeRank(_ url: URL, oneDrivePaths: Set<String>) -> Int {
+        oneDrivePaths.contains(url.standardizedFileURL.path) ? 1 : 0
+    }
+}
+
 class TreeViewModel {
     var root: TreeNode?
     var activeSidebarEntryID: String?
@@ -793,8 +826,7 @@ class TreeViewModel {
 
         let locations = group("locations", NSLocalizedString("sidebar-locations", value: "Locations", comment: "位置"))
         let oldLocations = locations.children ?? []
-        let computerName = (Host.current().localizedName ?? "Mac")
-            .replacingOccurrences(of: "的", with: " 的 ")
+        let computerName = SidebarNaming.spacedComputerName(Host.current().localizedName ?? "Mac")
         let computer = entry(URL(fileURLWithPath: "/"), id: "location:computer", role: .volume,
                              symbol: "macmini", displayName: computerName,
                              resource: nil, previous: oldLocations)
@@ -808,39 +840,29 @@ class TreeViewModel {
                     && !url.path.hasPrefix("/Volumes/com.apple.TimeMachine.localsnapshots")
                     && !name.contains("timemachine")
             }
-            let oneDrive = FileManager.default.homeDirectoryForCurrentUser
-                .appendingPathComponent("Library/CloudStorage/OneDrive-个人", isDirectory: true)
-            var volumeURLs = mountedVolumes
-            if FileManager.default.fileExists(atPath: oneDrive.path) { volumeURLs.append(oneDrive) }
-            let uniqueVolumes = Dictionary(grouping: volumeURLs, by: { $0.standardizedFileURL.path })
+            let cloudStorage = FileManager.default.homeDirectoryForCurrentUser
+                .appendingPathComponent("Library/CloudStorage", isDirectory: true)
+            let oneDrives = SidebarNaming.oneDriveEntries(in: cloudStorage)
+            let oneDriveNames = Dictionary(oneDrives.map { ($0.url.standardizedFileURL.path, $0.displayName) },
+                                           uniquingKeysWith: { first, _ in first })
+            let oneDrivePaths = Set(oneDriveNames.keys)
+            let uniqueVolumes = Dictionary(grouping: mountedVolumes + oneDrives.map { $0.url },
+                                           by: { $0.standardizedFileURL.path })
                 .compactMap { $0.value.first }
                 .sorted { a, b in
-                    func rank(_ url: URL) -> Int {
-                        let name = url.lastPathComponent.lowercased()
-                        if name.contains("minimalist") { return 0 }
-                        if name.contains("onedrive") { return 1 }
-                        return 2
-                    }
-                    let ranks = (rank(a), rank(b))
+                    let ranks = (SidebarNaming.volumeRank(a, oneDrivePaths: oneDrivePaths),
+                                 SidebarNaming.volumeRank(b, oneDrivePaths: oneDrivePaths))
                     return ranks.0 == ranks.1
                         ? a.lastPathComponent.localizedStandardCompare(b.lastPathComponent) == .orderedAscending
                         : ranks.0 < ranks.1
                 }
             for url in uniqueVolumes {
-                let lowerName = url.lastPathComponent.lowercased()
-                let symbol: String
-                let displayName: String?
-                if lowerName.contains("onedrive") {
-                    symbol = "cloud"
-                    displayName = "OneDrive"
-                } else {
-                    symbol = "externaldrive"
-                    displayName = nil
-                }
-                let resource: String? = lowerName.contains("onedrive") ? "SidebarOneDrive" : nil
+                let oneDriveName = oneDriveNames[url.standardizedFileURL.path]
                 locationEntries.append(entry(url, id: "location:\(url.path)", role: .volume,
-                                             symbol: symbol, displayName: displayName,
-                                             resource: resource, previous: oldLocations))
+                                             symbol: oneDriveName == nil ? "externaldrive" : "cloud",
+                                             displayName: oneDriveName,
+                                             resource: oneDriveName == nil ? nil : "SidebarOneDrive",
+                                             previous: oldLocations))
             }
         } else if let customRoot = Self.normalizedURL(root.fullPath), customRoot.path != "/" {
             locationEntries.append(entry(customRoot, id: "location:\(customRoot.path)", role: .volume,
