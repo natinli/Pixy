@@ -9,6 +9,8 @@
         <customObject id="-2" userLabel="File's Owner" customClass="CustomSettingsViewController" customModule="FlowVision" customModuleProvider="target">
             <connections>
                 <outlet property="clickEdgeToSwitchImageCheckbox" destination="cQE-M8-Erz" id="hza-GS-mt2"/>
+                <outlet property="deleteWithoutConfirmCheckbox" destination="Do6-Hp-3Nn" id="Lw4-Px-1Vv"/>
+                <outlet property="doubleClickOpenWithDefaultAppCheckbox" destination="Hs0-Lt-7Rr" id="Mx5-Qy-2Ww"/>
                 <outlet property="excludeContainerView" destination="1zQ-Z6-EOk" id="pv9-nt-J16"/>
                 <outlet property="keepFilterStateWhenSwitchFolderCheckbox" destination="lfi-Xq-yYB" id="KXv-DN-u9E"/>
                 <outlet property="loopBrowsingCheckbox" destination="8Z4-Ey-mOg" id="wCg-rI-Dsd"/>
@@ -51,6 +53,9 @@
                         <gridRow id="rwb-dM-Msz"/>
                         <gridRow id="ffW-a9-gkS"/>
                         <gridRow id="5fB-S2-lmx"/>
+                        <gridRow height="20" id="Q7s-Nf-0Aa"/>
+                        <gridRow id="Fq2-Dk-3Lm"/>
+                        <gridRow id="Gh8-Pw-9Xz"/>
                         <gridRow height="20" id="Hiw-Si-6Fi"/>
                         <gridRow id="3ji-xx-40N"/>
                         <gridRow id="C9g-Ns-DtL"/>
@@ -321,6 +326,47 @@
                                 </buttonCell>
                                 <connections>
                                     <action selector="keepFilterStateWhenSwitchFolderToggled:" target="-2" id="Bym-Ef-8qm"/>
+                                </connections>
+                            </button>
+                        </gridCell>
+                        <gridCell row="Q7s-Nf-0Aa" column="GGj-JC-w4E" headOfMergedCell="Rt4-Vc-1Bb" xPlacement="fill" id="Rt4-Vc-1Bb">
+                            <box key="contentView" verticalHuggingPriority="750" boxType="separator" translatesAutoresizingMaskIntoConstraints="NO" id="Sd5-We-2Cc">
+                                <rect key="frame" x="0.0" y="146" width="450" height="5"/>
+                            </box>
+                        </gridCell>
+                        <gridCell row="Q7s-Nf-0Aa" column="cs9-fm-l2F" headOfMergedCell="Rt4-Vc-1Bb" id="Te6-Xf-3Dd"/>
+                        <gridCell row="Fq2-Dk-3Lm" column="GGj-JC-w4E" id="Zk2-Dl-9Jj">
+                            <textField key="contentView" focusRingType="none" horizontalHuggingPriority="251" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Al3-Em-0Kk">
+                                <rect key="frame" x="-2" y="114" width="95" height="16"/>
+                                <textFieldCell key="cell" alignment="right" title="File Operations:" id="Bm4-Fn-1Ll">
+                                    <font key="font" usesAppearanceFont="YES"/>
+                                    <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                                </textFieldCell>
+                            </textField>
+                        </gridCell>
+                        <gridCell row="Fq2-Dk-3Lm" column="cs9-fm-l2F" id="Cn5-Go-2Mm">
+                            <button key="contentView" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Do6-Hp-3Nn">
+                                <rect key="frame" x="99" y="113" width="270" height="18"/>
+                                <buttonCell key="cell" type="check" title="Move to Trash without Confirmation" bezelStyle="regularSquare" imagePosition="left" inset="2" id="Ep7-Iq-4Oo">
+                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="deleteWithoutConfirmToggled:" target="-2" id="Ju2-Nv-9Tt"/>
+                                </connections>
+                            </button>
+                        </gridCell>
+                        <gridCell row="Gh8-Pw-9Xz" column="GGj-JC-w4E" id="Fq8-Jr-5Pp"/>
+                        <gridCell row="Gh8-Pw-9Xz" column="cs9-fm-l2F" id="Gr9-Ks-6Qq">
+                            <button key="contentView" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="Hs0-Lt-7Rr">
+                                <rect key="frame" x="99" y="89" width="320" height="18"/>
+                                <buttonCell key="cell" type="check" title="Open Files with Default App on Double-Click" bezelStyle="regularSquare" imagePosition="left" inset="2" id="It1-Mu-8Ss">
+                                    <behavior key="behavior" changeContents="YES" doesNotDimImage="YES" lightByContents="YES"/>
+                                    <font key="font" metaFont="system"/>
+                                </buttonCell>
+                                <connections>
+                                    <action selector="doubleClickOpenWithDefaultAppToggled:" target="-2" id="Kv3-Ow-0Uu"/>
                                 </connections>
                             </button>
                         </gridCell>

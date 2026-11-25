@@ -1024,6 +1024,10 @@ class CustomCollectionViewItem: NSCollectionViewItem {
                         // 加 Shift 为前台打开，否则后台打开
                         // Hold Shift to open in foreground, otherwise open in background
                         openInNewTab(openInBackground: !event.modifierFlags.contains(.shift), openSingleFile: true)
+                    }else if globalVar.doubleClickOpenWithDefaultApp, let url = defaultAppOpenURL(at: selfIndexPath, in: collectionView) {
+                        // 设置「双击用默认应用打开」：普通文件交给系统默认应用，文件夹和替身仍按原逻辑进入目录
+                        // "Open with default app on double-click": plain files go to the system default app; folders and aliases keep the old path
+                        NSWorkspace.shared.open(url)
                     }else{
                         viewController.openLargeImageFromIndexPath(selfIndexPath)
                         viewController.largeImageView.videoPreventDoubleClickOpenPauseFlag = true
@@ -1041,6 +1045,16 @@ class CustomCollectionViewItem: NSCollectionViewItem {
         super.mouseDown(with: event)
     }
     
+    /// 双击时应交给系统默认应用打开的文件地址；文件夹、替身（可能指向文件夹）返回 nil。
+    /// URL to hand to the system default app on double-click; nil for folders and aliases (which may point to a folder).
+    private func defaultAppOpenURL(at indexPath: IndexPath, in collectionView: NSCollectionView) -> URL? {
+        guard let item = collectionView.item(at: indexPath) as? CustomCollectionViewItem,
+              let url = URL(string: item.file.path),
+              !url.hasDirectoryPath,
+              (try? url.resourceValues(forKeys: [.isAliasFileKey]))?.isAliasFile != true else { return nil }
+        return url
+    }
+
     override func otherMouseDown(with event: NSEvent) {
         // 检查是否按下了鼠标中键
         // Check if middle mouse button is pressed

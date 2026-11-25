@@ -115,6 +115,10 @@ class GlobalVar{
     var openLastFolder = true
     var homeFolder = "file:///"
     var keepFilterStateWhenSwitchFolder = false
+    // 删除到废纸篓时不再弹确认；Shift 永久删除、外置卷不支持废纸篓、无自动化权限这三种情况仍然询问。
+    var deleteWithoutConfirm = false
+    // 缩略图模式双击文件时用系统默认应用打开（文件夹、替身、⌘/⇧ 双击与大图模式内的双击不受影响）。
+    var doubleClickOpenWithDefaultApp = false
     // Finder 默认只展开分组；当前目录不会自动把整条层级路径铺到侧栏。
     var dirTreeAutoExpand = false
     var largeImageViewShowTagsAndRating = true

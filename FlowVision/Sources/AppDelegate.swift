@@ -222,6 +222,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuItemVa
         if let keepFilterStateWhenSwitchFolder = UserDefaults.standard.value(forKey: "keepFilterStateWhenSwitchFolder") as? Bool {
             globalVar.keepFilterStateWhenSwitchFolder = keepFilterStateWhenSwitchFolder
         }
+        if let deleteWithoutConfirm = UserDefaults.standard.value(forKey: "deleteWithoutConfirm") as? Bool {
+            globalVar.deleteWithoutConfirm = deleteWithoutConfirm
+        }
+        if let doubleClickOpenWithDefaultApp = UserDefaults.standard.value(forKey: "doubleClickOpenWithDefaultApp") as? Bool {
+            globalVar.doubleClickOpenWithDefaultApp = doubleClickOpenWithDefaultApp
+        }
         if let dirTreeAutoExpand = UserDefaults.standard.value(forKey: "dirTreeAutoExpand") as? Bool {
             globalVar.dirTreeAutoExpand = dirTreeAutoExpand
         }

@@ -8,6 +8,19 @@ import Cocoa
 import AVFoundation
 import DiskArbitration
 
+/// 删除前是否弹确认框；抽成纯函数便于单测。
+/// Whether to show the delete confirmation; a pure function so it can be unit-tested.
+enum DeleteConfirmPolicy {
+    /// isShowPrompt：调用方是否希望询问；skipSetting：设置「删除时不再询问」。
+    /// 永久删除（Shift）、外置卷（无废纸篓）、无自动化权限这三种情况与设置无关，照常询问。
+    /// Permanent delete (Shift), external volumes (no Trash) and missing automation permission ignore the setting and always ask.
+    static func needsPrompt(isShowPrompt: Bool, skipSetting: Bool, isShiftPressed: Bool,
+                            isExternalVolume: Bool, hasPermission: Bool) -> Bool {
+        let skipConfirm = skipSetting && !isShiftPressed && !isExternalVolume && hasPermission
+        return (isShowPrompt && !skipConfirm) || !hasPermission || isExternalVolume
+    }
+}
+
 extension ViewController {
     
     @discardableResult
@@ -974,7 +987,10 @@ extension ViewController {
         alert.icon = NSImage(named: NSImage.cautionName)
 
         var response: NSApplication.ModalResponse = .alertFirstButtonReturn
-        if isShowPrompt || !ifHasPermission || VolumeManager.shared.isExternalVolume(urls.first!) {
+        let needsPrompt = DeleteConfirmPolicy.needsPrompt(
+            isShowPrompt: isShowPrompt, skipSetting: globalVar.deleteWithoutConfirm, isShiftPressed: isShiftPressed,
+            isExternalVolume: VolumeManager.shared.isExternalVolume(urls.first!), hasPermission: ifHasPermission)
+        if needsPrompt {
             let StoreIsKeyEventEnabled = publicVar.isKeyEventEnabled
             publicVar.isKeyEventEnabled=false
             response = alert.runModal()

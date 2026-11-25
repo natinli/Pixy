@@ -22,6 +22,8 @@ final class CustomSettingsViewController: NSViewController, SettingsPane {
     @IBOutlet weak var usePinyinSearchCheckbox: NSButton!
     @IBOutlet weak var usePinyinInitialSearchCheckbox: NSButton!
     @IBOutlet weak var keepFilterStateWhenSwitchFolderCheckbox: NSButton!
+    @IBOutlet weak var deleteWithoutConfirmCheckbox: NSButton!
+    @IBOutlet weak var doubleClickOpenWithDefaultAppCheckbox: NSButton!
     @IBOutlet weak var excludeContainerView: ThumbnailExcludeView!
     
     @IBOutlet weak var radioGlass: NSButton!
@@ -43,6 +45,8 @@ final class CustomSettingsViewController: NSViewController, SettingsPane {
         usePinyinSearchCheckbox.state = globalVar.usePinyinSearch ? .on : .off
         usePinyinInitialSearchCheckbox.state = globalVar.usePinyinInitialSearch ? .on : .off
         keepFilterStateWhenSwitchFolderCheckbox.state = globalVar.keepFilterStateWhenSwitchFolder ? .on : .off
+        deleteWithoutConfirmCheckbox.state = globalVar.deleteWithoutConfirm ? .on : .off
+        doubleClickOpenWithDefaultAppCheckbox.state = globalVar.doubleClickOpenWithDefaultApp ? .on : .off
         
         globalVar.useInternalPlayerCheckbox = self.useInternalPlayerCheckbox
         
@@ -151,6 +155,16 @@ final class CustomSettingsViewController: NSViewController, SettingsPane {
     @IBAction func keepFilterStateWhenSwitchFolderToggled(_ sender: NSButton) {
         globalVar.keepFilterStateWhenSwitchFolder = (sender.state == .on)
         UserDefaults.standard.set(globalVar.keepFilterStateWhenSwitchFolder, forKey: "keepFilterStateWhenSwitchFolder")
+    }
+
+    @IBAction func deleteWithoutConfirmToggled(_ sender: NSButton) {
+        globalVar.deleteWithoutConfirm = (sender.state == .on)
+        UserDefaults.standard.set(globalVar.deleteWithoutConfirm, forKey: "deleteWithoutConfirm")
+    }
+
+    @IBAction func doubleClickOpenWithDefaultAppToggled(_ sender: NSButton) {
+        globalVar.doubleClickOpenWithDefaultApp = (sender.state == .on)
+        UserDefaults.standard.set(globalVar.doubleClickOpenWithDefaultApp, forKey: "doubleClickOpenWithDefaultApp")
     }
     
 }
