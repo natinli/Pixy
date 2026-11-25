@@ -25,7 +25,7 @@
 
 1. **验证「双击用默认应用打开」时意外启动了正式版 Pixy**：本机 PNG 的默认应用就是 `/Applications/Pixy.app`，开关打开后双击让系统把图交给了它（23:25:59 启动，pid 65320），并写了它的 `lastFolder`（该用户 `openLastFolder = 0`，启动时不读它，无实际影响）。我用 `NSRunningApplication.terminate()` 干净退出了这个实例（`hasNormalExit = 1`）。此后没有再在开启状态下双击。以后验证该开关先查 `LSCopyDefaultApplicationURLForURL`，默认应用是 Pixy 自己就别点。开启态因此只有间接证据：PixyDbg 没有进大图、系统把文件交给了默认应用。
 2. 本机有 `LocalDev.xcconfig` 时 Debug 构建带 `LOCAL_DEV`，侧栏根被指到作者测试目录，**看不到真实磁盘/OneDrive**；验证侧栏需加 `SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG`。0.0.4 的多语言验证是在那种状态下做的，只看标题不受影响。
-3. 公开仓库卫生检查会拦测试里的 `/Users/<名字>` 路径（已改）；本地先跑再提交。
+3. 公开仓库卫生检查会拦测试和文档里的开发机用户目录路径（已改）；改完文档/测试也要在提交前本地跑一遍。
 4. M1 推送后 `CI build` 被取消（排队 15 分钟后 runner 未分配，属配额问题，不是代码），最新一次推送会重新触发。
 
 #### 未做 / 未覆盖
