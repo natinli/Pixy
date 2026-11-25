@@ -24,7 +24,7 @@
 | 新设置项 | `GlobalVariable.swift` globalVar + 对应 `SettingsViews/` 面板 |
 | 目录扫描逻辑 | `FileSystem.swift treeTraversal`（注意递归方向与过滤链） |
 | 缓存策略 | `ImageProcess.swift` LargeImageProcessor / ThumbImageProcessor / CustomCache |
-| 新增界面文案 | `Localizable.xcstrings` 补齐全部 17 种语言（至少 en）；调用处 `NSLocalizedString(key, value: <英文>, comment:)`——key 不是英文原句时必须带 `value:`，否则 xcstrings 里缺的语言会直接显示 key（`8e69a07` 的侧栏就因此在德文等语言下露出 `sidebar-favorites`） |
+| 新增界面文案 | `Localizable.xcstrings` 补齐全部 17 种语言（至少 en）；调用处 `NSLocalizedString(key, value: <英文>, comment:)`——key 不是英文原句时必须带 `value:`，否则 xcstrings 里缺的语言会直接显示 key（`8e69a07` 的侧栏就因此在德文等语言下露出 `sidebar-favorites`）；改完跑 `python3 scripts/check-localization.py`，CI 也会跑 |
 
 ## 修改后必做
 

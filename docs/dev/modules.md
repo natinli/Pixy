@@ -48,14 +48,15 @@
 
 ## Common/（11 文件）
 
-### DataModel.swift（1279 行）
+### DataModel.swift（1301 行）
 核心数据结构，全部基于 BTree 有序 Map。
 - `SortKey/SortKeyFile/SortKeyDir` — Comparable 排序键；`<` 是**全项目排序唯一真源**（path/日期/size/exif/rating/tag + SortType/folderFirst/randomSeed）；`writeExifInfo`/`writeTagInfo` 惰性加载
 - `FileModel` — 单文件：path/ext/type/image/thumbSize/originalSize/rotate/finderTags/lock/ver
 - `DirModel` — `files: Map<SortKeyFile,FileModel>` + layoutCalcPos（增量布局游标）+ keepScrollPos；`changeSortType` 重建排序
 - `DatabaseModel` — `db: Map<SortKeyDir,DirModel>` + curFolder + `ver`（版本号，使旧任务失效）
 - `TreeViewModel`/`TreeNode` — Finder 风格侧栏分组与目录树数据；`SidebarNodeRole` 隔离分组、目录、卷、标签、文件、特殊入口及分隔线，`entryID` + 规范路径组成节点身份；`rebuildSidebar` 是初建与刷新的共同入口，构建精简的个人收藏、iCloud、位置和标签四组，并过滤系统虚拟入口与 TimeMachine；`sidebarCandidates` 负责虚拟域隔离和入口排名，`activeSidebarEntryID` 由用户选择／展开建立，随后成功程序定位更新当前分支。
-  - 侧栏文案：分组标题与 iCloud 云盘、「所有标签」走 `sidebar-*` key，`NSLocalizedString(key, value: <英文>, comment:)` 带英文回退（`specialEntry` 的 `fallback` 参数同理），`Localizable.xcstrings` 里 6 个在用 key 补齐 17 种语言、沿用 Finder 侧栏用词（如德文「Favoriten / Orte / Tags」）；`sidebar-airdrop/recents/shared` 已无调用，仅保留 en/zh/ar。
+  - `SidebarNaming`（无状态，便于单测）— 位置分组的命名与排序规则：`oneDriveEntries` 枚举 `~/Library/CloudStorage` 下名为 `OneDrive` 或 `OneDrive-<账号>` 的目录（账号后缀随系统语言变化，所以不做后缀识别，只用数量决定显示名：仅一个叫「OneDrive」，多个时带后缀的叫「OneDrive - <后缀>」）；`volumeRank` 让磁盘排在云存储前、同档按名称自然排序，不特判任何具体卷名；`spacedComputerName` 只在「的」紧邻 ASCII 字母数字时补空格，其余电脑名原样显示。
+  - 侧栏文案：分组标题与 iCloud 云盘、「所有标签」走 `sidebar-*` key，`NSLocalizedString(key, value: <英文>, comment:)` 带英文回退（`specialEntry` 的 `fallback` 参数同理），`Localizable.xcstrings` 里 6 个在用 key 补齐 17 种语言、沿用 Finder 侧栏用词（如德文「Favoriten / Orte / Tags」）；已无调用的 `sidebar-airdrop/recents/shared` 已删除。`scripts/check-localization.py`（CI `ci.yml` 里跑）强制：标识符式 key 必须存在于 xcstrings，且语言齐全或调用处带 `value:`。
 - `normalizedURL`/`isVirtualTagURL`/`contains` — 统一文件 URL 规范化与路径组件祖先关系；不按显示名称定位、不解析符号链接改变路径语义；虚拟标签域隔离真实目录候选和文件操作。
 - `TaskPool` — 多队列优先级任务池（makeQueue/push/pop/setMostPriority）
 
@@ -167,4 +168,4 @@
 - 部署目标 **macOS 11.0**（xcodeproj 4 处配置一致）
 - SPM 依赖全部来自公开仓库，版本由 `FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` 锁定：SDWebImageWebPCoder、SDWebImage、libwebp-xcode、**BTree**、**Settings**。clone 后无需在仓库外准备任何本地包。
 - `ffmpegkit.xcframework` 嵌入 CopyFiles（CodeSignOnCopy），运行时 dlopen；由 `scripts/bootstrap-dependencies.sh` 下载并校验 SHA-256。
-- `LocalDev.xcconfig.template` → 复制为 `LocalDev.xcconfig`（gitignored）启用 `LOCAL_DEV` 编译条件；Base.xcconfig 用 `#include?` 可选引入
+- `LocalDev.xcconfig.template` → 复制为 `LocalDev.xcconfig`（gitignored）启用 `LOCAL_DEV` 编译条件；Base.xcconfig 用 `#include?` 可选引入。`DEBUG && LOCAL_DEV` 时 `ViewController` 的 `treeRootFolder` 指向作者的测试数据目录，侧栏只显示该目录而不是真实的磁盘/OneDrive；要在本机 Debug 构建里看真实侧栏，命令行加 `SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG` 覆盖

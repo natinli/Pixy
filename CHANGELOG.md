@@ -4,6 +4,18 @@
 
 版本号说明：Pixy 从 `0.0.1` 开始使用**自己的版本线**，与上游 `1.x` 无关；上游历史 tag 随 fork 保留但不再使用。详见 [docs/dev/release.md](docs/dev/release.md)。
 
+## [Fork] 未发布
+
+### 侧栏「位置」分组不再依赖作者个人配置
+
+- OneDrive 现在按 `~/Library/CloudStorage` 下名为 `OneDrive` 或 `OneDrive-<账号>` 的目录识别。此前只认写死的 `OneDrive-个人`，英文系统的 `OneDrive-Personal`、企业账号的 `OneDrive-<公司名>` 都不会出现在侧栏。只有一个账号时显示「OneDrive」；多个账号时带后缀的显示为「OneDrive - <后缀>」。
+- 磁盘排序去掉对某个具体卷名的特殊照顾（此前名字含 `Minimalist` 的卷固定排最前）：磁盘按名称排，OneDrive 排在磁盘之后，与 Finder 一致。
+- 电脑名只在「的」紧邻英文字母或数字时补空格（`natinli的Mac mini` → `natinli 的 Mac mini`），其余原样显示；此前任何含「的」的名字都会被拆开，如「我的电脑」变成「我 的 电脑」。
+
+### 内部：本地化 key 检查
+
+新增 `scripts/check-localization.py` 并接入 CI：标识符式的文案 key（如 `sidebar-favorites`）必须存在于 `Localizable.xcstrings`，且语言齐全或调用处带英文 `value:` 回退，防止 0.0.4 修掉的「其他语言显示原始 key」再次出现。已无调用的 `sidebar-airdrop`、`sidebar-recents`、`sidebar-shared` 三个文案 key 一并删除。
+
 ## [Fork] 2026-11-17 — 0.0.4
 
 仍为**未签名**版本，升级后首次启动需再放行一次（[安装说明](docs/user/installation.md)）。这一版只修侧栏多语言文案，中英文界面没有变化。

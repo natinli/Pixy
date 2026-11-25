@@ -38,6 +38,15 @@
 
 ## 记录
 
+### 补验记录（2026-11-25，源码 HEAD，非发布产物）
+
+针对 0.0.2–0.0.4 一直写「未覆盖」的几项做的补验。对象是 Debug 构建（`com.natinli.PixyDbg`，`SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG` 以显示真实磁盘），不是发布包；macOS 15.7.9（arm64）/ Xcode 26.3。
+
+- **x86_64（Rosetta 2）**：`ARCHS=x86_64` 单架构构建（`lipo -archs` 为 `x86_64`），用 `arch -x86_64` 启动。侧栏四组与位置分组正常；打开 `/tmp` 目录后在目录里新增 12 张 PNG，目录监听自动刷新并显示缩略图；双击进入大图、Esc 返回均正常。**这只证明 x86_64 切片能在 Rosetta 下运行，不等于真 Intel 机**：未测视频与 FFmpeg 框架、GPU 路径与性能。「在 Intel Mac 上启动验证」仍保持未勾选。
+- **RTL（阿拉伯语）**：单用 `-AppleLanguages '(ar)'` 只会换文案、**布局不会镜像**（本地化验证够用，RTL 布局验证不够）；需要再加 `-AppleTextDirection YES -NSForceRightToLeftWritingDirection YES`。强制 RTL 后：侧栏在右、窗口按钮与工具栏镜像、路径条从右往左、缩略图从右侧起排、卷行的推出按钮在行首侧；侧栏收起后内容区填满、再展开恢复（上游修过的 RTL 空白问题未复现）。未测：RTL 下大图方向键与手势、视频、设置窗口。
+- **macOS 11 声明**：pbxproj 部署目标 `11.0`，产物 `LC_BUILD_VERSION minos 11.0`（SDK 26.2），Info.plist `LSMinimumSystemVersion 11.0`；编译器按 11.0 检查 API 可用性，高版本 API 必须带 `#available`。这是编译期保证，**运行时在 macOS 11/12 上从未验证**（没有开虚拟机）。README / 安装文档的「macOS 11.0+」按现状保留，勾选项不勾。
+- 仍未覆盖：真 Intel 机、macOS 11–13 实机、干净用户环境首次启动。
+
 ### 0.0.4（未签名版）
 
 - Release tag：`v0.0.4`；build `2026111703`（同日第三版）
