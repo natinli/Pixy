@@ -66,6 +66,26 @@ xcodebuild -project FlowVision.xcodeproj -scheme FlowVision -configuration Relea
 
 工程使用 Xcode Automatic Signing，与上游 FlowVision 的工程配置保持一致。公开源码不携带任何维护者 Team ID；需要在本机签名时，将自己的 `DEVELOPMENT_TEAM` 写入被 `.gitignore` 忽略的 `LocalDev.xcconfig`，并确保钥匙串里有匹配的 Mac Development 证书。正式分发必须使用 Developer ID Application；CI 的源码构建显式传入 `CODE_SIGNING_ALLOWED=NO`，不会要求证书。
 
+## 单元测试
+
+`PixyTests` 是宿主为 Pixy 的 XCTest target，只测纯逻辑（侧栏命名与排序规则、删除确认策略、URL 规范化、`SortKey` 比较等），不测界面。
+
+```bash
+xcodebuild test \
+  -project FlowVision.xcodeproj \
+  -scheme FlowVision \
+  -destination 'platform=macOS' \
+  -derivedDataPath .build/DerivedData-test \
+  -onlyUsePackageVersionsFromResolvedFile \
+  CODE_SIGNING_ALLOWED=NO \
+  CODE_SIGN_IDENTITY=''
+```
+
+- 只能在 **Debug** 配置下跑：测试里 `@testable import PixyDbg`（Debug 产物与模块名是 `PixyDbg`，Release 是 `Pixy`，且 Release 没有 testability）。
+- 宿主测试会启动一个 Pixy 窗口，测试结束后自动退出；本机跑的时候会短暂看到它。
+- 本机有 `LocalDev.xcconfig` 时 Debug 带 `LOCAL_DEV`，对纯逻辑测试没有影响。
+- 新增测试文件要手动加进 `FlowVision.xcodeproj` 的 `PixyTests` 组和 Sources 阶段（工程没有使用自动同步的文件夹）。
+
 ## 公开发布：签名、公证和产物
 
 不要把证书、密码、Team ID 或 keychain 配置写入仓库。发布脚本有两种模式：
@@ -102,7 +122,7 @@ CI 分成两个工作流，区别在于要不要占用 macOS runner：
 | 工作流 | runner | 触发 | 跑什么 |
 |---|---|---|---|
 | `.github/workflows/ci.yml`（CI checks） | `ubuntu-latest` | 每次 push / PR | `check-public-hygiene.sh`、`check-dependency-notices.sh`、`check-localization.py` |
-| `.github/workflows/ci-build.yml`（CI build） | `macos-15` | push / PR，但 `paths-ignore` 掉 `docs/**`、`**.md`、`.trellis/**` | bootstrap 依赖 + `xcodebuild` Release 构建 + 上传产物 |
+| `.github/workflows/ci-build.yml`（CI build） | `macos-15` | push / PR，但 `paths-ignore` 掉 `docs/**`、`**.md`、`.trellis/**` | bootstrap 依赖 + `xcodebuild` Release 构建 + 上传产物 + Debug 配置下的 `xcodebuild test` |
 
 **为什么拆开**：macOS arm64 runner 配额紧张时，作业会排队约 15 分钟后直接以 `The job was not acquired by Runner of type hosted` 失败——这不是代码问题。而本仓库绝大多数提交是文档，没必要为此占用 macOS 配额。卫生检查反而**不能**跳过文档改动（敏感信息最常出现在文档与日志里），所以它单独放在 ubuntu 上，对任何改动都跑。
 

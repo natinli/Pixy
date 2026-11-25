@@ -62,3 +62,16 @@ jobs:
             .build/DerivedData/Build/Products/Release/Pixy.app
             FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved
           if-no-files-found: error
+
+      # 单元测试放在最后：不影响上面的构建产物；Debug 配置才有 testability，所以单独用 Debug 再编一次。
+      - name: Run unit tests
+        run: |
+          xcodebuild test \
+            -project FlowVision.xcodeproj \
+            -scheme FlowVision \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath .build/DerivedDataTest \
+            -onlyUsePackageVersionsFromResolvedFile \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY=''

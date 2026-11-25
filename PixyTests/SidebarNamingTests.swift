@@ -63,7 +63,7 @@ final class SidebarNamingTests: XCTestCase {
     // MARK: volumeRank
 
     func testVolumeRankPutsOneDriveAfterDisks() {
-        let oneDrive = URL(fileURLWithPath: "/Users/x/Library/CloudStorage/OneDrive-Personal")
+        let oneDrive = URL(fileURLWithPath: "/Volumes/Home/Library/CloudStorage/OneDrive-Personal")
         let disk = URL(fileURLWithPath: "/Volumes/Minimalist")
         let paths: Set<String> = [oneDrive.standardizedFileURL.path]
         XCTAssertEqual(SidebarNaming.volumeRank(disk, oneDrivePaths: paths), 0)

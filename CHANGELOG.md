@@ -25,6 +25,10 @@
 
 新增的界面文案提供全部 17 种语言。
 
+### 内部：单元测试
+
+新增 `PixyTests` 单元测试 target（21 个用例，只测纯逻辑：侧栏命名与排序、删除确认策略、URL 规范化、`SortKey` 比较），CI 的 `ci-build.yml` 在构建之后跑一遍。本机命令见 [build.md](docs/dev/build.md#单元测试)。
+
 ### 内部：本地化 key 检查
 
 新增 `scripts/check-localization.py` 并接入 CI：标识符式的文案 key（如 `sidebar-favorites`）必须存在于 `Localizable.xcstrings`，且语言齐全或调用处带英文 `value:` 回退，防止 0.0.4 修掉的「其他语言显示原始 key」再次出现。已无调用的 `sidebar-airdrop`、`sidebar-recents`、`sidebar-shared` 三个文案 key 一并删除。

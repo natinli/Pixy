@@ -165,6 +165,8 @@
 
 ## 工程配置要点
 
+- `PixyTests/`：单元测试 target（宿主为 Pixy，仅 Debug）。`SidebarNamingTests`、`DeleteConfirmPolicyTests`、`TreeViewModelURLTests`、`SortKeyTests`，共 21 个用例；pbxproj 里没有自动同步文件夹，新增测试文件需手动加进 `PixyTests` 组与 Sources 阶段。命令见 [build.md](build.md#单元测试)
+
 - 部署目标 **macOS 11.0**（xcodeproj 4 处配置一致）
 - SPM 依赖全部来自公开仓库，版本由 `FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` 锁定：SDWebImageWebPCoder、SDWebImage、libwebp-xcode、**BTree**、**Settings**。clone 后无需在仓库外准备任何本地包。
 - `ffmpegkit.xcframework` 嵌入 CopyFiles（CodeSignOnCopy），运行时 dlopen；由 `scripts/bootstrap-dependencies.sh` 下载并校验 SHA-256。

@@ -24,12 +24,13 @@
 | 新设置项 | `GlobalVariable.swift` globalVar + 对应 `SettingsViews/` 面板 |
 | 目录扫描逻辑 | `FileSystem.swift treeTraversal`（注意递归方向与过滤链） |
 | 缓存策略 | `ImageProcess.swift` LargeImageProcessor / ThumbImageProcessor / CustomCache |
+| 新增/修改纯逻辑（命名、排序、URL、策略） | 先抽成无状态函数/枚举，在 `PixyTests/` 里加用例（命令见 [build.md](build.md#单元测试)）；`SidebarNaming`、`DeleteConfirmPolicy` 是现成的写法 |
 | 新增界面文案 | `Localizable.xcstrings` 补齐全部 17 种语言（至少 en）；调用处 `NSLocalizedString(key, value: <英文>, comment:)`——key 不是英文原句时必须带 `value:`，否则 xcstrings 里缺的语言会直接显示 key（`8e69a07` 的侧栏就因此在德文等语言下露出 `sidebar-favorites`）；改完跑 `python3 scripts/check-localization.py`，CI 也会跑 |
 
 ## 修改后必做
 
 1. **同步文档**：`docs/dev/modules.md` 对应文件章节；影响架构时 `docs/dev/architecture.md`；用户可见功能 `docs/user/usage.md`；版本变更 `CHANGELOG.md`。维护规则见 [index.md](../index.md)。
-2. 构建 + 冒烟：打开目录、切四种视图、进出大图、缩放、视频、标签过滤（有 Xcode 环境时）。
+2. 跑 `xcodebuild test`（见 [build.md](build.md#单元测试)）；构建 + 冒烟：打开目录、切四种视图、进出大图、缩放、视频、标签过滤（有 Xcode 环境时）。
 3. 在 `docs/session-log.md` 记录本次改动。
 
 ## fork 上游同步策略

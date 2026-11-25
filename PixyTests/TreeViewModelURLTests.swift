@@ -16,7 +16,7 @@ final class TreeViewModelURLTests: XCTestCase {
     func testVirtualTagURLOnlyMatchesTheTopLevelVirtualFolder() {
         XCTAssertTrue(TreeViewModel.isVirtualTagURL(URL(fileURLWithPath: "/VirtualFinderTagsFolder")))
         XCTAssertTrue(TreeViewModel.isVirtualTagURL(URL(fileURLWithPath: "/VirtualFinderTagsFolder/红色")))
-        XCTAssertFalse(TreeViewModel.isVirtualTagURL(URL(fileURLWithPath: "/Users/a/VirtualFinderTagsFolder")))
+        XCTAssertFalse(TreeViewModel.isVirtualTagURL(URL(fileURLWithPath: "/a/b/VirtualFinderTagsFolder")))
         XCTAssertFalse(TreeViewModel.isVirtualTagURL(URL(fileURLWithPath: "/VirtualFinderTagsFolderX")))
     }
 
