@@ -43,9 +43,13 @@
 - Release tag：`v0.0.5`；build `2026112501`（当日第一版，build 号规则见 release.md）
 - macOS / Xcode：macOS 15.7.9 / Xcode 26.3（17C529）
 - 架构：arm64 + x86_64；签名 ad-hoc，`codesign --verify --deep --strict` 通过；`spctl --assess` 为 rejected、DMG 无 staple 票据（预期）；DMG 含 `Pixy.app` 与指向 `/Applications` 的软链接；`Contents/Frameworks` 含 8 个 FFmpeg 框架与 `libswift_Concurrency.dylib`
-- 本地产物（Release 页附件由 CI 重建，哈希以 Release 的 `SHA256SUMS.txt` 为准）：
+- 本地产物（上面的签名、架构、DMG 结构检查针对它；Release 页附件由 CI 重建，哈希不同，以 Release 的 `SHA256SUMS.txt` 为准）：
   - ZIP `5ffc5b3a043048a6696f6d2c95e1b79a357ac7fd11183e264aa15b18e7a7eeee`
   - DMG `ca32aa6e61671a425609c0c4ebeb67ba9f14cfa6c910eeed09c878176c4cf21f`
+- Release 页附件（CI 构建，已下载并 `shasum -c SHA256SUMS.txt` 全部 OK；Latest、非 pre-release）：
+  - ZIP `c2477920ce9817e4cb6a4cf67ece96e8ccd13ffc5bce96ccfe64aaa4fe0e9f1d`
+  - DMG `57019ef5affa961ec310e4558b4b6c91b52dfb05b413f0a13a03c201612c42d9`
+- 发布过程：tag 推送后第一次运行构建成功，但「Publish GitHub Release」撞上 GitHub 的 502（当时 Actions/Webhooks 有故障，并让第一次推 tag 没触发工作流，重建 tag 对象后才触发）；随后重跑 4 次都因 macOS arm64 runner 容量不足（`The job was not acquired`）排队 15 分钟后取消，第 6 次成功。tap 提交 `9b78f3b`。
 - 本版内容的界面验证（Debug 构建 `com.natinli.PixyDbg`，与发布包同一份源码；发布包的 bundle id 与本机正在使用的 Pixy 相同，且本机 PNG 默认应用就是 Pixy，**未在界面上启动发布包**）：
   - 侧栏位置分组（磁盘、OrbStack、OneDrive 的显示与顺序，电脑名）；设置 → 查看 → 文件操作两个开关的布局（中/英/德）、勾选跨重启保留、关闭时双击仍进大图；>5000 张目录新增文件后位置保持；x86_64（Rosetta）与强制 RTL 的补验见下一段。
   - `xcodebuild test` 21 例通过；`check-localization.py`、`check-public-hygiene.sh` 通过。

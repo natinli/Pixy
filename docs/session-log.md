@@ -4,6 +4,23 @@
 
 ## 2026-11-25
 
+### [Claude] · 发布 v0.0.5（承接上一条优化计划）
+
+- TL;DR：用户确认「CI 绿后发 0.0.5」。发布提交 `8dd9f37`（版本 `0.0.5`、build `2026112501`），`f7874b5` 与 `8dd9f37` 的 CI build 都成功（含 Release 构建与 `xcodebuild test`，hosted 测试在 macos-15 上一次通过，整个作业约 5.5 分钟）。`v0.0.5` 已发布，Latest、非 pre-release，tap 提交 `9b78f3b`。
+
+#### 过程与问题
+
+- build 号规则改了：8 位日期 `20261125` 在数值上小于 0.0.4 的 `2026111703`，会让 build 号倒退，此后一律 `YYYYMMDDNN`，`release.md` 已写明。
+- GitHub 当时有 Actions/Webhooks 故障：第一次推 tag 没触发工作流；删除并重建 tag 对象（`9d4a3ee`，仍指向 `8dd9f37`）后触发；该次运行构建成功，但「Publish GitHub Release」返回 502，并留下一个空草稿 Release（已删）。
+- 此后重跑 4 次（attempt 2–5）都是 macOS arm64 runner 容量不足、排队约 15 分钟后取消；隔了几个小时的第 6 次一次成功。期间没有改工作流，也没有用本地产物发布。
+- Release 页附件（ZIP、DMG、`SHA256SUMS.txt`）已下载，`shasum -c` 全部通过；CI 重建的哈希与本地产物不同（预期），checklist 两组都记了。
+- 提交 `release.md` 规则、checklist 的 0.0.5 段时先在本地跑了 `check-public-hygiene.sh`。
+
+#### 未完成
+
+- 本机 Pixy 没有升级：`brew upgrade --cask pixy` 和升级后的首次放行由用户执行。
+- 干净用户环境首次启动、真 Intel 机、macOS 11–13 仍未覆盖。
+
 ### [Claude] · 优化计划 P0–P2：侧栏去个人硬编码、本地化检查、#120、两个设置开关、单元测试（Trellis 任务 11-25-pixy-optimization-plan）
 
 - TL;DR：按用户同意的优化清单落地 P0–P2，共 8 个提交（`df38d0b`…`aca938f`），**未发版、未打 tag**。P0 清掉侧栏里作者个人配置并补验 Intel(Rosetta)/RTL；P1 修了超过 5000 张目录刷新回顶、加两个默认关闭的设置开关；P2 起步：`check-localization.py` 进 CI、`PixyTests` 单元测试 target（21 例）。
