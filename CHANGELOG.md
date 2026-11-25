@@ -4,7 +4,9 @@
 
 版本号说明：Pixy 从 `0.0.1` 开始使用**自己的版本线**，与上游 `1.x` 无关；上游历史 tag 随 fork 保留但不再使用。详见 [docs/dev/release.md](docs/dev/release.md)。
 
-## [Fork] 未发布
+## [Fork] 2026-11-25 — 0.0.5
+
+仍为**未签名**版本，升级后首次启动需再放行一次（[安装说明](docs/user/installation.md)）。
 
 ### 侧栏「位置」分组不再依赖作者个人配置
 

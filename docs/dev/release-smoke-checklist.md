@@ -38,6 +38,21 @@
 
 ## 记录
 
+### 0.0.5（未签名版）
+
+- Release tag：`v0.0.5`；build `2026112501`（当日第一版，build 号规则见 release.md）
+- macOS / Xcode：macOS 15.7.9 / Xcode 26.3（17C529）
+- 架构：arm64 + x86_64；签名 ad-hoc，`codesign --verify --deep --strict` 通过；`spctl --assess` 为 rejected、DMG 无 staple 票据（预期）；DMG 含 `Pixy.app` 与指向 `/Applications` 的软链接；`Contents/Frameworks` 含 8 个 FFmpeg 框架与 `libswift_Concurrency.dylib`
+- 本地产物（Release 页附件由 CI 重建，哈希以 Release 的 `SHA256SUMS.txt` 为准）：
+  - ZIP `5ffc5b3a043048a6696f6d2c95e1b79a357ac7fd11183e264aa15b18e7a7eeee`
+  - DMG `ca32aa6e61671a425609c0c4ebeb67ba9f14cfa6c910eeed09c878176c4cf21f`
+- 本版内容的界面验证（Debug 构建 `com.natinli.PixyDbg`，与发布包同一份源码；发布包的 bundle id 与本机正在使用的 Pixy 相同，且本机 PNG 默认应用就是 Pixy，**未在界面上启动发布包**）：
+  - 侧栏位置分组（磁盘、OrbStack、OneDrive 的显示与顺序，电脑名）；设置 → 查看 → 文件操作两个开关的布局（中/英/德）、勾选跨重启保留、关闭时双击仍进大图；>5000 张目录新增文件后位置保持；x86_64（Rosetta）与强制 RTL 的补验见下一段。
+  - `xcodebuild test` 21 例通过；`check-localization.py`、`check-public-hygiene.sh` 通过。
+  - 未在界面上覆盖：「删除时不再询问」的真实删除（需要 Finder 自动化授权，条件由单元测试覆盖）；「双击用默认应用打开」开启态只有间接证据。
+- 未覆盖：真 Intel 机、macOS 11–13 实机、干净用户环境首次启动
+- 日期：2026-11-25
+
 ### 补验记录（2026-11-25，源码 HEAD，非发布产物）
 
 针对 0.0.2–0.0.4 一直写「未覆盖」的几项做的补验。对象是 Debug 构建（`com.natinli.PixyDbg`，`SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG` 以显示真实磁盘），不是发布包；macOS 15.7.9（arm64）/ Xcode 26.3。
