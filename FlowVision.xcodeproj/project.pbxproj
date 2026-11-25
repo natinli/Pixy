@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B7E57A020000000000000002 /* SidebarNamingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E57A010000000000000002 /* SidebarNamingTests.swift */; };
+		B7E57A020000000000000003 /* DeleteConfirmPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E57A010000000000000003 /* DeleteConfirmPolicyTests.swift */; };
+		B7E57A020000000000000004 /* TreeViewModelURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E57A010000000000000004 /* TreeViewModelURLTests.swift */; };
+		B7E57A020000000000000005 /* SortKeyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E57A010000000000000005 /* SortKeyTests.swift */; };
 		F70368E82BF609F300155F36 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = F70368E72BF609F300155F36 /* Localizable.xcstrings */; };
 		F70F9FC12BAFE7B300C50CDD /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70F9FC02BAFE7B300C50CDD /* Common.swift */; };
 		F70F9FC32BAFE85D00C50CDD /* CustomCollectionViewManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F70F9FC22BAFE85D00C50CDD /* CustomCollectionViewManager.swift */; };
@@ -78,6 +82,16 @@
 		F7FED5F32F7D0B1100E35164 /* Tagging.swift in Sources */ = {isa = PBXBuildFile; fileRef = F7FED5F22F7D0B0E00E35164 /* Tagging.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		B7E57A050000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = F7A075482BA1D716009C47A6 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F7A0754F2BA1D716009C47A6;
+			remoteInfo = FlowVision;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXCopyFilesBuildPhase section */
 		F78960F42BDFFC8800C2571B /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -92,6 +106,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		B7E57A010000000000000001 /* PixyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PixyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7E57A010000000000000002 /* SidebarNamingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarNamingTests.swift; sourceTree = "<group>"; };
+		B7E57A010000000000000003 /* DeleteConfirmPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteConfirmPolicyTests.swift; sourceTree = "<group>"; };
+		B7E57A010000000000000004 /* TreeViewModelURLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeViewModelURLTests.swift; sourceTree = "<group>"; };
+		B7E57A010000000000000005 /* SortKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortKeyTests.swift; sourceTree = "<group>"; };
 		E00E13C3056A4910B242187C /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
 		F70368E72BF609F300155F36 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		F70F9FC02BAFE7B300C50CDD /* Common.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
@@ -173,6 +192,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		B7E57A040000000000000002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F7A0754D2BA1D716009C47A6 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -186,6 +212,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		B7E57A030000000000000001 /* PixyTests */ = {
+			isa = PBXGroup;
+			children = (
+				B7E57A010000000000000002 /* SidebarNamingTests.swift */,
+				B7E57A010000000000000003 /* DeleteConfirmPolicyTests.swift */,
+				B7E57A010000000000000004 /* TreeViewModelURLTests.swift */,
+				B7E57A010000000000000005 /* SortKeyTests.swift */,
+			);
+			path = PixyTests;
+			sourceTree = "<group>";
+		};
 		F73865DC2C37BD7F00837FE4 /* Common */ = {
 			isa = PBXGroup;
 			children = (
@@ -292,6 +329,7 @@
 			children = (
 				E00E13C3056A4910B242187C /* Base.xcconfig */,
 				F7A075522BA1D716009C47A6 /* FlowVision */,
+				B7E57A030000000000000001 /* PixyTests */,
 				F754F3C62C10393700A25D12 /* Frameworks */,
 				F7A075512BA1D716009C47A6 /* Products */,
 			);
@@ -301,6 +339,7 @@
 			isa = PBXGroup;
 			children = (
 				F7A075502BA1D716009C47A6 /* FlowVisionDbg.app */,
+				B7E57A010000000000000001 /* PixyTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -362,6 +401,23 @@
 			productReference = F7A075502BA1D716009C47A6 /* FlowVisionDbg.app */;
 			productType = "com.apple.product-type.application";
 		};
+		B7E57A070000000000000001 /* PixyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = B7E57A090000000000000001 /* Build configuration list for PBXNativeTarget "PixyTests" */;
+			buildPhases = (
+				B7E57A040000000000000001 /* Sources */,
+				B7E57A040000000000000002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				B7E57A060000000000000001 /* PBXTargetDependency */,
+			);
+			name = PixyTests;
+			productName = PixyTests;
+			productReference = B7E57A010000000000000001 /* PixyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -374,6 +430,10 @@
 				TargetAttributes = {
 					F7A0754F2BA1D716009C47A6 = {
 						CreatedOnToolsVersion = 15.2;
+					};
+					B7E57A070000000000000001 = {
+						CreatedOnToolsVersion = 15.2;
+						TestTargetID = F7A0754F2BA1D716009C47A6;
 					};
 				};
 			};
@@ -412,6 +472,7 @@
 			projectRoot = "";
 			targets = (
 				F7A0754F2BA1D716009C47A6 /* FlowVision */,
+				B7E57A070000000000000001 /* PixyTests */,
 			);
 		};
 /* End PBXProject section */
@@ -479,6 +540,17 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		B7E57A040000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B7E57A020000000000000002 /* SidebarNamingTests.swift in Sources */,
+				B7E57A020000000000000003 /* DeleteConfirmPolicyTests.swift in Sources */,
+				B7E57A020000000000000004 /* TreeViewModelURLTests.swift in Sources */,
+				B7E57A020000000000000005 /* SortKeyTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F7A0754C2BA1D716009C47A6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -543,6 +615,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		B7E57A060000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F7A0754F2BA1D716009C47A6 /* FlowVision */;
+			targetProxy = B7E57A050000000000000001 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		F72B1E6D2F7139FA0056B19F /* DemoSettingsViewController.xib */ = {
@@ -801,6 +881,40 @@
 			};
 			name = Release;
 		};
+		B7E57A080000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.natinli.PixyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/PixyDbg.app/Contents/MacOS/PixyDbg";
+			};
+			name = Debug;
+		};
+		B7E57A080000000000000002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 11.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.natinli.PixyTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pixy.app/Contents/MacOS/Pixy";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -818,6 +932,15 @@
 			buildConfigurations = (
 				F7A075602BA1D717009C47A6 /* Debug */,
 				F7A075612BA1D717009C47A6 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		B7E57A090000000000000001 /* Build configuration list for PBXNativeTarget "PixyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				B7E57A080000000000000001 /* Debug */,
+				B7E57A080000000000000002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
