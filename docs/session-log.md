@@ -2,6 +2,40 @@
 
 本日志由 Codex、Claude 或人工共同维护。每个会话条目标题必须标注执行者：`[Codex]`、`[Claude]` 或 `[人工]`。**条目按时间倒序排列：最新条目在最顶部。** 项目级日志记录完整细节；外层 nilo 仓库 `docs/session-log.md` 只记简要条目并指向这里。
 
+## 2026-11-25
+
+### [Claude] · 优化计划 P0–P2：侧栏去个人硬编码、本地化检查、#120、两个设置开关、单元测试（Trellis 任务 11-25-pixy-optimization-plan）
+
+- TL;DR：按用户同意的优化清单落地 P0–P2，共 8 个提交（`df38d0b`…`aca938f`），**未发版、未打 tag**。P0 清掉侧栏里作者个人配置并补验 Intel(Rosetta)/RTL；P1 修了超过 5000 张目录刷新回顶、加两个默认关闭的设置开关；P2 起步：`check-localization.py` 进 CI、`PixyTests` 单元测试 target（21 例）。
+
+#### 实现
+
+- 侧栏（`df38d0b`）：新增无状态 `SidebarNaming`。OneDrive 按 `~/Library/CloudStorage` 下 `OneDrive` / `OneDrive-<账号>` 目录枚举（此前只认写死的 `OneDrive-个人`），一个叫「OneDrive」、多个带后缀；磁盘排序去掉对名字含 `minimalist` 的卷的特判，磁盘在前、OneDrive 在后；电脑名只在「的」紧邻 ASCII 字母数字时补空格。
+- 本地化检查（`1f945a3`）：`scripts/check-localization.py` + `ci.yml`。标识符式 key 必须存在于 xcstrings，且语言齐全或调用处带 `value:`。用缺 `value:` / 缺 key 的副本验证会失败；删除已无调用的 `sidebar-airdrop/recents/shared`。
+- #120（`2aeb33f`）：≤5000 张目录按上游步骤无法复现（位置保持）；**>5000 张时新增文件确实回顶**（6001 张滚到 50% 后外部复制一张，回到 img_0000）。把 0.0.3 的缩放锚点接到 `scheduledRefresh`（仅目录文件数 ≥ 阈值时捕获），6001→6002 与连续新增 3 张后位置保持，偏差不超过一行；`captureScrollAnchorForZoom` 改名 `captureScrollAnchor`。
+- 两个开关（`6e22e2d`）：设置 → 查看 → 文件操作，默认关。「删除时不再询问」（#184）= 纯函数 `DeleteConfirmPolicy`，Shift 永久删除 / 外置卷 / 无自动化权限仍询问；「双击用默认应用打开」（#206）= `mouseDown` 双击分支。17 种语言；德文标签由「Dateioperationen:」改「Dateien:」避免窄列里单词被折断，荷兰语同理。
+- 测试 target（`303c3ee`）：手改 pbxproj（本机无 xcodeproj gem）加宿主为 Pixy 的 `PixyTests`，scheme 挂 Testables；`SidebarNaming`、`DeleteConfirmPolicy`（关闭时与旧表达式 16 种组合一致）、URL 规范化、`SortKey` 主要分支共 21 例。`ci-build.yml` 在 Release 构建后用 Debug 配置再跑一遍（`aca938f`）。
+
+#### 验证
+
+- Debug / Release 构建、`xcodebuild test`（21 例通过，增量 19 秒）、`check-localization.py`、`check-public-hygiene.sh` 均通过。故意把 Shift 规则改坏，对应用例会失败，确认不是空转（已还原）。
+- 界面：侧栏位置分组（MacRazer、Minimalist、OrbStack、OneDrive 显示与顺序）；设置页新分组中/英/德布局、勾选重启后保留、关闭时双击仍进大图。x86_64 单架构构建在 Rosetta 下启动、目录监听刷新、进出大图；`ar` 需额外加 `-AppleTextDirection YES -NSForceRightToLeftWritingDirection YES` 才会镜像，强制后侧栏收起/展开正常。记录见 `release-smoke-checklist.md` 的补验段。
+
+#### 发现与教训
+
+1. **验证「双击用默认应用打开」时意外启动了正式版 Pixy**：本机 PNG 的默认应用就是 `/Applications/Pixy.app`，开关打开后双击让系统把图交给了它（23:25:59 启动，pid 65320），并写了它的 `lastFolder`（该用户 `openLastFolder = 0`，启动时不读它，无实际影响）。我用 `NSRunningApplication.terminate()` 干净退出了这个实例（`hasNormalExit = 1`）。此后没有再在开启状态下双击。以后验证该开关先查 `LSCopyDefaultApplicationURLForURL`，默认应用是 Pixy 自己就别点。开启态因此只有间接证据：PixyDbg 没有进大图、系统把文件交给了默认应用。
+2. 本机有 `LocalDev.xcconfig` 时 Debug 构建带 `LOCAL_DEV`，侧栏根被指到作者测试目录，**看不到真实磁盘/OneDrive**；验证侧栏需加 `SWIFT_ACTIVE_COMPILATION_CONDITIONS=DEBUG`。0.0.4 的多语言验证是在那种状态下做的，只看标题不受影响。
+3. 公开仓库卫生检查会拦测试里的 `/Users/<名字>` 路径（已改）；本地先跑再提交。
+4. M1 推送后 `CI build` 被取消（排队 15 分钟后 runner 未分配，属配额问题，不是代码），最新一次推送会重新触发。
+
+#### 未做 / 未覆盖
+
+- #207（更小的缩略图档位）：档位是固定数组 `THUMB_SIZES`，上游要的是像素级/按文件夹的尺寸，需要设计，不是改常量；未做。
+- 「删除时不再询问」的真实删除路径没有在界面上走：需要 Finder 自动化权限（系统授权弹窗，不能代点）。条件逻辑由 `DeleteConfirmPolicyTests` 覆盖，实际移到废纸篓与关闭态行为不变。
+- 真 Intel 机、macOS 11–13 实机、干净用户环境首次启动仍未覆盖；zh-Hant、ar、pt 等的新设置文案只检查了编译产物与数据，没有逐一截图。
+- >5000 张目录里文件操作（粘贴/删除）本来就跳过刷新（`FileOperation.swift` 的 `ifRefresh`），没有回顶问题；手动刷新入口（`EventHandler.swift` 里直接调 `refreshAll`）没有接锚点，推测在大目录仍会回顶，未验证、未处理。
+- 版本仍是 0.0.4；是否发 `0.0.5` 待用户决定。
+
 ## 2026-11-17
 
 ### [Claude] · 修侧栏标题在非中英文界面下显示原始 key（`sidebar-*`）
