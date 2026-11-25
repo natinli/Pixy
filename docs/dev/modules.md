@@ -111,7 +111,7 @@
 | 文件 | 职责 / 关键接口 |
 |---|---|
 | LargeImage.swift（1052） | `openLargeImage`（双击入口，目录/替身/图片分派）、`changeLargeImage`（预载+异步可取消）、`preloadLargeImage`（前后 2~3 张） |
-| FileOperation.swift（1735） | handleCopy/Paste/Move/Delete/Rename（批量面板）、mergeFolder 冲突状态机、handleFilePromiseDrop（Finder 拖入）、操作后同步 EnhancedIndex |
+| FileOperation.swift（1767） | handleCopy/Paste/Move/Delete/Rename（批量面板）、`DeleteConfirmPolicy`（删除前是否弹确认的纯函数：设置「删除时不再询问」只免掉普通的移到废纸篓确认，Shift 永久删除、外置卷无废纸篓、无自动化权限三种情况照常询问）、mergeFolder 冲突状态机、handleFilePromiseDrop（Finder 拖入）、操作后同步 EnhancedIndex |
 | KeyShortcut.swift（996） | `KeyShortcutManager(event:)` 单函数全快捷键分发，含输入焦点判断；目录上下键通过可选行扫描跨越分组、分隔线及失效入口 |
 | EventHandler.swift（441） | 菜单动作实现层：历史导航、约 25 个 toggle、前往文件夹、操作日志 |
 | Search.swift | showSearchOverlay、performSearch（正则/拼音/全路径）、applyFilter（过滤条件由 treeTraversal 应用）、quickSearch 防抖：空输入时浮层提示「输入文件名 · Esc 退出」，前缀与包含两次匹配都失败时显示「无匹配」；`startQuickSearch` 为菜单入口，等同按 Q |
@@ -137,7 +137,7 @@
 ### 其他 Views
 | 文件 | 职责 / 关键接口 |
 |---|---|
-| CustomCollectionViewItem.swift（1590） | 缩略图单元格。`configureWithImage` **唯一渲染入口**（文件名/选中/标签/评级/角标/剪切变淡）；`playVideo/stopVideo` 内联播放；鼠标事件系列 |
+| CustomCollectionViewItem.swift（1616） | 缩略图单元格。`configureWithImage` **唯一渲染入口**（文件名/选中/标签/评级/角标/剪切变淡）；`playVideo/stopVideo` 内联播放；鼠标事件系列（`mouseDown` 的双击分支：设置「双击用默认应用打开」开启时，普通文件交给 `NSWorkspace.open`，文件夹和替身仍走 `openLargeImage`；⌘/⇧ 双击开新标签页的逻辑在它之前，不受影响） |
 | CustomCollectionView.swift（485） | 右键菜单（打开方式/新建/粘贴/标签过滤）、目录统计浮层、焦点协调 |
 | CustomCollectionViewManager.swift（126） | DataSource/Delegate；`sizeForItemAt` 是布局类读 thumbSize 的 delegate 通道 |
 | LargeImageView.swift（2875） | 大图查看器：缩放/平移/镜像、视频播放控制+AB 循环、EXIF 浮层、OCR/二维码、边缘箭头 |
@@ -158,7 +158,7 @@
 | 文件 | 内容 |
 |---|---|
 | GeneralSettingsViewController（279） | 启动行为、滚动灵敏度、过滤保持、拼音搜索 |
-| CustomSettingsViewController（309） | 缩略图排除目录（拖放表格） |
+| CustomSettingsViewController（323） | 设置面板「查看」页：大图/视频/搜索/保持状态/缩略图等勾选项与缩略图排除目录（拖放表格）；「文件操作」分组两个开关 `deleteWithoutConfirm`、`doubleClickOpenWithDefaultApp`（`globalVar` + UserDefaults 同名键，`AppDelegate` 启动时读取，默认关） |
 | TaggingSettingsViewController（431） | 自定义标签管理、增强索引 |
 | AdvancedSettingsViewController（183） | 内存上限、缩略图线程数、搜索深度（内/外置卷分开）、FFmpeg 开关 |
 | ActionsSettingsViewController（58） / DemoSettingsViewController（20） | 动作说明 / 占位页 |
