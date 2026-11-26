@@ -84,7 +84,22 @@ xcodebuild test \
 - 只能在 **Debug** 配置下跑：测试里 `@testable import PixyDbg`（Debug 产物与模块名是 `PixyDbg`，Release 是 `Pixy`，且 Release 没有 testability）。
 - 宿主测试会启动一个 Pixy 窗口，测试结束后自动退出；本机跑的时候会短暂看到它。
 - 本机有 `LocalDev.xcconfig` 时 Debug 带 `LOCAL_DEV`，对纯逻辑测试没有影响。
-- 新增测试文件要手动加进 `FlowVision.xcodeproj` 的 `PixyTests` 组和 Sources 阶段（工程没有使用自动同步的文件夹）。
+- 宿主测试首次在一个**新路径**下运行时（比如换了 `-derivedDataPath`），系统可能为这个新二进制弹出文件访问授权框；没人点的话测试宿主会卡住，表现为「The test runner hung before establishing connection」。点一次允许即可，或继续使用已授权过的 `.build/DerivedData-test`。
+
+## 新增源文件
+
+工程没有使用自动同步的文件夹，新增 `.swift` 文件必须登记进 `FlowVision.xcodeproj/project.pbxproj`（构建项、文件引用、所属组、Sources 阶段四处）。用脚本，不要手改：
+
+```bash
+scripts/pbxproj-add-file.py FlowVision/Sources/Common/Foo.swift --target app      # 应用代码
+scripts/pbxproj-add-file.py PixyTests/FooTests.swift --target tests               # 测试
+scripts/pbxproj-add-file.py <路径> --target app --dry-run                          # 只看会登记什么
+```
+
+- 路径相对仓库根；文件必须已经存在，且文件名大小写要与磁盘一致（macOS 默认不区分大小写，错写会把错误的名字登记进工程）。
+- 按文件所在目录沿组树逐级匹配 `path` 找到组，不依赖写死的组 ID；同一文件重复登记不会改动任何内容。
+- 写入前后各做一次括号/引号平衡和 `plutil -lint` 校验，先写临时文件再原子替换，失败不落盘。
+- 回归测试：`bash scripts/test-pbxproj-add-file.sh`（在 `/tmp` 的 pbxproj 副本上跑，会校验真实工程文件的哈希前后一致）。
 
 ## 公开发布：签名、公证和产物
 
