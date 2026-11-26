@@ -4,6 +4,30 @@
 
 ## 2026-11-26
 
+### [Claude] · 工程升级 T0：pbxproj 源文件登记脚本（Trellis 任务 11-26-pixy-engineering-upgrade · 子任务 0）
+
+- TL;DR：用户批准「工程升级」五个方向（无障碍标注、滚动位置回归兜底、手动检查更新、发版准备脚本、性能基线）后，先做共用前置：新增 `.swift` 文件要改 pbxproj 四处，本轮会新增约 6 个文件，所以先写登记脚本。提交 `97973e2`（脚本 + 回归测试）、`4a7bb54`（`build.md`）。
+
+#### 做了什么
+
+- `scripts/pbxproj-add-file.py <路径> --target app|tests [--project] [--root] [--dry-run]`：登记 `PBXBuildFile`、`PBXFileReference`、所属组 children、对应目标的 Sources 阶段；组按文件所在目录沿组树逐级匹配 `path`，不写死组 ID；ID 取路径 sha1，冲突顺延；幂等（含只登记了一半的状态补齐）；写前写后都校验（括号/引号平衡 + `plutil -lint`），先写临时文件再原子替换，失败不落盘。
+- `scripts/test-pbxproj-add-file.sh`：在 `/tmp` 的 pbxproj 副本上跑，77 项断言，并校验真实工程文件的哈希前后一致。
+- 实现与审查分别由 trellis-implement、trellis-check 子 agent 完成；审查发现并修了四处真实缺陷：绝对路径指向软链接源文件被误拒；pbxproj 本身是软链接时被替换成普通文件；macOS 大小写不敏感，写错大小写会把错误的名字登记进工程（现在要求与磁盘一致，NFC/NFD 视为相同）；只读目录抛出英文堆栈（改为中文报错）。
+
+#### 验证
+
+- 我自己复跑：`bash scripts/test-pbxproj-add-file.sh` 77 通过 / 0 失败，`bash -n` 与 Python 语法检查通过，真实 pbxproj 哈希不变。
+- 在 `/tmp` 的完整工程副本里登记一个探针源文件（app）和一个探针测试（tests），`xcodebuild test` **编译链接成功**：`__T0Probe.o` 出现在 `FlowVision.build`，`__T0ProbeTests.o` 出现在 `PixyTests.build`；重复登记逐字节不变。
+
+#### 事故 / 教训
+
+- 同一次验证里测试宿主卡住（「The test runner hung before establishing connection」）：新路径 `/tmp/...` 下的新二进制首次运行，系统弹出文件访问授权框，没人点所以卡死，辅助功能树列不出窗口。**与脚本无关**；老路径 `.build/DerivedData-test` 之前授权过所以平时能跑。已写进 `build.md`；脚本的真实工程验证改在子任务 1 第一次登记真实新文件并构建时完成。
+- 推送策略：Pixy 的 `ci-build.yml` 只对 `docs/**`、`*.md` 免跑，改 `scripts/` 会占一个 macOS runner；0.0.6 的 Release 正因 runner 容量不足在排队，所以 T0 的提交等发版结束才做，并取消了暂存区，免得被发版 agent 的 `git commit` 一起带走。
+
+#### 未覆盖
+
+- Xcode 图形界面打开被脚本改过的工程；区分大小写的 APFS 卷；以 root 身份运行；本机没有 ShellCheck，没跑。
+
 ### [Claude] · 发布 v0.0.6（未签名版）并在本机升级
 
 - TL;DR：用户批准「现在发 0.0.6，并帮我安装上」。把攒下的改动（侧栏去箭头、切换布局/过滤/刷新/收起侧栏/拖分隔条/目录新增文件时保持位置、`.gitignore` 忽略 `*.profraw`）发成 `v0.0.6`，同步 tap，本机用 brew 从 0.0.5 升到 0.0.6。全程按既定路线：未签名 + 个人 tap，release 非 pre-release。**升级后没有启动 Pixy，首次放行由用户自己做。**
