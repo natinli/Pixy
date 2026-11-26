@@ -46,6 +46,10 @@
 - 本地产物（上面的签名、架构、DMG 结构检查针对它；Release 页附件由 CI 重建，哈希不同，以 Release 的 `SHA256SUMS.txt` 为准）：
   - ZIP `1b5d4111391bf55f1f5c6d4a8dcf04cb35fcb5e62bd8fb3e96e8aeebb8e19ade`
   - DMG `304a93e699feaebe6d0c098780570913e67aedfce9e0a99942516cce51dbd4d6`
+- Release 页附件（CI 构建，已下载并 `shasum -a 256 -c SHA256SUMS.txt` 全部 OK；Latest、非 pre-release；解压后版本 0.0.6 / 2026112601、`lipo -archs` 为 x86_64 arm64、ad-hoc 签名、`codesign --verify --deep --strict` 通过、`spctl` rejected、DMG 含 `Pixy.app` 与 `/Applications` 软链接）：
+  - ZIP `c46731da58475d904ac597ea0d991517f595e57d465371c54cf7a4267715b721`
+  - DMG `3c46010f0bbcbffe4ac47121ee79ac898f14b5f619b87ded52f8c00b1d3c9e50`
+- 发布过程：tag 推送后前两次运行都撞上 macOS arm64 runner 容量不足（`The job was not acquired`，各排队 15 分钟），按 release.md 用 `gh run rerun --failed` 重跑 2 次，第 3 次成功；tag 未动。tap 提交 `d8a210a`；本机 `brew upgrade --cask pixy` 从 0.0.5 升到 0.0.6，`codesign --verify` 通过，升级前后偏好键全部保留；升级后未启动 Pixy，首次放行由用户执行。
 - 本版内容：侧栏不再显示展开箭头；切换布局 / 过滤文件 / 手动刷新、收起侧栏或拖分隔条改变列数、目录新增文件时保持浏览位置；`.gitignore` 忽略 `*.profraw`（详见 CHANGELOG）。
 - 界面验证范围：这批改动在 Debug 构建（`com.natinli.PixyDbg`）上验证过（过程见 session-log 当日条目）；发布包本身（bundle id 与本机正在使用的 Pixy 相同）**没有在界面上启动**，本次只做了产物层面的校验（哈希、架构、签名、DMG 结构、版本号）。
 - 未覆盖：RTL、真 Intel 机、干净用户环境首次启动

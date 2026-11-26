@@ -4,6 +4,33 @@
 
 ## 2026-11-26
 
+### [Claude] · 发布 v0.0.6（未签名版）并在本机升级
+
+- TL;DR：用户批准「现在发 0.0.6，并帮我安装上」。把攒下的改动（侧栏去箭头、切换布局/过滤/刷新/收起侧栏/拖分隔条/目录新增文件时保持位置、`.gitignore` 忽略 `*.profraw`）发成 `v0.0.6`，同步 tap，本机用 brew 从 0.0.5 升到 0.0.6。全程按既定路线：未签名 + 个人 tap，release 非 pre-release。**升级后没有启动 Pixy，首次放行由用户自己做。**
+
+#### 做了什么
+
+1. 起点：Pixy 工作区干净，`main` 与 `origin/main` 一致（`43ae640`），`git fetch origin` / `git fetch upstream` 正常。
+2. 版本号：pbxproj 里 Pixy target 的 `MARKETING_VERSION` 0.0.5→0.0.6、`CURRENT_PROJECT_VERSION` 2026112501→2026112601（Debug、Release 各一处，共 4 行；另两个 target 的 `1.0` / `1` 没动），大于上一版。CHANGELOG 把「未发布」改成 `2026-11-26 — 0.0.6` 并补「仍为未签名版本」一句，其余不动。
+3. 发布前检查：`check-public-hygiene.sh`、`check-localization.py`（427 个 key、17 种语言）通过；`scripts/release.sh --unsigned` 构建成功（约 3.5 分钟），`dist/` 产出 ZIP、DMG、`SHA256SUMS.txt`。
+4. 本地产物验收（解压到临时目录，未启动）：`shasum -c` 两项 OK；`lipo -archs` 为 `x86_64 arm64`；`codesign -dv` 为 `Signature=adhoc`、`TeamIdentifier=not set`；`codesign --verify --deep --strict` 通过；`spctl --assess` rejected（预期）；DMG 无 staple 票据；Info.plist 0.0.6 / 2026112601；`Contents/Frameworks` 含 8 个 FFmpeg 框架 + `libswift_Concurrency.dylib`；DMG 挂载后有 `Pixy.app` 与指向 `/Applications` 的软链接，已卸载。
+5. 提交 `9dca863`（`chore(release): 0.0.6`，含 pbxproj、CHANGELOG、checklist）推送 main；注解 tag `v0.0.6`（tag 对象 `ddcc203`，指向 `9dca863`）推送。
+6. Release 工作流（运行 45820946422）：第 1、2 次都在排队约 15 分钟后以 `The job was not acquired by Runner of type hosted` 失败，用 `gh run rerun --failed` **重跑 2 次**，第 3 次成功（作业约 2 分钟）。tag 没动，没有强推。
+7. Release 页核对：`v0.0.6`、非草稿、非 pre-release、Latest，附件 ZIP / DMG / `SHA256SUMS.txt`；下载后 `shasum -c` 全部 OK；解压 ZIP 版本 0.0.6 / 2026112601、双架构、ad-hoc、`codesign --verify --deep --strict` 通过、`spctl` rejected；CI 版 DMG 同样有 `Pixy.app` 与软链接。CI 重建的哈希与本地不同（预期），两组都记入 checklist。
+8. tap：`scripts/update-cask.sh 0.0.6` 提交推送，tap 提交 `d8a210a`；本机 tap 与远端 `Casks/pixy.rb` 都是 version 0.0.6、sha256 与 Release 的 ZIP 一致。
+9. 本机升级：先确认 `/Applications/Pixy.app` 没在运行，`brew update` 后 `brew upgrade --cask pixy`（0.0.5 → 0.0.6，成功）。升级后 Info.plist 0.0.6 / 2026112601，`brew list --cask --versions pixy` 为 `pixy 0.0.6`，`codesign --verify --deep --strict` 通过，双架构、ad-hoc；新 app 带 `com.apple.quarantine`（brew 加的，预期），**没有执行 `xattr`、没有启动**。升级前后用 `defaults export com.natinli.Pixy` 导出偏好，用 plistlib 比较：13 个键，无缺失、无新增、无变化。临时导出文件已删。
+10. 提交 checklist 补记（CI 哈希、发布过程）一次。
+
+#### 遇到的问题与未完成项
+
+- runner 容量：Release 重跑 2 次（共 3 次尝试），耗时约 45 分钟，全是排队。
+- main 上 `chore(release): 0.0.6` 提交触发的「CI build」同样撞上 `The job was not acquired`，15 分钟后失败，**我没有重跑**（同一份源码已由 Release 工作流在同一提交上成功构建，也在本地构建过），所以这个提交在 GitHub 上显示一个红叉，属基础设施原因；需要的话 `gh run rerun 45820926985 --failed -R natinli/Pixy`。
+- 本次没有跑 `xcodebuild test`（最后一次代码改动提交时已跑过 21 例通过，本次只改版本号与文档）。
+- 发布包本身没有在界面上启动过（bundle id 与用户正在用的 Pixy 相同，会共用偏好）；这批改动的界面验证只在 Debug 构建 `com.natinli.PixyDbg` 上做过（见下面几条）。未覆盖：RTL、真 Intel 机、干净用户环境首次启动。
+- 用户待办：首次启动要放行一次（系统设置 → 隐私与安全性 → 仍要打开；或按安装说明）。
+- 收尾提交时工作区出现了不是本次改的未提交内容（`docs/dev/build.md` 的修改、新的 `scripts/pbxproj-add-file.py` 与 `scripts/test-pbxproj-add-file.sh`），应是别的会话在并行做事；这些都出现在发布构建和 `9dca863` 之后，没有进入发布产物，我只提交了自己的两个文件，没有碰它们。
+- `release.sh` 构建时 Xcode 会把构建目录里的 `Pixy.app` 登记进 Launch Services（`lsregister`），是 Xcode 构建的默认行为，这次没做处理。
+
 ### [Claude] · 去掉侧栏展开箭头（用户反馈：太丑）
 
 - TL;DR：用户发来侧栏截图，框出每一行最左边的小箭头，说「太丑了」。这个箭头是系统 `NSOutlineView` 的展开三角，但显示时机和位置是我们自己写的（`CustomOutlineView.frameOfOutlineCell`）：鼠标一进侧栏，所有行同时显示，且贴窗口左边缘 2pt。用户最终选「箭头完全去掉」。提交已推送 main，**未发版**。
