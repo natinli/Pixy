@@ -32,7 +32,7 @@ full-image view.
 
 **Navigation**
 
-- **Finder-style sidebar** — Desktop, Documents, Downloads, home, iCloud Drive, mounted volumes, OneDrive, and Finder tags, with disclosure, drag-and-drop, and per-window selection state
+- **Finder-style sidebar** — Desktop, Documents, Downloads, home, iCloud Drive, mounted volumes, OneDrive, and Finder tags, double-click to expand folders, drag-and-drop, and per-window selection state
 - **Right-click gestures** — drag right/left for the next/previous folder containing images, up for the parent, down to go back; an on-screen overlay shows the gesture as you drag
 - **Multi-tab windows** — ⌘T to open, ⌘⇧T to restore, ⌘-click to open in the background
 - **Breadcrumb path bar** — click any segment to jump; drop files onto a segment to move them

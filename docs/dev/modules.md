@@ -142,7 +142,7 @@
 | CustomCollectionViewManager.swift（126） | DataSource/Delegate；`sizeForItemAt` 是布局类读 thumbSize 的 delegate 通道 |
 | LargeImageView.swift（2875） | 大图查看器：缩放/平移/镜像、视频播放控制+AB 循环、EXIF 浮层、OCR/二维码、边缘箭头 |
 | VideoPlayerControlsView.swift（848） | 自绘控制条：进度 SliderSubclass、音量、AB 标记、自动隐藏 |
-| CustomOutlineView / Manager | 分组目录树的数据源、plain table style、28pt 正文行与动态灰色选中绘制、leading/trailing 布局；角色检查隔离标题、分隔线和标签的文件操作，标签圆点仅在侧栏使用系统语义色，「所有标签」绘制双环；固定 Finder 入口复用 macOS CoreTypes 图标资源，OneDrive 使用 Finder 同形模板字形，卷行按 Finder 位置显示推出按钮；目录继续支持右键与拖放；标题自行绘制间距，移除分组额外缩进，列宽固定为 viewport，箭头在 hover／已展开时显示 |
+| CustomOutlineView / Manager | 分组目录树的数据源、plain table style、28pt 正文行与动态灰色选中绘制、leading/trailing 布局；角色检查隔离标题、分隔线和标签的文件操作，标签圆点仅在侧栏使用系统语义色，「所有标签」绘制双环；固定 Finder 入口复用 macOS CoreTypes 图标资源，OneDrive 使用 Finder 同形模板字形，卷行按 Finder 位置显示推出按钮；目录继续支持右键与拖放；标题自行绘制间距，移除分组额外缩进，列宽固定为 viewport，不绘制展开箭头（`frameOfOutlineCell` 恒为 `.zero`），展开 / 收起靠双击行（`outlineViewDoubleClicked`）或键盘 ←/→/空格/回车 |
 | CustomImageView.swift（215） | Interpolated/Integer/Bordered/Thumb/Large 各 ImageView 变体 |
 | FileInfoWindow.swift（621） | 文件信息窗口（可折叠 sections、纯文本导出） |
 | ImageEditingView.swift（982） | 标注编辑画布（EDIT_FEATURE_ENABLED 门控，默认关闭） |
