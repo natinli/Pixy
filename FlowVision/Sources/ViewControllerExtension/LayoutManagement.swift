@@ -55,14 +55,18 @@ extension ViewController {
             publicVar.scrollAnchor = pending
             return
         }
-        publicVar.scrollAnchor = nil
+        publicVar.scrollAnchor = makeScrollAnchor(curFolder: curFolder)
+    }
 
+    /// 按当前可视区构造锚点（不读写 publicVar.scrollAnchor）：可视区内有选中项取第一个，否则取顶部第一个至少露出一半的项。
+    /// Build an anchor from the current viewport without touching publicVar.scrollAnchor.
+    func makeScrollAnchor(curFolder: String) -> ScrollAnchor? {
         guard curFolder != "",
-              let layout = collectionView.collectionViewLayout else { return }
+              let layout = collectionView.collectionViewLayout else { return nil }
         let itemCount = collectionView.numberOfItems(inSection: 0)
-        guard itemCount > 0 else { return }
+        guard itemCount > 0 else { return nil }
         let visibleRect = visibleContentRectForAnchor()
-        guard visibleRect.height > 0 else { return }
+        guard visibleRect.height > 0 else { return nil }
 
         func itemFrame(_ indexPath: IndexPath) -> NSRect? {
             guard indexPath.section == 0, indexPath.item < itemCount,
@@ -132,8 +136,8 @@ extension ViewController {
         let selectedFiles = selection.compactMap { files?.elementSafe(atOffset: $0.item)?.1 }
         fileDB.unlock()
 
-        guard anchorFile != nil || !selectedFiles.isEmpty else { return }
-        publicVar.scrollAnchor = ScrollAnchor(
+        guard anchorFile != nil || !selectedFiles.isEmpty else { return nil }
+        return ScrollAnchor(
             folder: curFolder,
             file: anchorFile,
             path: anchorFile?.path ?? "",
@@ -141,6 +145,48 @@ extension ViewController {
             viewportHeight: visibleRect.height,
             selectedFiles: selectedFiles,
             dirVer: nil)
+    }
+
+    /// 把视口滚到「锚点项在新布局里的 frame」，并保持它在屏幕上的相对高度（可视区高度变了就按比例）。
+    /// Scroll so the anchor item, now at anchorFrame in the new layout, keeps its relative height on screen (scaled if the viewport height changed).
+    private func applyAnchorScroll(_ anchor: ScrollAnchor, anchorFrame: NSRect) {
+        let clipView = mainScrollView.contentView
+        let insets = clipView.contentInsets
+        let visibleRect = visibleContentRectForAnchor()
+        var offset = anchor.offsetInViewport
+        if anchor.viewportHeight > 0, visibleRect.height > 0, abs(anchor.viewportHeight - visibleRect.height) > 0.5 {
+            offset = offset * visibleRect.height / anchor.viewportHeight
+        }
+        offset = min(max(0, offset), max(0, visibleRect.height - anchorFrame.height))
+        let maxTop = max(0, collectionView.frame.height - visibleRect.height)
+        let targetTop = min(max(0, anchorFrame.minY - offset), maxTop)
+        clipView.scroll(to: NSPoint(x: clipView.bounds.minX, y: targetTop - insets.top))
+        mainScrollView.reflectScrolledClipView(clipView)
+        // 目录刷新时网格先被清空、clip 被压回 0；若恢复的位置恰好等于缩放前的位置，NSCollectionView 察觉不到变化，
+        // 可见 item 仍停在顶部那一批，屏幕一片空白。让布局失效一次，强制按当前可视区重新铺 item。
+        // The refresh clamps the clip to 0; if we land exactly on the pre-zoom origin, NSCollectionView keeps the
+        // items tiled for the top and the screen stays blank. Invalidate once so it retiles for the current visible rect.
+        collectionView.collectionViewLayout?.invalidateLayout()
+    }
+
+    /// 窗口 / 侧栏宽度变化导致重新布局后，同步把视口放回锚点（不涉及目录重载，也不改选中）。
+    /// After a width change relayout (window resize, sidebar toggle), put the viewport back on the anchor synchronously; no directory reload, selection untouched.
+    func restoreScrollAnchorAfterResize(_ anchor: ScrollAnchor) {
+        guard let file = anchor.file else { return }
+        fileDB.lock()
+        let curFolder = fileDB.curFolder
+        let files = fileDB.db[SortKeyDir(anchor.folder)]?.files
+        var index: Int?
+        if let element = files?.elementSafe(atOffset: file.id), element.1 === file { index = file.id }
+        fileDB.unlock()
+        guard curFolder == anchor.folder, let index, index < collectionView.numberOfItems(inSection: 0) else { return }
+        collectionView.layoutSubtreeIfNeeded()
+        guard let frame = collectionView.collectionViewLayout?.layoutAttributesForItem(at: IndexPath(item: index, section: 0))?.frame,
+              frame.height > 0 else { return }
+        applyAnchorScroll(anchor, anchorFrame: frame)
+        // 与缩放一致：记下恢复到的锚点文件，下一次宽度变化仍可见时继续锚定它，否则每次重选行首会让反复收起/展开侧栏逐行漂移
+        // Same as zoom: remember the restored file so repeated sidebar toggles keep anchoring it instead of drifting a row at a time
+        publicVar.lastZoomAnchorFile = file
     }
 
     /// 文件监听触发刷新前调用：>5000 文件的目录会清空重插而回到顶部，先记下浏览位置；
@@ -223,23 +269,7 @@ extension ViewController {
         publicVar.lastZoomAnchorFile = anchorFrame != nil ? anchor.file : nil
 
         if let anchorFrame {
-            let clipView = mainScrollView.contentView
-            let insets = clipView.contentInsets
-            let visibleRect = visibleContentRectForAnchor()
-            var offset = anchor.offsetInViewport
-            if anchor.viewportHeight > 0, visibleRect.height > 0, abs(anchor.viewportHeight - visibleRect.height) > 0.5 {
-                offset = offset * visibleRect.height / anchor.viewportHeight
-            }
-            offset = min(max(0, offset), max(0, visibleRect.height - anchorFrame.height))
-            let maxTop = max(0, collectionView.frame.height - visibleRect.height)
-            let targetTop = min(max(0, anchorFrame.minY - offset), maxTop)
-            clipView.scroll(to: NSPoint(x: clipView.bounds.minX, y: targetTop - insets.top))
-            mainScrollView.reflectScrolledClipView(clipView)
-            // 目录刷新时网格先被清空、clip 被压回 0；若恢复的位置恰好等于缩放前的位置，NSCollectionView 察觉不到变化，
-            // 可见 item 仍停在顶部那一批，屏幕一片空白。让布局失效一次，强制按当前可视区重新铺 item。
-            // The refresh clamps the clip to 0; if we land exactly on the pre-zoom origin, NSCollectionView keeps the
-            // items tiled for the top and the screen stays blank. Invalidate once so it retiles for the current visible rect.
-            collectionView.collectionViewLayout?.invalidateLayout()
+            applyAnchorScroll(anchor, anchorFrame: anchorFrame)
         }
 
         let selection = Set(selectedIndexes.filter { $0 < itemCount }.map { IndexPath(item: $0, section: 0) })

@@ -239,6 +239,9 @@ class PublicVar{
     // 缩放缩略图前记下的浏览位置，目录重新布局后恢复一次（见 LayoutManagement.swift）
     // Browsing position captured before a thumbnail zoom, restored once after relayout (see LayoutManagement.swift)
     var scrollAnchor: ScrollAnchor? = nil
+    // 窗口 / 侧栏宽度变化的一次「缩放突发」开头记下的浏览位置，重新布局完成后恢复（见 splitViewSizeChanged）
+    // Browsing position captured at the start of a width-change burst (window resize, sidebar toggle), restored after relayout (see splitViewSizeChanged)
+    var resizeScrollAnchor: ScrollAnchor? = nil
     // 上一次缩放恢复到的锚点文件；它仍在可视区内时下一次缩放继续锚定它，避免每次重选「顶部行首」导致位置逐次漂移
     // File the last zoom restored to; reused while still visible so repeated zooms do not drift row by row
     weak var lastZoomAnchorFile: FileModel? = nil
@@ -1115,7 +1118,13 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         
         fileDB.lock()
         let fileCount=fileDB.db[SortKeyDir(fileDB.curFolder)]?.files.count
+        let resizeFolder = fileDB.curFolder
         fileDB.unlock()
+        // 一次宽度变化可能连续触发多次：只在第一次（布局缓存还没被改动）记锚点，重新布局后恢复
+        // A width change can fire several times: capture only on the first one, while the layout cache is still intact
+        if publicVar.resizeScrollAnchor == nil {
+            publicVar.resizeScrollAnchor = makeScrollAnchor(curFolder: resizeFolder)
+        }
         // 注：此处最好使用定时器，因为程序首次启动时会调用6次！
         // Note: Better to use timer here, as it will be called 6 times on first launch!
         if fileCount ?? 0 > -1 && !hasManualToggleSidebar && notification.name != .AVAssetDurationDidChange {
@@ -1147,9 +1156,12 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         // 检查宽度是否发生变化
         // Check if width has changed
         if currentWidth == previousSplitViewWidth {
+            publicVar.resizeScrollAnchor = nil
             return
         }
         previousSplitViewWidth = currentWidth
+        let resizeAnchor = publicVar.resizeScrollAnchor
+        publicVar.resizeScrollAnchor = nil
         
         // _temp_count_sizeChanged+=1
         // print("计算布局"+String(_temp_count_sizeChanged))
@@ -1175,6 +1187,9 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
         // collectionView.collectionViewLayout=LeftAlignedCollectionViewFlowLayout()
         collectionView.collectionViewLayout?.invalidateLayout()
         view.window?.layoutIfNeeded()
+        // 列数 / 单元大小变了，同一个像素位置对应的已是别的内容：把视口放回原来看的那张
+        // Columns / cell sizes changed, so the same pixel offset now shows other content: put the viewport back on the item that was being viewed
+        if let resizeAnchor { restoreScrollAnchorAfterResize(resizeAnchor) }
         // collectionView.collectionViewLayout=LeftAlignedCollectionViewFlowLayout()
         
         // 以下是处理左侧目录树，防止在宽度为0时切换目录，再拉宽时，某些条目显示...
