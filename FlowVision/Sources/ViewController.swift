@@ -2325,9 +2325,11 @@ class ViewController: NSViewController, NSSplitViewDelegate, NSSearchFieldDelega
             folderMonitorTimer?.invalidate()
             folderMonitorTimer = Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { [weak self] _ in
                 self?.dirURLCache.removeAll()
-                // 大目录刷新会清空重插、视图回到顶部：先记下浏览位置，加载完成后恢复
-                // A large folder is cleared and re-inserted on refresh (view jumps to the top): remember the position, restore after loading
-                self?.captureScrollAnchorForRefresh()
+                // 先记下浏览位置，加载完成后恢复：大目录刷新会清空重插而回到顶部；小目录 reloadData 只保留像素偏移，
+                // 新文件插在可视区上方（按日期排序时常见）会把内容整体挤下去，所以不分大小都锚定
+                // Remember the position and restore it after loading: a large folder is cleared and re-inserted (jumps to the top); a small one keeps only the pixel offset,
+                // so files inserted above the viewport (common with date sorting) would push the content down. Hence anchor regardless of size
+                self?.captureScrollAnchor()
                 self?.refreshAll(needStopAutoScroll: false, needLoadThumbPriority: true)
             }
         }
