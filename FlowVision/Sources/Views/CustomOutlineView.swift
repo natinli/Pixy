@@ -8,20 +8,6 @@ import Cocoa
 
 class CustomOutlineView: NSOutlineView, NSMenuDelegate {
     
-    private var sidebarTrackingArea: NSTrackingArea?
-    private var sidebarIsHovered = false
-
-    override func updateTrackingAreas() {
-        super.updateTrackingAreas()
-        if let area = sidebarTrackingArea { removeTrackingArea(area) }
-        let area = NSTrackingArea(rect: .zero, options: [.mouseEnteredAndExited, .activeInKeyWindow, .inVisibleRect], owner: self)
-        addTrackingArea(area)
-        sidebarTrackingArea = area
-    }
-
-    override func mouseEntered(with event: NSEvent) { sidebarIsHovered = true; needsDisplay = true }
-    override func mouseExited(with event: NSEvent) { sidebarIsHovered = false; needsDisplay = true }
-
     var curRightClickedPath = ""
     var curRightClickedIndex = -1
     
@@ -38,14 +24,12 @@ class CustomOutlineView: NSOutlineView, NSMenuDelegate {
         return frame
     }
 
+    // 不显示展开箭头：它紧贴窗口左边缘，鼠标一进侧栏就整列出现，观感杂乱。
+    // 展开 / 收起改由双击行（outlineViewDoubleClicked）或键盘 ←/→/空格/回车触发，两者都不依赖箭头。
+    // No disclosure arrow: it hugged the window edge and appeared for every row as soon as the pointer entered the sidebar.
+    // Expanding/collapsing is done by double-clicking a row or with ←/→/Space/Return, neither of which needs the arrow.
     override func frameOfOutlineCell(atRow row: Int) -> NSRect {
-        guard let node = item(atRow: row) as? TreeNode, node.role != .group else { return .zero }
-        guard sidebarIsHovered || isItemExpanded(node) else { return .zero }
-        var frame = super.frameOfOutlineCell(atRow: row)
-        guard !frame.isEmpty else { return frame }
-        let inset = 2 + CGFloat(max(0, level(forRow: row) - 1)) * indentationPerLevel
-        frame.origin.x = userInterfaceLayoutDirection == .rightToLeft ? bounds.width - inset - frame.width : inset
-        return frame
+        .zero
     }
 
     // 可选行由节点角色与可用性决定，键盘跨组跳过标题、分隔线及失效入口。
