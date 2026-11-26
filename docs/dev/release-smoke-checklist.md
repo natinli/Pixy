@@ -38,6 +38,19 @@
 
 ## 记录
 
+### 0.0.6（未签名版）
+
+- Release tag：`v0.0.6`；build `2026112601`（当日第一版，build 号规则见 release.md，大于 0.0.5 的 `2026112501`）
+- macOS / Xcode：macOS 15.7.9 / Xcode 26.3（17C529）
+- 架构：arm64 + x86_64（`lipo -archs` 同时列出两者）；签名 ad-hoc、`TeamIdentifier=not set`，`codesign --verify --deep --strict` 通过；`spctl --assess` 为 rejected、DMG 无 staple 票据（预期）；DMG 含 `Pixy.app` 与指向 `/Applications` 的软链接；`Contents/Frameworks` 含 8 个 FFmpeg 框架与 `libswift_Concurrency.dylib`；解压后 Info.plist 版本为 0.0.6 / 2026112601
+- 本地产物（上面的签名、架构、DMG 结构检查针对它；Release 页附件由 CI 重建，哈希不同，以 Release 的 `SHA256SUMS.txt` 为准）：
+  - ZIP `1b5d4111391bf55f1f5c6d4a8dcf04cb35fcb5e62bd8fb3e96e8aeebb8e19ade`
+  - DMG `304a93e699feaebe6d0c098780570913e67aedfce9e0a99942516cce51dbd4d6`
+- 本版内容：侧栏不再显示展开箭头；切换布局 / 过滤文件 / 手动刷新、收起侧栏或拖分隔条改变列数、目录新增文件时保持浏览位置；`.gitignore` 忽略 `*.profraw`（详见 CHANGELOG）。
+- 界面验证范围：这批改动在 Debug 构建（`com.natinli.PixyDbg`）上验证过（过程见 session-log 当日条目）；发布包本身（bundle id 与本机正在使用的 Pixy 相同）**没有在界面上启动**，本次只做了产物层面的校验（哈希、架构、签名、DMG 结构、版本号）。
+- 未覆盖：RTL、真 Intel 机、干净用户环境首次启动
+- 日期：2026-11-26
+
 ### 0.0.5（未签名版）
 
 - Release tag：`v0.0.5`；build `2026112501`（当日第一版，build 号规则见 release.md）
