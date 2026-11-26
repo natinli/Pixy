@@ -90,6 +90,10 @@ extension ViewController {
         coreAreaView.showInfo(String(format: NSLocalizedString("switch-to-custom-profile", comment: "切换至自定义配置"), styleName), timeOut: 1, cannotBeCleard: true)
         let newStyle = CustomProfile.loadFromUserDefaults(withKey: "CustomStyle_v2_"+styleName)
 
+        // 布局、尺寸、排序可能同时变化，只在最开始记一次锚点（后面各步的 doNotRefresh 调用不再重复捕获，末尾统一刷新一次）
+        // Layout, size and sort may all change at once: capture the anchor once up front; the steps below skip refresh and one refresh runs at the end
+        captureScrollAnchor()
+
         // 缩略图大小：须先于排序与边栏切换，changeThumbSize 要按当前排序和可视区捕获缩放锚点（changeSortType 会立即重排 fileDB）
         // Thumbnail size: must run before sort and sidebar changes, since changeThumbSize captures the zoom anchor from the current order and viewport (changeSortType re-sorts fileDB immediately)
         if newStyle.thumbSize != publicVar.profile.thumbSize {

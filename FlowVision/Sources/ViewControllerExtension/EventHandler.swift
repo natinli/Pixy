@@ -162,9 +162,10 @@ extension ViewController {
             showText = NSLocalizedString("Show Hidden Files", comment: "显示隐藏文件")
         }
         coreAreaView.showInfo(showText, timeOut: 1.0, cannotBeCleard: true)
+        captureScrollAnchor()
         refreshAll(needLoadThumbPriority: true)
     }
-    
+
     func toggleIsShowAllTypeFile(){
         publicVar.isShowAllTypeFile.toggle()
         UserDefaults.standard.set(publicVar.isShowAllTypeFile, forKey: "isShowAllTypeFile")
@@ -174,27 +175,31 @@ extension ViewController {
             showText = NSLocalizedString("Show All Types of Files", comment: "显示所有类型文件")
         }
         coreAreaView.showInfo(showText, timeOut: 1.0, cannotBeCleard: true)
+        captureScrollAnchor()
         refreshAll(needLoadThumbPriority: true)
     }
-    
+
     func toggleIsShowImageFile(){
         publicVar.isShowImageFile.toggle()
         UserDefaults.standard.set(publicVar.isShowImageFile, forKey: "isShowImageFile")
         publicVar.setFileExtensions()
+        captureScrollAnchor()
         refreshCollectionView(needLoadThumbPriority: true)
     }
-    
+
     func toggleIsShowRawFile(){
         publicVar.isShowRawFile.toggle()
         UserDefaults.standard.set(publicVar.isShowRawFile, forKey: "isShowRawFile")
         publicVar.setFileExtensions()
+        captureScrollAnchor()
         refreshCollectionView(needLoadThumbPriority: true)
     }
-    
+
     func toggleIsShowVideoFile(){
         publicVar.isShowVideoFile.toggle()
         UserDefaults.standard.set(publicVar.isShowVideoFile, forKey: "isShowVideoFile")
         publicVar.setFileExtensions()
+        captureScrollAnchor()
         refreshCollectionView(needLoadThumbPriority: true)
     }
 
@@ -289,6 +294,9 @@ extension ViewController {
             LargeImageProcessor.clearCache()
             ThumbImageProcessor.clearCache()
             dirURLCache.removeAll()
+            // 大目录刷新会清空重插、视图回到顶部：先记下浏览位置（与目录监听触发的刷新一致）
+            // A large folder is cleared and re-inserted on refresh (view jumps to the top): remember the position, same as the watcher-triggered refresh
+            captureScrollAnchorForRefresh()
             refreshAll([.all], needLoadThumbPriority: true)
         }
     }

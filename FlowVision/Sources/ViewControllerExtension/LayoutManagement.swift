@@ -356,6 +356,7 @@ extension ViewController {
     func switchToJustifiedView(doNotRefresh: Bool = false){
 //        let defaults = UserDefaults.standard
 //        defaults.setEnum(LayoutType.justified, forKey: "layoutType")
+        if !doNotRefresh { captureScrollAnchor() }
         publicVar.profile.layoutType = .justified
         publicVar.profile.saveToUserDefaults(withKey: "CustomStyle_v2_current")
         publicVar.updateToolbar()
@@ -368,6 +369,7 @@ extension ViewController {
     func switchToGridView(doNotRefresh: Bool = false){
 //        let defaults = UserDefaults.standard
 //        defaults.setEnum(LayoutType.grid, forKey: "layoutType")
+        if !doNotRefresh { captureScrollAnchor() }
         publicVar.profile.layoutType = .grid
         publicVar.profile.saveToUserDefaults(withKey: "CustomStyle_v2_current")
         publicVar.updateToolbar()
@@ -380,6 +382,7 @@ extension ViewController {
     func switchToWaterfallView(doNotRefresh: Bool = false){
 //        let defaults = UserDefaults.standard
 //        defaults.setEnum(LayoutType.waterfall, forKey: "layoutType")
+        if !doNotRefresh { captureScrollAnchor() }
         publicVar.profile.layoutType = .waterfall
         publicVar.profile.saveToUserDefaults(withKey: "CustomStyle_v2_current")
         publicVar.updateToolbar()
