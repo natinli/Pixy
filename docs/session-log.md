@@ -2,6 +2,45 @@
 
 本日志由 Codex、Claude 或人工共同维护。每个会话条目标题必须标注执行者：`[Codex]`、`[Claude]` 或 `[人工]`。**条目按时间倒序排列：最新条目在最顶部。** 项目级日志记录完整细节；外层 nilo 仓库 `docs/session-log.md` 只记简要条目并指向这里。
 
+## 2026-11-27
+
+### [Claude] · 工程升级 子任务 1：无障碍标注（Trellis 任务 11-26-pixy-engineering-upgrade · pixy-up-a11y）
+
+- TL;DR：缩略图（文件/文件夹）、侧栏条目、大图现在向辅助功能暴露「名称, 类型」。此前全工程没有任何辅助功能标注，缩略图在树里只是无名的图像，按文件名查 0 个命中。提交 `6612061`（代码 + 16 个新单测，共 37 个全过）、`a55b695`（文档）。**未发版**。
+
+#### 做了什么
+
+- 新增 `Common/AccessibilityLabels.swift`（纯函数）与 `PixyTests/AccessibilityLabelsTests.swift`，用 T0 的 `pbxproj-add-file.py` 登记，**这是 T0 在真实工程上的第一次实战，构建和测试一次通过**。类型词复用已有 key（Folder / Image / Video / Other / Tag），不新增文案。
+- 接入：`CustomCollectionViewItem`（缩略图，标签取自路径而不是文件名文本框，所以关闭「显示缩略图文件名」也读得到）、`CustomOutlineViewManager`（分组标题、数据行）、`LargeImageView`（`file` 的 `didSet` 更新标签）。
+- 实现由 trellis-implement 子 agent 完成，审查由 trellis-check 子 agent 完成。
+
+#### 界面验证（PixyDbg，辅助功能树）
+
+- 缩略图：7 张图片按名字逐个命中（`a#b`、`a%20b`、`emoji😀`、中文、空格、150 字符超长名、`IMG_0001`），2 个文件夹、1 个视频、`notes.txt` / `app.log`（其它）都找到，类型词数量全对。
+- 侧栏：每行只剩一个带名字的 AXCell；大图：覆盖整屏的无名 AXImage 消失，工具栏控件仍在。元素总数 146 → 81。
+
+#### 实现 agent 的几处做法其实无效，验证时才暴露（教训）
+
+1. **`NSImageView.setAccessibilityElement(false)` 在这个应用里无效**：无名 AXImage 一直在树里。检查 agent 查到根因：`NSImageView.isAccessibilityElement()` 默认就是 false，暴露出来的是它的 cell（`NSImageCell`），改视图的开关没用。改用父视图 `setAccessibilityChildren([])`。**构建通过、单测通过都说明不了这一点，只有看辅助功能树才知道。**
+2. 大图重写 `accessibilityChildren()` 时不能过滤 `super` 的结果（已展开成 cell，`!== imageView` 匹配不到），要从 `subviews` 自己筛，再用 `NSAccessibility.unignoredChildren` 展开（检查 agent 补的）。
+3. 缩略图角色一开始是 `.group`，但验证工具的元素树里没有 AXGroup 这个角色，「按文件名在树里找到缩略图」这个目标永远验证不了，改成 `.cell`。
+4. **「所有标签…」判断做了两次才对**：先按 `entryID == "tags"`，结果 7 个颜色标签也丢了「标签」后缀（它们也是从根节点展开的，同样带 `tags`），**单测全过但行为回退，是界面验证抓到的**；再试 `fileURL`，对标签节点恒为 `nil`，永远不命中；最后用 `fullPath == "file:///VirtualFinderTagsFolder/"`。教训：单测里对 `entryID` 的假设是我自己写的，测的是假设不是真实数据。
+
+#### 取舍与未验证
+
+- 推出图标不再单独暴露：显式列为子元素或保持默认都实测出不来，而且它没有「按下」动作，所在行的名称已读得到。
+- 大图容器（role group）的标签是否生效，工具看不到 AXGroup，没法直接确认；只确认了无名子元素被剔除。同一接口在缩略图上已验证有效。
+- **交互零变化只是推断**：验证工具对带名字的格子改走「设置选中」，没法用它复测双击/键盘；diff 只含辅助功能 setter/override，没碰绘制、布局、事件、选中。
+- 另：测试宿主在新路径下会卡授权弹窗，测试前把 `lastFolder` 指向 `/tmp` 下的空目录可绕开（`build.md` 已记）。
+
+#### 发现的遗留问题（均不在本任务范围）
+
+1. **推出按钮的个人硬编码**（`CustomOutlineViewManager.swift` 的 `shouldShowEject`）：只对名字恰好是 `Minimalist` 的卷显示，是作者自己磁盘名，上一轮清理个人配置时漏了；别人的磁盘永远没有推出按钮。
+2. 进入大图后，被盖住的缩略图仍在辅助功能树里，现在又都有了名字，VoiceOver 能摸到盖在下面的内容。
+3. EXIF/信息浮层（`ExifTextView`）用 `NSString.draw` 自绘文字，从来不在辅助功能树里，VoiceOver 读不到 EXIF。
+4. 德文里 `Tag` key 是「Etikett」，而侧栏分组用的 `sidebar-tags` 是「Tags」，用词不一致。
+5. 别名文件读作「其它」；缩略图上的标签圆点与评级随子元素一起不再被读出；`modules.md` 里「根级 3 文件 / Views 19 文件」是旧数。
+
 ## 2026-11-26
 
 ### [Claude] · 工程升级 T0：pbxproj 源文件登记脚本（Trellis 任务 11-26-pixy-engineering-upgrade · 子任务 0）
