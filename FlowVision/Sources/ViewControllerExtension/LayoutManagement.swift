@@ -76,59 +76,29 @@ extension ViewController {
         }
 
         let selection = collectionView.selectionIndexPaths.sorted()
-        var anchorIndex: Int?
-        var anchorFrame = NSRect.zero
 
-        // 原本就在顶部：不锚定视口，缩放后仍从顶部开始。
-        // Already at the top: no viewport anchor, the view stays at the top after zooming.
-        let isAtTop = visibleRect.minY <= 0.5
-        if !isAtTop {
-            for indexPath in selection {
-                if let frame = itemFrame(indexPath), frame.intersects(visibleRect) {
-                    anchorIndex = indexPath.item
-                    anchorFrame = frame
-                    break
-                }
-            }
-            if anchorIndex == nil, let lastFile = publicVar.lastZoomAnchorFile {
-                // 上一次缩放的锚点仍在可视区内：继续用它。若每次都重选顶部行首，重排后行首会落到原锚点之前，连续缩放就会一行行往前漂。
-                // The previous zoom's anchor is still on screen: keep it, otherwise re-picking the row start drifts backwards on every zoom.
-                fileDB.lock()
-                let lastIndex: Int? = fileDB.db[SortKeyDir(curFolder)]?.files.elementSafe(atOffset: lastFile.id)?.1 === lastFile ? lastFile.id : nil
-                fileDB.unlock()
-                if let lastIndex, let frame = itemFrame(IndexPath(item: lastIndex, section: 0)),
-                   frame.intersects(visibleRect) {
-                    anchorIndex = lastIndex
-                    anchorFrame = frame
-                }
-            }
-            if anchorIndex == nil {
-                // 优先露出至少一半的项，避免锚到几乎被顶边裁掉的那一行。
-                // Prefer items at least half visible so a row mostly scrolled off the top is not chosen.
-                var best: (frame: NSRect, item: Int)?
-                var fallback: (frame: NSRect, item: Int)?
-                for attributes in layout.layoutAttributesForElements(in: visibleRect) {
-                    guard let indexPath = attributes.indexPath,
-                          let frame = itemFrame(indexPath),
-                          frame.intersects(visibleRect) else { continue }
-                    let candidate = (frame: frame, item: indexPath.item)
-                    func isBetter(_ current: (frame: NSRect, item: Int)?) -> Bool {
-                        guard let current else { return true }
-                        if frame.minY != current.frame.minY { return frame.minY < current.frame.minY }
-                        return indexPath.item < current.item
-                    }
-                    if frame.midY >= visibleRect.minY {
-                        if isBetter(best) { best = candidate }
-                    } else if isBetter(fallback) {
-                        fallback = candidate
-                    }
-                }
-                if let chosen = best ?? fallback {
-                    anchorIndex = chosen.item
-                    anchorFrame = chosen.frame
-                }
-            }
+        // 上一次缩放的锚点（身份校验仍在这里做，因为依赖 fileDB）；选「谁」的决策全在 ScrollAnchorMath.pickAnchor。
+        // The previous zoom's anchor (identity-checked here since it needs fileDB); the decision itself lives in ScrollAnchorMath.pickAnchor.
+        var stickyIndex: Int?
+        if let lastFile = publicVar.lastZoomAnchorFile {
+            fileDB.lock()
+            stickyIndex = fileDB.db[SortKeyDir(curFolder)]?.files.elementSafe(atOffset: lastFile.id)?.1 === lastFile ? lastFile.id : nil
+            fileDB.unlock()
         }
+
+        let picked = ScrollAnchorMath.pickAnchor(
+            selected: selection.filter { $0.section == 0 }.map { $0.item },
+            sticky: stickyIndex,
+            visibleRect: visibleRect,
+            frameOf: { itemFrame(IndexPath(item: $0, section: 0)) },
+            visibleCandidates: {
+                layout.layoutAttributesForElements(in: visibleRect)
+                    .compactMap { $0.indexPath }
+                    .filter { $0.section == 0 }
+                    .map { $0.item }
+            })
+        let anchorIndex: Int? = picked?.index
+        let anchorFrame: NSRect = picked?.frame ?? .zero
 
         fileDB.lock()
         let files = fileDB.db[SortKeyDir(curFolder)]?.files
@@ -153,14 +123,15 @@ extension ViewController {
         let clipView = mainScrollView.contentView
         let insets = clipView.contentInsets
         let visibleRect = visibleContentRectForAnchor()
-        var offset = anchor.offsetInViewport
-        if anchor.viewportHeight > 0, visibleRect.height > 0, abs(anchor.viewportHeight - visibleRect.height) > 0.5 {
-            offset = offset * visibleRect.height / anchor.viewportHeight
-        }
-        offset = min(max(0, offset), max(0, visibleRect.height - anchorFrame.height))
-        let maxTop = max(0, collectionView.frame.height - visibleRect.height)
-        let targetTop = min(max(0, anchorFrame.minY - offset), maxTop)
-        clipView.scroll(to: NSPoint(x: clipView.bounds.minX, y: targetTop - insets.top))
+        let targetY = ScrollAnchorMath.targetScrollTop(
+            anchorMinY: anchorFrame.minY,
+            anchorHeight: anchorFrame.height,
+            offsetInViewport: anchor.offsetInViewport,
+            oldViewportHeight: anchor.viewportHeight,
+            newViewportHeight: visibleRect.height,
+            contentHeight: collectionView.frame.height,
+            insetTop: insets.top)
+        clipView.scroll(to: NSPoint(x: clipView.bounds.minX, y: targetY))
         mainScrollView.reflectScrolledClipView(clipView)
         // 目录刷新时网格先被清空、clip 被压回 0；若恢复的位置恰好等于缩放前的位置，NSCollectionView 察觉不到变化，
         // 可见 item 仍停在顶部那一批，屏幕一片空白。让布局失效一次，强制按当前可视区重新铺 item。
