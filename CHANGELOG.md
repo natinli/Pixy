@@ -31,6 +31,17 @@
 
 README、使用说明、FAQ、安装说明与 `SECURITY.md` 已同步写明联网范围（FAQ 里原来的「应用没有网络请求」已更正）。新增文案提供全部 17 种语言。内部：联网代码只在 `Common/UpdateChecker.swift` 一个文件里，新增 `UpdateCheckerTests`（41 个用例，含版本比较与用 `URLProtocol` 桩验证「一次检查恰好一个请求」），`PixyTests` 共 124 个用例；Debug 构建可用环境变量 `PIXY_UPDATE_URL` 在本机验证三条路径，Release 构建里没有这个开关（见 [build.md](docs/dev/build.md#检查更新的本机验证)）。
 
+### 内部：发版准备脚本 `scripts/release-prepare.sh`
+
+发版前的本地准备（改版本号与 build 号、把 CHANGELOG 的「未发布」转成版本小节、在发版 checklist 补版本骨架、跑两个检查）此前全靠手工，0.0.6 发版时踩到过 build 号规则、工作区里混入无关的未提交改动等摩擦。现在 `scripts/release-prepare.sh <版本> [--dry-run] [--allow-dirty]` 一步做完这些**本地文件改动**：
+
+- 只改三个文件：`project.pbxproj` 里 FlowVision 目标的 4 行（测试目标 PixyTests 的 `1.0` / `1` 不动）、CHANGELOG 的「未发布」标题（换成 `## [Fork] <日期> — <版本>` 并补未签名说明）、checklist「## 记录」段顶部的版本骨架；写入先备份、原子替换、回读校验，中途失败会还原。
+- 版本号不是 `X.Y.Z` 时直接报参数错误；其余前置检查不满足就拒绝并一次列出全部原因：没有严格大于当前版本（按数值比较，`0.0.10` 大于 `0.0.9`）、工作区不干净（列出脏文件；`--allow-dirty` 可放行并提醒只 add 这三个文件）、本地已有同名 tag、没有「未发布」小节或其下为空、build 号（`YYYYMMDDNN`）日期倒退或序号溢出等。
+- **不联网、不 commit、不 push、不打 tag、不构建发布包、不装机、不更新 tap**；收尾只打印后续要手动执行的步骤。`--dry-run` 只检查并打印计划，不写任何文件。
+- 回归测试 `scripts/test-release-prepare.sh`（431 个断言，本机命令、不进 CI）在 `git clone` 出来的 `/tmp` 临时副本里跑，并校验真实仓库没有被改动；覆盖 UTF-8 / 非 UTF-8 locale、系统自带 Python 3.9、路径含空格与中文、被信号打断时的还原、CHANGELOG 里代码块中的同名标题等边界。脚本兼容 macOS 自带的 bash 3.2。
+
+`docs/dev/release.md` 的「发布步骤」已改为引用该脚本。用户可见行为不变。
+
 ## [Fork] 2026-11-26 — 0.0.6
 
 仍为**未签名**版本，升级后首次启动需再放行一次（[安装说明](docs/user/installation.md)）。

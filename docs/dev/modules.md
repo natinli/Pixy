@@ -177,6 +177,7 @@
 
 - `PixyTests/`：单元测试 target（宿主为 Pixy，仅 Debug）。`SidebarNamingTests`、`DeleteConfirmPolicyTests`、`TreeViewModelURLTests`、`SortKeyTests`、`AccessibilityLabelsTests`、`ScrollAnchorMathTests`、`UpdateCheckerTests`，共 124 个用例；pbxproj 里没有自动同步文件夹，新增测试文件用 `scripts/pbxproj-add-file.py <路径> --target tests` 登记进 `PixyTests` 组与 Sources 阶段（见 [build.md](build.md#新增源文件)）。命令见 [build.md](build.md#单元测试)
 
+- `scripts/release-prepare.sh <版本>`（助手 `release-prepare-edit.py`，回归测试 `test-release-prepare.sh`）：发版前的本地准备，只改 pbxproj 里 FlowVision 目标的 4 行版本 / build 号（按 目标 → 配置列表 → 配置 定位，测试目标 PixyTests 的 `1.0` / `1` 不动）、CHANGELOG「未发布」标题与 checklist「## 记录」段顶部的骨架，再跑两个检查并打印手动步骤；不联网、不 commit、不 push、不打 tag。流程与拒绝条件见 [release.md](release.md#发布步骤)
 - 部署目标 **macOS 11.0**（xcodeproj 4 处配置一致）
 - SPM 依赖全部来自公开仓库，版本由 `FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` 锁定：SDWebImageWebPCoder、SDWebImage、libwebp-xcode、**BTree**、**Settings**。clone 后无需在仓库外准备任何本地包。
 - `ffmpegkit.xcframework` 嵌入 CopyFiles（CodeSignOnCopy），运行时 dlopen；由 `scripts/bootstrap-dependencies.sh` 下载并校验 SHA-256。

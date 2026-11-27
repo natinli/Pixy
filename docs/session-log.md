@@ -4,6 +4,47 @@
 
 ## 2026-11-27
 
+### [Claude] · 工程升级 子任务 4：发版准备脚本（Trellis 任务 11-26-pixy-engineering-upgrade · pixy-up-release-prepare）
+
+- TL;DR：新增 `scripts/release-prepare.sh <版本> [--dry-run] [--allow-dirty]`，把手工发版里「改版本号与 build 号、转 CHANGELOG、补 checklist 骨架、跑两个检查」串起来。**只做本地文件改动**：不联网、不 commit、不 push、不打 tag、不构建、不装机，收尾只打印后续手动步骤。提交 `17c0265`（脚本 + 测试）及文档提交。**没有对真实仓库跑过**（真实仓库版本号仍是 0.0.6），只在 `git clone` 副本里实测。未发版。
+
+#### 做了什么
+
+- `release-prepare.sh`（bash 入口：参数、git 检查、版本与 build 号规则、备份与回滚、跑两个检查、打印手动步骤）+ `release-prepare-edit.py`（pbxproj / CHANGELOG / checklist 的文本改写助手，非公开入口）+ `test-release-prepare.sh`（回归测试，本机命令，不进 CI）。
+- 前置检查，任一不满足就拒绝并说明原因、不改任何文件：工作区必须干净（列出脏文件，`--allow-dirty` 可绕过并警告「只 add 三个文件」）；版本 `X.Y.Z`（可带 `v`）按数值严格大于当前；本地没有同名 tag（远端不检查，因为不联网，输出里写明）；CHANGELOG 有**非空**的「## [Fork] 未发布」；checklist 有「## 记录」；pbxproj 里 Pixy 目标的版本与 build 号各恰好 2 处同值。
+- build 号 `YYYYMMDDNN`：当天已用则序号 +1、跨天回到 `01`，必须严格大于当前，当前 build 日期晚于今天（时钟倒退 / 手写错，历史上踩过 8 位日期倒退）、序号到 99、不是 10 位数字都拒绝；`PIXY_RELEASE_DATE` 仅用于测试覆盖日期。
+- 改写：先备份，临时文件原子替换，改后回读校验，失败还原到**脚本运行前的内容**（含用户的手改，不是 `git checkout`）。pbxproj 是按「目标 → 配置列表 → 配置」找的，只改 Pixy 目标 Debug / Release 各两行（共 4 行），测试目标的 `1.0` / `1` 不动；CHANGELOG 把「未发布」标题换成 `## [Fork] <日期> — <版本>` 并补未签名说明（与 0.0.5 / 0.0.6 发版提交的改法一致，不在上方留空的「未发布」）；checklist 在「## 记录」顶部插入骨架，字段仿 0.0.6，本地产物与 CI 附件的哈希分开两组槽位。
+- 打印的手动步骤共 10 步：复核 diff → `release.sh --unsigned` 与产物核对要点 → 填 checklist → 仅 add 三个文件提交 → 推送 → 打 tag 并推送 → 等 Release 工作流（`The job was not acquired` 就 `gh run rerun --failed`，tag 不重推，不为 runner 容量改工作流）→ 核对 Release 页 → `update-cask.sh` → 本机升级前确认没在运行再 `brew upgrade --cask pixy`、升级后首次启动由用户放行。
+- 文档：`release.md` 的发布步骤改为先跑脚本；`modules.md`、`build.md`、`CLAUDE.md`、`CHANGELOG.md` 各补一处。
+- 实现由 trellis-implement 子 agent 完成，审查与对抗式复核由 trellis-check 子 agent 完成，主会话独立在克隆里跑了 `--dry-run` 与真实运行。
+
+#### 0.0.6 手工发版摩擦点对照
+
+pbxproj 只有 4 行要改、测试目标不动 → 按目标结构定位并校验 4 行；build 号规则 → 脚本强制；CHANGELOG 转换 → 脚本做；checklist 补记 → 骨架；工作区混进无关未提交内容 → 默认拒绝并列出；runner 容量失败的重跑办法 → 清单里；升级前确认没在运行 → 清单里；CI 重建哈希与本地不同 → 骨架分两组。
+
+#### 验证
+
+- `test-release-prepare.sh` **431 个断言全过**：默认环境、`LC_ALL=en_US.UTF-8`、`LANG=zh_CN.UTF-8` 各跑一遍结果一致；覆盖正常发版、`--dry-run`（文件哈希前后一致）、脏工作区与 `--allow-dirty`、版本规则（`0.0.10` > `0.0.9`、相等 / 更低 / 格式非法）、build 号（同日第二版、跨日、日期晚于今天、序号溢出）、未发布缺失 / 为空、tag 已存在、checklist 缺记录段、pbxproj 异常、检查脚本失败、中途失败的回滚（含脏工作区里保住用户手改）、信号打断（INT / TERM / HUP）后的还原、带空格和中文的路径、非 Darwin 拒绝，以及真实仓库前后指纹不变。
+- 实现 agent 对脚本做了 8 种破坏（版本比较、八进制、残留空标题、不查脏、关回滚、偷调 `gh` / `git push`、dry-run 写文件、动测试目标）全部让测试变红；用 `git` 垫片加 `gh` / `brew` / `curl` / `xcodebuild` 桩确认只调用了 `diff`、`ls-files`、`rev-parse`、`status`、`symbolic-ref`、`tag -l`，没有网络和安装命令。
+- 主会话在 `/tmp` 克隆里对 0.0.7 做了 `--dry-run` 与真实运行：pbxproj 恰改 4 行（8 行 diff）、CHANGELOG 4 行、checklist 新增一段，形态与 0.0.6 发版提交（`9dca863`）一致，`plutil -lint` 通过，无 commit / tag；UTF-8 locale、路径含空格和中文下同样通过。
+- `test-pbxproj-add-file.sh` 77/77、`check-localization.py`、`check-public-hygiene.sh`、`git diff --check`、`bash -n` 均通过。
+
+#### 审查中发现并修掉的（检查 agent）
+
+- **严重：UTF-8 locale（终端默认）下脚本整体不可用**。bash 3.2 会把 `$version（` 这类变量名后紧跟的全角字符当成变量名的一部分，表现为 `unbound variable`，退出码还是 0、什么都没改。实现 agent 的 258 个断言是在 `LANG` 未设置下跑的，所以没发现。改成 `${var}` 共 22 处（脚本 13、测试 9），并加了静态检查防回归。教训：**测 shell 脚本要在用户真实的 locale 下测，不是自己 shell 默认的。**
+- 非 UTF-8 locale 下系统 Python 3.9 崩溃：plutil 输出按 locale 解码、中文打印按 locale 编码。修成显式 UTF-8；调 `check-localization.py` 加 `-X utf8`。
+- 代码块（``` 围栏）里同名标题被误改：围栏内的 `## [Fork] 未发布` 在真标题缺失时会被当真标题，真标题在后面时还会被当成「两个标题」；checklist 的「## 记录」同理。新增 `outside_fence()`，所有匹配只认围栏外。
+- 新增与应用同值的第三个目标时，只改 App 不报错；改为拒绝并列出同值行。
+- 退出码 4（已写入但检查未通过）的提示会误导：原来没告诉用户重跑本脚本会被「版本不递增」拒绝；现在说明修复后单独重跑两个只读检查、怎么放弃（`git checkout --` 那三个文件），并附后续步骤。
+- 小项：回滚期间忽略再次到来的信号、写入后被打断时说明三个文件仍是已改状态、非 Darwin 明确拒绝、文档里「另两个测试目标」实际只有一个 PixyTests。
+
+#### 没验证 / 取舍
+
+- **本机没有 ShellCheck**，AC-4.4 里这一项没法跑；做了 `bash -n` 加人工核对常见坑。
+- EUC-JP 等老式 CJK locale 下 bash 3.2 无法解析含 UTF-8 的脚本（GB18030 实测正常），没改，macOS 上基本不会遇到；通过符号链接调用脚本会干净拒绝；SIGINT 用例要求从前台终端启动测试，从后台作业启动时整棵进程树忽略 SIGINT，测试已检测并跳过。
+- 远端是否已有同名 tag 没有验证（不联网），输出里写明，推 tag 时若已存在会被拒绝。
+- 这个脚本**还没有在真实发版里用过**：下一次发版（若发 0.0.7）会是第一次，建议先 `--dry-run`。
+
 ### [Claude] · 工程升级 子任务 3：手动「检查更新…」（Trellis 任务 11-26-pixy-engineering-upgrade · pixy-up-update-check）
 
 - TL;DR：应用菜单「关于 Pixy」之后新增「检查更新…」。**只在用户点击时联网一次**（用户 11-26 拍板，不做启动 / 定时 / 后台检查），对比 GitHub `releases/latest`，有新版时给出 `brew upgrade --cask pixy` 并提供「打开发布页」「复制命令」。这是应用第一次联网。提交 `3455f65`（代码 + 文案 + 41 个新单测，PixyTests 共 124 个全过）。**未发版**。

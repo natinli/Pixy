@@ -103,7 +103,11 @@ scripts/pbxproj-add-file.py <路径> --target app --dry-run                     
 
 ## 公开发布：签名、公证和产物
 
-不要把证书、密码、Team ID 或 keychain 配置写入仓库。发布脚本有两种模式：
+不要把证书、密码、Team ID 或 keychain 配置写入仓库。
+
+发版前先跑 `scripts/release-prepare.sh <版本> [--dry-run]`：改 `project.pbxproj` 里的版本号与 build 号、把 CHANGELOG 的「未发布」转成版本小节、在 checklist 补版本骨架、跑两个检查；只改本地三个文件，不联网、不 commit、不 push、不打 tag，收尾打印后续要手动执行的步骤。流程见 [release.md](release.md#发布步骤)；回归测试 `bash scripts/test-release-prepare.sh`（在 `/tmp` 的 `git clone` 副本里跑，不碰真实仓库）。
+
+发布脚本有两种模式：
 
 **签名 + 公证（正式发布，需要付费 Apple Developer Program）**
 
