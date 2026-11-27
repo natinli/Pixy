@@ -1,6 +1,6 @@
 # 模块详解
 
-> 逐目录逐文件的一句话职责 + 关键接口。行数截至 2026-11 整理时（57 个 Swift 文件）。查找文件用 ⌘F；模块间关系见 [architecture.md](architecture.md)。
+> 逐目录逐文件的一句话职责 + 关键接口。行数截至 2026-11 整理时（当前共 58 个 Swift 文件）。查找文件用 ⌘F；模块间关系见 [architecture.md](architecture.md)。
 
 ## 根级（3 文件）
 
@@ -46,7 +46,7 @@
 - `disableToolbarBlend` — 退出大图模式：保持两段式结构（透明标题栏），只隐藏底部标题胶囊。
 - `setupBottomTitleBar` / `makeBottomTitleBar` — 在内容区底部中央生成「文件名 · 张数」胶囊，张数做弱化处理，浮在毛玻璃上。
 
-## Common/（12 文件）
+## Common/（13 文件）
 
 ### DataModel.swift（1301 行）
 核心数据结构，全部基于 BTree 有序 Map。
@@ -92,6 +92,7 @@
 | TempVariable.swift（13） | 编译期开关：`EDIT_FEATURE_ENABLED=false`、SDK_VERSION |
 | RefCode.swift（38） | FSEvents 参考实现，未接入主链路（主链路用 DispatchSourceFileSystemObject） |
 | AccessibilityLabels.swift | 辅助功能标签的纯函数（无 AppKit 依赖，便于单测）：`kind(isDirectory:type:)` 把 `FileModel` 的 `isDir` / `type` 归成文件夹 / 图像 / 视频 / 其它；`typeWord` 取 `Folder`/`Image`/`Video`/`Other` 这批已有本地化 key（与 `setWindowTitle` 统计文案同源，不新增文案）；`thumbnail(name:kind:)` 与 `largeImage(name:kind:)` 返回「文件名, 类型词」（文件名原样保留、不截断，空名或全空白只返回类型词）；`sidebar(name:role:isAllTagsEntry:)` 按 `SidebarNodeRole`：分隔线 / 根节点返回 nil，标签条目追加「标签」（名称为空时只有「标签」；「所有标签…」入口 `isAllTagsEntry` 为真时只用名称，调用方按 `fullPath == "file:///VirtualFinderTagsFolder/"` 判断——不能用 `entryID`，颜色标签也是 "tags"；也不能用 `fileURL`，标签节点恒为 nil），其余条目只用名称、空名返回 nil（卷没有合适的已有类型词，`Volume` 在中文里是「音量」）。接入点：`CustomCollectionViewItem.configureWithImage`、`CustomOutlineViewManager` 的 `viewFor`、`LargeImageView.file` 的 `didSet` |
+| ScrollAnchorMath.swift | 浏览位置锚点里不依赖 AppKit 的纯数学（只 import Foundation + CoreGraphics，便于用合成布局做模型测试）：`pickAnchor(selected:sticky:visibleRect:frameOf:visibleCandidates:)` 决定「选哪一项当锚点」，顺序为 在顶部（`visibleRect.minY <= 0.5`）返回 nil（只保留选中）→ 可视区内第一个选中项（调用方传升序）→ 仍与可视区相交的 sticky 项（即 `PublicVar.lastZoomAnchorFile`，身份校验由调用方做）→ 顶部项（中点不低于可视区顶边的项里 `minY` 最小、并列取 index 小的；一个都没有就退回最靠上的相交项）；高度 ≤ 0 的 frame 一律忽略，`frameOf` 取不到 frame（含越界）的项忽略。`frameOf` / `visibleCandidates` 用闭包而不是数组，是为了与原实现保持同样的惰性：命中选中项或 sticky 后不会再去问布局可视区里有哪些项，也不会为整个选中集合取 frame。`targetScrollTop(anchorMinY:anchorHeight:offsetInViewport:oldViewportHeight:newViewportHeight:contentHeight:insetTop:)` 算视口要滚到的 y（已减 `insetTop`）：可视区高度变化超过 0.5 时偏移按比例缩放 → 夹到 `[0, 新可视区高度 − 锚点高度]` → 目标顶边夹到 `[0, max(0, 内容高度 − 新可视区高度)]`。接入点：`LayoutManagement.swift` 的 `makeScrollAnchor`、`applyAnchorScroll`（AppKit 层只负责取 frame / 可视区、调用、滚动）；`PixyTests/ScrollAnchorMathTests.swift` 用合成布局（`SyntheticLayout`）与最小滚动视图模型（`SyntheticViewport`）测 |
 
 ## ViewControllerExtension/（16 文件，全是 ViewController extension）
 
@@ -106,7 +107,7 @@
 - `refreshTreeView` 按稳定节点身份保存、刷新和恢复用户手动展开／选中状态；与初建共享 `rebuildSidebar`，保持原目录排序。默认导航不自动展开当前路径，目录仍可通过披露箭头按需展开。
 - `recalcLayout(targetFolder)` — 增量计算（从 layoutCalcPos 起）：justified 宽高比凑行 / waterfall·grid 固定列宽 → 写 FileModel.thumbSize/lineNo
 - `switchToJustifiedView/GridView/WaterfallView/DetailView`、`changeThumbSize`、`refreshAll`
-- 缩放锚定（`ScrollAnchor`）：`changeThumbSize` 是所有缩放入口（`+`/`-`/`0`、工具栏尺寸菜单、布局配置切换）的汇合点，改尺寸前 `captureScrollAnchor` 记下锚点——可视区内第一个选中项，否则顶部第一个至少露出一半的项；记录 FileModel 身份、路径、距可视区顶边的偏移（扣除 contentInsets）和缩放前选中项；原本在顶部则不锚定视口。连续缩放时沿用尚未恢复的旧锚点；上一次恢复到的锚点文件（`PublicVar.lastZoomAnchorFile`，weak）仍在可视区内时继续锚定它，否则每次重选顶部行首会让连续缩放逐行往前漂。已知取舍：缩放后手动滚动、而该文件仍在可视区内时，下一次缩放仍锚定它（它保持在屏幕原位），而不是改锚顶部那张。`restoreScrollAnchorIfReady` 按文件身份（`files.elementSafe(atOffset: file.id)?.1 === file`，失败按路径兜底）找回 index，布局就绪后无动画滚到 `frame.minY - offset`（夹到合法范围），并选回原选中项；只恢复一次，本轮加载结束仍无法恢复则丢弃。同一套锚点也用于目录监听刷新：`scheduledRefresh` 在 `refreshAll` 前调用 `captureScrollAnchor`，不分目录大小都捕获（>5000 的目录刷新走清空重插，视图会回到顶部，上游 #120；≤5000 的目录 `reloadData` 只保留像素偏移，新文件插在可视区上方时内容会被整体挤下去，实测新增 6 个文件后顶部漂了一行）。锚点的捕获入口一共有：缩放（`changeThumbSize`）、切换布局（`switchToJustifiedView` / `switchToGridView` / `switchToWaterfallView`，仅 `doNotRefresh == false` 时捕获，避免没有后续刷新时留下悬空锚点）、「配置样式」切换（`useCustomProfile` 开头捕获一次，其后各步都是 `doNotRefresh`）、显示隐藏文件 / 所有类型 / 图片 / RAW / 视频的切换（可见集合会变，不分目录大小都捕获；锚点文件若被过滤掉则放弃恢复）、手动刷新 `handleUserRefresh`（`captureScrollAnchorForRefresh`，仅 ≥ `RESET_VIEW_FILE_NUM_THRESHOLD` 的大目录：内容没变，小目录像素偏移本来就对）。切换布局会改变像素与内容的对应关系，≤5000 的目录也会丢位置，所以这几处不做阈值判断。窗口 / 侧栏宽度变化走另一条同步路径：`splitViewDidResizeSubviews` 在一次宽度变化的第一次回调（布局缓存还没被改动）用 `makeScrollAnchor` 记下 `PublicVar.resizeScrollAnchor`，`splitViewSizeChanged` 重算布局后由 `restoreScrollAnchorAfterResize` 同步滚回（不涉及目录重载，不改选中），宽度没变则丢弃；恢复到的文件同样写入 `lastZoomAnchorFile`，反复收起/展开侧栏不会一行行漂移。鼠标拖分隔条（0.1 秒防抖）与菜单切换（立即）两条分支都走这里
+- 缩放锚定（`ScrollAnchor`）：`changeThumbSize` 是所有缩放入口（`+`/`-`/`0`、工具栏尺寸菜单、布局配置切换）的汇合点，改尺寸前 `captureScrollAnchor` 记下锚点——可视区内第一个选中项，否则顶部第一个至少露出一半的项（「选谁」由 `makeScrollAnchor` 调用纯函数 `ScrollAnchorMath.pickAnchor` 决定，「滚到哪」由 `applyAnchorScroll` 调用 `ScrollAnchorMath.targetScrollTop` 计算，两者的取舍规则与测试见 `Common/ScrollAnchorMath.swift` 一行；`makeScrollAnchor` / `applyAnchorScroll` 本身只剩取 frame、查 `fileDB`、滚动与 `invalidateLayout`）；记录 FileModel 身份、路径、距可视区顶边的偏移（扣除 contentInsets）和缩放前选中项；原本在顶部则不锚定视口。连续缩放时沿用尚未恢复的旧锚点；上一次恢复到的锚点文件（`PublicVar.lastZoomAnchorFile`，weak）仍在可视区内时继续锚定它，否则每次重选顶部行首会让连续缩放逐行往前漂。已知取舍：缩放后手动滚动、而该文件仍在可视区内时，下一次缩放仍锚定它（它保持在屏幕原位），而不是改锚顶部那张。`restoreScrollAnchorIfReady` 按文件身份（`files.elementSafe(atOffset: file.id)?.1 === file`，失败按路径兜底）找回 index，布局就绪后无动画滚到 `frame.minY - offset`（夹到合法范围），并选回原选中项；只恢复一次，本轮加载结束仍无法恢复则丢弃。同一套锚点也用于目录监听刷新：`scheduledRefresh` 在 `refreshAll` 前调用 `captureScrollAnchor`，不分目录大小都捕获（>5000 的目录刷新走清空重插，视图会回到顶部，上游 #120；≤5000 的目录 `reloadData` 只保留像素偏移，新文件插在可视区上方时内容会被整体挤下去，实测新增 6 个文件后顶部漂了一行）。锚点的捕获入口一共有：缩放（`changeThumbSize`）、切换布局（`switchToJustifiedView` / `switchToGridView` / `switchToWaterfallView`，仅 `doNotRefresh == false` 时捕获，避免没有后续刷新时留下悬空锚点）、「配置样式」切换（`useCustomProfile` 开头捕获一次，其后各步都是 `doNotRefresh`）、显示隐藏文件 / 所有类型 / 图片 / RAW / 视频的切换（可见集合会变，不分目录大小都捕获；锚点文件若被过滤掉则放弃恢复）、手动刷新 `handleUserRefresh`（`captureScrollAnchorForRefresh`，仅 ≥ `RESET_VIEW_FILE_NUM_THRESHOLD` 的大目录：内容没变，小目录像素偏移本来就对）。切换布局会改变像素与内容的对应关系，≤5000 的目录也会丢位置，所以这几处不做阈值判断。窗口 / 侧栏宽度变化走另一条同步路径：`splitViewDidResizeSubviews` 在一次宽度变化的第一次回调（布局缓存还没被改动）用 `makeScrollAnchor` 记下 `PublicVar.resizeScrollAnchor`，`splitViewSizeChanged` 重算布局后由 `restoreScrollAnchorAfterResize` 同步滚回（不涉及目录重载，不改选中），宽度没变则丢弃；恢复到的文件同样写入 `lastZoomAnchorFile`，反复收起/展开侧栏不会一行行漂移。鼠标拖分隔条（0.1 秒防抖）与菜单切换（立即）两条分支都走这里
 
 ### 其他 extension
 | 文件 | 职责 / 关键接口 |
@@ -166,7 +167,7 @@
 
 ## 工程配置要点
 
-- `PixyTests/`：单元测试 target（宿主为 Pixy，仅 Debug）。`SidebarNamingTests`、`DeleteConfirmPolicyTests`、`TreeViewModelURLTests`、`SortKeyTests`、`AccessibilityLabelsTests`，共 36 个用例；pbxproj 里没有自动同步文件夹，新增测试文件用 `scripts/pbxproj-add-file.py <路径> --target tests` 登记进 `PixyTests` 组与 Sources 阶段（见 [build.md](build.md#新增源文件)）。命令见 [build.md](build.md#单元测试)
+- `PixyTests/`：单元测试 target（宿主为 Pixy，仅 Debug）。`SidebarNamingTests`、`DeleteConfirmPolicyTests`、`TreeViewModelURLTests`、`SortKeyTests`、`AccessibilityLabelsTests`、`ScrollAnchorMathTests`，共 83 个用例；pbxproj 里没有自动同步文件夹，新增测试文件用 `scripts/pbxproj-add-file.py <路径> --target tests` 登记进 `PixyTests` 组与 Sources 阶段（见 [build.md](build.md#新增源文件)）。命令见 [build.md](build.md#单元测试)
 
 - 部署目标 **macOS 11.0**（xcodeproj 4 处配置一致）
 - SPM 依赖全部来自公开仓库，版本由 `FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` 锁定：SDWebImageWebPCoder、SDWebImage、libwebp-xcode、**BTree**、**Settings**。clone 后无需在仓库外准备任何本地包。
