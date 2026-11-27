@@ -1,6 +1,6 @@
 # 模块详解
 
-> 逐目录逐文件的一句话职责 + 关键接口。行数截至 2026-11 整理时（56 个 Swift 文件）。查找文件用 ⌘F；模块间关系见 [architecture.md](architecture.md)。
+> 逐目录逐文件的一句话职责 + 关键接口。行数截至 2026-11 整理时（57 个 Swift 文件）。查找文件用 ⌘F；模块间关系见 [architecture.md](architecture.md)。
 
 ## 根级（3 文件）
 
@@ -46,7 +46,7 @@
 - `disableToolbarBlend` — 退出大图模式：保持两段式结构（透明标题栏），只隐藏底部标题胶囊。
 - `setupBottomTitleBar` / `makeBottomTitleBar` — 在内容区底部中央生成「文件名 · 张数」胶囊，张数做弱化处理，浮在毛玻璃上。
 
-## Common/（11 文件）
+## Common/（12 文件）
 
 ### DataModel.swift（1301 行）
 核心数据结构，全部基于 BTree 有序 Map。
@@ -91,6 +91,7 @@
 | Enum.swift（32） | FileType / 手势方向 / LayoutType(justified,waterfall,grid,detail) / SortType（21 种）/ 设置页注册 |
 | TempVariable.swift（13） | 编译期开关：`EDIT_FEATURE_ENABLED=false`、SDK_VERSION |
 | RefCode.swift（38） | FSEvents 参考实现，未接入主链路（主链路用 DispatchSourceFileSystemObject） |
+| AccessibilityLabels.swift | 辅助功能标签的纯函数（无 AppKit 依赖，便于单测）：`kind(isDirectory:type:)` 把 `FileModel` 的 `isDir` / `type` 归成文件夹 / 图像 / 视频 / 其它；`typeWord` 取 `Folder`/`Image`/`Video`/`Other` 这批已有本地化 key（与 `setWindowTitle` 统计文案同源，不新增文案）；`thumbnail(name:kind:)` 与 `largeImage(name:kind:)` 返回「文件名, 类型词」（文件名原样保留、不截断，空名或全空白只返回类型词）；`sidebar(name:role:isAllTagsEntry:)` 按 `SidebarNodeRole`：分隔线 / 根节点返回 nil，标签条目追加「标签」（名称为空时只有「标签」；「所有标签…」入口 `isAllTagsEntry` 为真时只用名称，调用方按 `fullPath == "file:///VirtualFinderTagsFolder/"` 判断——不能用 `entryID`，颜色标签也是 "tags"；也不能用 `fileURL`，标签节点恒为 nil），其余条目只用名称、空名返回 nil（卷没有合适的已有类型词，`Volume` 在中文里是「音量」）。接入点：`CustomCollectionViewItem.configureWithImage`、`CustomOutlineViewManager` 的 `viewFor`、`LargeImageView.file` 的 `didSet` |
 
 ## ViewControllerExtension/（16 文件，全是 ViewController extension）
 
@@ -137,12 +138,12 @@
 ### 其他 Views
 | 文件 | 职责 / 关键接口 |
 |---|---|
-| CustomCollectionViewItem.swift（1616） | 缩略图单元格。`configureWithImage` **唯一渲染入口**（文件名/选中/标签/评级/角标/剪切变淡）；`playVideo/stopVideo` 内联播放；鼠标事件系列（`mouseDown` 的双击分支：设置「双击用默认应用打开」开启时，普通文件交给 `NSWorkspace.open`，文件夹和替身仍走 `openLargeImage`；⌘/⇧ 双击开新标签页的逻辑在它之前，不受影响） |
+| CustomCollectionViewItem.swift（1616） | 缩略图单元格。`configureWithImage` **唯一渲染入口**（文件名/选中/标签/评级/角标/剪切变淡；同时经 `updateAccessibilityLabel` 把整个单元格作为一个「文件名, 类型」辅助功能元素（角色 cell，并清空子元素：NSImageView 上 `setAccessibilityElement(false)` 无效，缩略图、文件名文本框、视频角标必须由父视图用 `setAccessibilityChildren([])` 去掉；用 cell 而不是 group，因为 AXGroup 容器不出现在多数自动化工具的元素树里），标签取自路径而不是 `imageNameField`，所以关闭「显示缩略图文件名」也能读到；单元格的角色、元素属性与清空子元素都在 `viewDidLoad` 一次设好，复用不丢，标签随每次 `configureWithImage` 更新）；`playVideo/stopVideo` 内联播放；鼠标事件系列（`mouseDown` 的双击分支：设置「双击用默认应用打开」开启时，普通文件交给 `NSWorkspace.open`，文件夹和替身仍走 `openLargeImage`；⌘/⇧ 双击开新标签页的逻辑在它之前，不受影响） |
 | CustomCollectionView.swift（485） | 右键菜单（打开方式/新建/粘贴/标签过滤）、目录统计浮层、焦点协调 |
 | CustomCollectionViewManager.swift（126） | DataSource/Delegate；`sizeForItemAt` 是布局类读 thumbSize 的 delegate 通道 |
-| LargeImageView.swift（2875） | 大图查看器：缩放/平移/镜像、视频播放控制+AB 循环、EXIF 浮层、OCR/二维码、边缘箭头 |
+| LargeImageView.swift（2875） | 大图查看器：缩放/平移/镜像、视频播放控制+AB 循环、EXIF 浮层、OCR/二维码、边缘箭头；整个视图是一个「文件名, 类型」辅助功能元素（角色 group，图片与视频共用，标签挂在容器上因为视频播放时 `imageView` 是隐藏的；`accessibilityChildren()` 重写成「未隐藏的子视图去掉 imageView，再经 `NSAccessibility.unignoredChildren(from:)` 展开」；不能过滤 `super` 的结果——它返回的是已展开的元素，NSImageView 以 cell（NSImageCell）出现，`!== imageView` 匹配不到，这也是 `setAccessibilityElement(false)` 对 NSImageView 无效的原因：暴露出来的是 cell；不展开的话，控制条、提示浮层这类本身不是辅助功能元素的容器视图会原样出现在返回值里），标签跟着 `file` 的 `didSet` 更新（赋值点有 `changeLargeImage` 与 `switchFolder` 两处） |
 | VideoPlayerControlsView.swift（848） | 自绘控制条：进度 SliderSubclass、音量、AB 标记、自动隐藏 |
-| CustomOutlineView / Manager | 分组目录树的数据源、plain table style、28pt 正文行与动态灰色选中绘制、leading/trailing 布局；角色检查隔离标题、分隔线和标签的文件操作，标签圆点仅在侧栏使用系统语义色，「所有标签」绘制双环；固定 Finder 入口复用 macOS CoreTypes 图标资源，OneDrive 使用 Finder 同形模板字形，卷行按 Finder 位置显示推出按钮；目录继续支持右键与拖放；标题自行绘制间距，移除分组额外缩进，列宽固定为 viewport，不绘制展开箭头（`frameOfOutlineCell` 恒为 `.zero`），展开 / 收起靠双击行（`outlineViewDoubleClicked`）或键盘 ←/→/空格/回车 |
+| CustomOutlineView / Manager | 分组目录树的数据源、plain table style、28pt 正文行与动态灰色选中绘制、leading/trailing 布局；角色检查隔离标题、分隔线和标签的文件操作，标签圆点仅在侧栏使用系统语义色，「所有标签」绘制双环；固定 Finder 入口复用 macOS CoreTypes 图标资源，OneDrive 使用 Finder 同形模板字形，卷行按 Finder 位置显示推出按钮；目录继续支持右键与拖放；辅助功能：分组标题与数据行单元格各自带 `AccessibilityLabels.sidebar` 的标签（标签条目带「标签」），分隔线 `NSBox` 设为非元素，分组标题与数据行用 `setAccessibilityChildren([])` 去掉图标和文本框这些重复/无名的子元素（推出图标因此不单独暴露：显式列为子元素或保持默认都实测出不来，且它没有「按下」动作）；标题自行绘制间距，移除分组额外缩进，列宽固定为 viewport，不绘制展开箭头（`frameOfOutlineCell` 恒为 `.zero`），展开 / 收起靠双击行（`outlineViewDoubleClicked`）或键盘 ←/→/空格/回车 |
 | CustomImageView.swift（215） | Interpolated/Integer/Bordered/Thumb/Large 各 ImageView 变体 |
 | FileInfoWindow.swift（621） | 文件信息窗口（可折叠 sections、纯文本导出） |
 | ImageEditingView.swift（982） | 标注编辑画布（EDIT_FEATURE_ENABLED 门控，默认关闭） |
@@ -165,7 +166,7 @@
 
 ## 工程配置要点
 
-- `PixyTests/`：单元测试 target（宿主为 Pixy，仅 Debug）。`SidebarNamingTests`、`DeleteConfirmPolicyTests`、`TreeViewModelURLTests`、`SortKeyTests`，共 21 个用例；pbxproj 里没有自动同步文件夹，新增测试文件需手动加进 `PixyTests` 组与 Sources 阶段。命令见 [build.md](build.md#单元测试)
+- `PixyTests/`：单元测试 target（宿主为 Pixy，仅 Debug）。`SidebarNamingTests`、`DeleteConfirmPolicyTests`、`TreeViewModelURLTests`、`SortKeyTests`、`AccessibilityLabelsTests`，共 36 个用例；pbxproj 里没有自动同步文件夹，新增测试文件用 `scripts/pbxproj-add-file.py <路径> --target tests` 登记进 `PixyTests` 组与 Sources 阶段（见 [build.md](build.md#新增源文件)）。命令见 [build.md](build.md#单元测试)
 
 - 部署目标 **macOS 11.0**（xcodeproj 4 处配置一致）
 - SPM 依赖全部来自公开仓库，版本由 `FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` 锁定：SDWebImageWebPCoder、SDWebImage、libwebp-xcode、**BTree**、**Settings**。clone 后无需在仓库外准备任何本地包。
