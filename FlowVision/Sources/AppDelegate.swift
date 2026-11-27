@@ -46,7 +46,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuItemVa
     @IBOutlet weak var showFinderTagsAndRatingMenuItem: NSMenuItem!
     
     var commonParentPath=""
-    
+
+    // 「检查更新…」进行中（主线程读写）；见 AppDelegate+UpdateCheck.swift
+    // A "Check for Updates…" request is in flight (main thread only); see AppDelegate+UpdateCheck.swift
+    var isCheckingForUpdates = false
+
     var windowControllers: [NSWindowController] = []
     
     lazy var settingsWindowController = SettingsWindowController(
@@ -751,6 +755,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuItemVa
     }
     
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        // 检查更新：不依赖窗口，检查进行中置灰
+        // Check for updates: needs no window; greyed out while a check is in flight
+        if menuItem.action == #selector(checkForUpdates(_:)) {
+            return !isCheckingForUpdates
+        }
         // 如果焦点在标准文本控件上，启用复制/剪切/粘贴/选择全部菜单
         // If focus is on standard text controls, enable copy/cut/paste/select all menu
         if menuItem.action == #selector(editCopy(_:)) || menuItem.action == #selector(editCut(_:)) || menuItem.action == #selector(editPaste(_:)) || menuItem.action == #selector(selectAll(_:)) {
