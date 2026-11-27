@@ -94,7 +94,7 @@
 | Common.swift（961） | Atomic 包装器、MyTimer 节流、showAlert 系列、VolumeManager（外置卷检测）、拼音转换、AppleScript 显示文件 |
 | FFmpegKit.swift（192） | `FFmpegKitWrapper.shared` dlopen 懒加载 xcframework，未加载时静默降级 |
 | VideoProcess.swift（86） | NoHitAVPlayerView（不挡手势）、AB 循环音视频合成辅助 |
-| Log.swift（330） | 全局 log() + 日志查看窗口 |
+| Log.swift（348） | 全局 log() + 日志查看窗口；**仅 Debug 构建**：环境变量 `PIXY_LOG_FILE` 非空时，`Logger.init` 清空（或新建）该文件、把 `logFileURL` 指向它并开启 `isFileLoggingEnabled`，之后每条日志追加一行（`时间戳 [级别] [函数] 内容`），供 `scripts/bench/run.sh` 解析 `Time taken to …` 计时行。不设置时行为不变（日志不写文件，`isFileLoggingEnabled` 默认 false，原有的 `Application Support/Pixy/Pixy.log` 路径逻辑原样保留）；这段代码在 `#if DEBUG` 里，Release 产物里没有这个字符串（`strings` 实测 0 处，Debug 的代码在 `PixyDbg.debug.dylib` 里恰 1 处） |
 | Enum.swift（32） | FileType / 手势方向 / LayoutType(justified,waterfall,grid,detail) / SortType（21 种）/ 设置页注册 |
 | TempVariable.swift（13） | 编译期开关：`EDIT_FEATURE_ENABLED=false`、SDK_VERSION |
 | RefCode.swift（38） | FSEvents 参考实现，未接入主链路（主链路用 DispatchSourceFileSystemObject） |
@@ -176,6 +176,8 @@
 ## 工程配置要点
 
 - `PixyTests/`：单元测试 target（宿主为 Pixy，仅 Debug）。`SidebarNamingTests`、`DeleteConfirmPolicyTests`、`TreeViewModelURLTests`、`SortKeyTests`、`AccessibilityLabelsTests`、`ScrollAnchorMathTests`、`UpdateCheckerTests`，共 124 个用例；pbxproj 里没有自动同步文件夹，新增测试文件用 `scripts/pbxproj-add-file.py <路径> --target tests` 登记进 `PixyTests` 组与 Sources 阶段（见 [build.md](build.md#新增源文件)）。命令见 [build.md](build.md#单元测试)
+
+- `scripts/bench/run.sh [300|6000|20000 ...]`（图片生成器 `scripts/bench/gen-images.py`，回归测试 `scripts/test-bench-run.sh`）：本机性能基线，对 Debug 的 PixyDbg 测目录加载耗时（读 `PIXY_LOG_FILE` 里的计时行）与内存（`ps` RSS 采样 + `footprint`）；只作本机对比、不进 CI，不碰 `/Applications/Pixy.app`，只在 PixyDbg 的偏好域里临时改 `lastFolder` / `hasNormalExit` 并还原。测量定义与基线数字见 [performance-baseline.md](performance-baseline.md)，命令见 [build.md](build.md#性能基线本机)
 
 - `scripts/release-prepare.sh <版本>`（助手 `release-prepare-edit.py`，回归测试 `test-release-prepare.sh`）：发版前的本地准备，只改 pbxproj 里 FlowVision 目标的 4 行版本 / build 号（按 目标 → 配置列表 → 配置 定位，测试目标 PixyTests 的 `1.0` / `1` 不动）、CHANGELOG「未发布」标题与 checklist「## 记录」段顶部的骨架，再跑两个检查并打印手动步骤；不联网、不 commit、不 push、不打 tag。流程与拒绝条件见 [release.md](release.md#发布步骤)
 - 部署目标 **macOS 11.0**（xcodeproj 4 处配置一致）

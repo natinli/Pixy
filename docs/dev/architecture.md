@@ -61,7 +61,7 @@ FlowVision/Sources/（60 个 Swift 文件，约 3.5 万行）
 │   ├── FFmpegKit.swift        dlopen 封装
 │   ├── VideoProcess.swift     AVPlayer 视图变体、AB 循环合成
 │   ├── Common.swift           杂项：Atomic/节流/弹窗/VolumeManager/拼音
-│   ├── Log.swift              日志与日志窗口
+│   ├── Log.swift              日志与日志窗口（Debug 构建可用环境变量 PIXY_LOG_FILE 把日志写到文件，供 scripts/bench 读加载耗时）
 │   ├── Enum.swift             FileType/LayoutType/SortType(21 种)/手势方向
 │   ├── TempVariable.swift     编译期开关（EDIT_FEATURE_ENABLED、SDK_VERSION）
 │   ├── RefCode.swift          FSEvents 参考实现（未接入主链路）

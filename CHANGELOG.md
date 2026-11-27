@@ -42,6 +42,15 @@ README、使用说明、FAQ、安装说明与 `SECURITY.md` 已同步写明联�
 
 `docs/dev/release.md` 的「发布步骤」已改为引用该脚本。用户可见行为不变。
 
+### 内部：性能基线 `scripts/bench/run.sh`（只作本机对比）
+
+此前「2 万个文件的目录约 10 秒加载完、内存峰值 352 MB」只是一次手测，没有可复现的基准，改了加载或缓存相关代码也没有数字可比。现在 `scripts/bench/run.sh [300|6000|20000 ...]` 一条命令对 300 / 6000 / 20000 张图片的目录各测一遍并输出 Markdown 表：文件列表 / 首图 / 尺寸信息读完 / 缩略图读完的耗时（取自应用日志里已有的 `Time taken to …` 计时行），以及进程 RSS 与 `footprint`（物理占用，含被系统压缩的页）的峰值和稳态。
+
+- **Debug 构建新增环境变量 `PIXY_LOG_FILE`**：非空时日志写到该文件（每次启动先清空）。仅 `#if DEBUG`，Release 构建里没有这段代码与字符串（`strings` 实测 0 处）；不设置时行为不变，日志仍不写文件。
+- 脚本在 `/tmp` 生成测试目录（`gen-images.py` 只用标准库生成 300 张宽高比不同的 PNG，其余用硬链接补足）、用 Debug 的 PixyDbg 打开、采样、结束进程、清理目录；**不碰 `/Applications/Pixy.app`**，只临时改 PixyDbg 偏好域的 `lastFolder` / `hasNormalExit` 并在结束（含 Ctrl-C / 失败）后还原；已有 PixyDbg 在运行时拒绝；运行期间用 `caffeinate -dis` 防止熄屏与系统睡眠；每档 120 秒没读完记 FAIL。
+- 本机基线与测量定义、噪声说明、对比方法写在 [docs/dev/performance-baseline.md](docs/dev/performance-baseline.md)；**不进 CI**（macOS runner 配额紧张，虚拟机里的数字也不稳定）。基线里的几个发现：连续两次运行的耗时差异 ≤ 1%；RSS 的「稳态」会被系统压缩页面拉低且时机不定（同一档位在 90 与 185 MB 之间跳），内存对比请看 `footprint`；**显示器休眠 / 锁屏时应用加载明显更慢**（300 张目录的首图 0.15 秒 → 1.18 秒），脚本会警告并把屏幕状态写进报告抬头，只有「亮屏、未锁定」的数字能互相比较（本次基线是无人值守时在熄屏状态取得的，有人在场时应在亮屏下补跑）。
+- 回归测试 `scripts/test-bench-run.sh`（本机命令、不进 CI）用一个假应用代替真 PixyDbg，覆盖参数校验、`--dry-run` 无副作用、偏好备份与还原、超时 / 提前退出 / 忽略 TERM、运行中 TERM 与 Ctrl-C 的清理、已有同名进程时拒绝、解析函数对缺行 / 乱序 / 格式不符日志的容错。用户可见行为不变。
+
 ## [Fork] 2026-11-26 — 0.0.6
 
 仍为**未签名**版本，升级后首次启动需再放行一次（[安装说明](docs/user/installation.md)）。

@@ -154,7 +154,11 @@ CI 分成两个工作流，区别在于要不要占用 macOS runner：
 ## 调试
 
 - 三条常驻后台线程（readInfo/thumb/memMonitor）在主线程断点外需用 Xcode 线程视图切换。
-- 日志：应用内「菜单栏 → 查看 → 操作日志/日志窗口」。
+- 日志：应用内「菜单栏 → 查看 → 操作日志/日志窗口」。**Debug 构建**还可以用环境变量 `PIXY_LOG_FILE=<路径>` 把日志同时写到文件（每次启动先清空该文件；不设置则不写文件；Release 构建里没有这个开关）：
+  ```bash
+  PIXY_LOG_FILE=/tmp/pixy.log .build/DerivedData-root/Build/Products/Debug/PixyDbg.app/Contents/MacOS/PixyDbg
+  grep "Time taken" /tmp/pixy.log      # 目录加载各阶段的耗时（秒，从本次目录切换开始累计）
+  ```
 - `Log.swift` 的 `log(_:level:)` 是全局日志入口；新增日志使用该函数。
 - 内存问题关注 `MemoryManagement.swift` 的 footprint 报告与 memMonitorThread 行为。
 
@@ -182,6 +186,23 @@ PIXY_UPDATE_URL=http://127.0.0.1:18765/new.json \
 - 把地址换成 `old.json` 看「已是最新」；换成不存在的文件名（404）、停掉服务（连接被拒）或让文件内容不是 JSON，看「无法检查更新」。
 - 确认空闲时不联网：启动后什么都不点，`lsof -a -p <PixyDbg 的 pid> -i` 在 60 秒内应没有任何连接；只有点了菜单项才会出现一次请求（本机服务的访问日志里恰好一行 GET）。
 - 单元测试用 `URLProtocol` 桩，不需要本机服务，也不联网：`UpdateCheckerTests` 覆盖版本比较、响应解析、请求构造与各条结果路径。
+
+## 性能基线（本机）
+
+改了加载、缓存、布局相关的代码，想知道有没有变慢或变肥，用 `scripts/bench/run.sh` 在本机测一遍，和 [performance-baseline.md](performance-baseline.md) 里的数字对比。**只作本机对比，不进 CI**（macOS runner 配额紧张，虚拟机里的数字也不稳定）。
+
+```bash
+# 前提：Debug 版已构建到 .build/DerivedData-root（上面「构建步骤」里 Debug 的命令，产物是 PixyDbg）
+scripts/bench/run.sh --dry-run     # 只打印计划：不生成目录、不启动进程、不改偏好
+scripts/bench/run.sh               # 300 / 6000 / 20000 三档，约 2.5 分钟，输出 Markdown 表
+scripts/bench/run.sh 6000          # 只跑指定的档位（任意正整数，可多个）
+```
+
+- 每档：在 `/tmp` 生成 N 张图的目录 → 带 `PIXY_LOG_FILE` 启动 PixyDbg 打开它 → 每 0.5 秒采样进程 RSS、轮询日志里的 `Time taken to …` 计时行 → 「尺寸信息读完」后再观察 40 秒 → 读一次 `footprint` → 结束进程、删目录。每档最多等 120 秒，超时记 FAIL。
+- 会在屏幕上出现 PixyDbg 窗口（后台启动，一般不抢焦点），测量期间不要操作它，也不要同时跑别的重负载；运行期间用 `caffeinate -dis` 防止熄屏与系统睡眠。
+- 已有 PixyDbg 在运行时脚本拒绝启动（`xcodebuild test` 的测试宿主也是 PixyDbg，别同时跑）；不碰 `/Applications/Pixy.app`；只临时改 PixyDbg 偏好域的 `lastFolder` / `hasNormalExit`，结束（含 Ctrl-C、失败）后还原，原来没有的键会删掉。
+- 可选环境变量：`PIXY_BENCH_APP`（被测可执行文件）、`PIXY_BENCH_DOMAIN`（偏好域）、`PIXY_BENCH_TIMEOUT` / `PIXY_BENCH_SETTLE` / `PIXY_BENCH_INTERVAL`（超时、观察窗口、采样间隔）、`PIXY_BENCH_TMPDIR`、`PIXY_BENCH_VERBOSE=1`（把每个 RSS 样本打到 stderr，看内存曲线）；完整说明见脚本开头注释。
+- 脚本逻辑的回归测试：`bash scripts/test-bench-run.sh`（用假应用代替真 PixyDbg，不碰真实偏好）。
 
 ## 常见构建问题
 

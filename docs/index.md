@@ -22,6 +22,7 @@ macOS 瀑布流图片查看器（fork 自 FlowVision，展示名已更改为 Pix
 | 改大图模式 / 视频控制条 | [dev/modules.md](dev/modules.md) 的 `LargeImage.swift`、`LargeImageView.swift`、`VideoPlayerControlsView.swift` 段 |
 | 加新功能 | [dev/contributing-internal.md](dev/contributing-internal.md) 的落点规则 |
 | 编译 / 调试 | [dev/build.md](dev/build.md) |
+| 对比改动前后的加载耗时 / 内存 | [dev/performance-baseline.md](dev/performance-baseline.md) |
 | 发版 / 打 tag / 配 CI 凭据 | [dev/release.md](dev/release.md) |
 | 了解为什么某处这样设计 | [dev/architecture.md](dev/architecture.md) 与 [CHANGELOG](../CHANGELOG.md) |
 | 和上游同步 | [dev/contributing-internal.md](dev/contributing-internal.md) |
@@ -33,6 +34,7 @@ macOS 瀑布流图片查看器（fork 自 FlowVision，展示名已更改为 Pix
 | [架构总览](dev/architecture.md) | 技术栈、模块地图、核心数据流、并发模型、全局状态组织 |
 | [模块详解](dev/modules.md) | 逐目录逐文件职责与关键接口，改代码前先查这里 |
 | [构建与调试](dev/build.md) | Xcode 环境、公开依赖、构建、签名、公证和常见问题 |
+| [性能基线](dev/performance-baseline.md) | 300 / 6000 / 20000 张目录的本机加载耗时与内存基线、测量定义、复现命令（只作本机对比，不进 CI） |
 | [发布流程](dev/release.md) | 版本号规则、签名/未签名两种模式、CI Secrets、打 tag 步骤 |
 | [首发 Smoke Checklist](dev/release-smoke-checklist.md) | 每次签名公证发布前的真实产物验收清单 |
 | [修改指南与 fork 维护](dev/contributing-internal.md) | 常见改动落点、代码约定、上游同步策略 |
