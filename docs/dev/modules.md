@@ -1,8 +1,8 @@
 # 模块详解
 
-> 逐目录逐文件的一句话职责 + 关键接口。行数截至 2026-11 整理时（当前共 58 个 Swift 文件）。查找文件用 ⌘F；模块间关系见 [architecture.md](architecture.md)。
+> 逐目录逐文件的一句话职责 + 关键接口。行数截至 2026-11 整理时（当前共 60 个 Swift 文件）。查找文件用 ⌘F；模块间关系见 [architecture.md](architecture.md)。
 
-## 根级（3 文件）
+## 根级（6 文件）
 
 ### AppDelegate.swift（1281 行）
 应用生命周期入口。
@@ -11,6 +11,7 @@
 - `application(_:openFiles:)` — Finder 双击入口：目录打开 or 文件大图打开
 - `openImageInMainWindow` / `openImageInTargetWindow` — 写 `publicVar.openFromFinderPath` 触发定位
 - `menuNeedsUpdate` / `validateMenuItem` — 主菜单动态构建
+- `isCheckingForUpdates` / `validateMenuItem` — 「检查更新…」进行中的标志（主线程读写）；`validateMenuItem` 在**没有窗口时**也让这个菜单项可用（其余项此时一律置灰），检查进行中置灰
 - `showQuickSearch` — 编辑菜单「快速搜索（Q）」入口，转发 `ViewController.startQuickSearch()`；菜单项不注册无修饰键的 key equivalent（避免抢走文本框里的 q），`validateMenuItem` 在大图模式或搜索浮层打开时置灰
 
 ### WindowController.swift（2052 行）
@@ -34,6 +35,12 @@
   - `afterFinishLoad` — 决定启动目录 → 启动后台线程
   - readInfo 主循环回到主线程后：≤5000 文件保持位置路径在最后一次 `reloadData` 后调用 `restoreScrollAnchorIfReady`；清空重插路径（>5000）只在最后一批 `insertItems` 之后、下一个 runloop 调用（插入中途强制布局并滚动会让网格空白，见 session-log 2026-11-17）
 
+### AppDelegate+UpdateCheck.swift
+应用菜单「检查更新…」（Pixy 菜单，「关于 Pixy」之后）的动作与结果界面。
+- `checkForUpdates(_:)` — 仅在用户点击时调用：标志 `isCheckingForUpdates` 置位（防叠加：进行中菜单项置灰，动作入口再兜底一次，所以不会有第二个请求或第二个对话框）→ `UpdateChecker.check` 在后台发**一个**请求 → 回主线程 `presentUpdateCheckResult`，**对话框关闭后**才复位标志（对话框 `runModal` 期间动作被再次触发也会被忽略）。不在 `applicationDidFinishLaunching`、定时器、窗口激活等任何地方被调用。
+- `presentUpdateCheckResult` — 三种 `NSAlert`：有新版（标题含新版本号；正文含当前版本、`brew upgrade --cask pixy` 与「也可从发布页下载」；按钮顺序 打开发布页〔默认〕/ 复制命令〔写通用剪贴板〕/ 好〔Esc〕）、已是最新（标题「没有可用更新」类，正文含当前版本号）、失败（离线 / 超时 / 非 200 / 响应异常 / 链接不可信统一一条「无法检查更新，请检查网络后稍后重试」；具体原因只进应用内日志）。对话框期间与其它 `showInformation` 一样暂停主窗口键盘事件。
+- 文案：`update-*` 标识符 key（`value:` 带英文回退，`Localizable.xcstrings` 补齐 17 种语言），菜单标题在 `mul.lproj/Main.xcstrings`（`cfu-Mn-It1.title`）；按钮「好」复用已有的 `OK`。
+
 ### ViewController+SidebarCard.swift
 - `applySidebarCardStyle` — 目录树与 scroll/clip 背景透明，共享窗口背后动态 sidebar 材质，目录顶部根据 window.contentLayoutRect 避让工具栏，再保留 15pt 内容间距；关闭横纵滚动条，保留滚动容器。
 - `applyContentCardStyle` — 侧边栏和内容圆角外侧共享 behindWindow/sidebar 材质，背景位于 NSSplitView 同级，不参与分栏布局；内容面采用 leading 侧 8pt 填充圆角，并让主滚动区避开透明标题栏下方的工具栏保护带。
@@ -46,7 +53,7 @@
 - `disableToolbarBlend` — 退出大图模式：保持两段式结构（透明标题栏），只隐藏底部标题胶囊。
 - `setupBottomTitleBar` / `makeBottomTitleBar` — 在内容区底部中央生成「文件名 · 张数」胶囊，张数做弱化处理，浮在毛玻璃上。
 
-## Common/（13 文件）
+## Common/（14 文件）
 
 ### DataModel.swift（1301 行）
 核心数据结构，全部基于 BTree 有序 Map。
@@ -92,6 +99,7 @@
 | TempVariable.swift（13） | 编译期开关：`EDIT_FEATURE_ENABLED=false`、SDK_VERSION |
 | RefCode.swift（38） | FSEvents 参考实现，未接入主链路（主链路用 DispatchSourceFileSystemObject） |
 | AccessibilityLabels.swift | 辅助功能标签的纯函数（无 AppKit 依赖，便于单测）：`kind(isDirectory:type:)` 把 `FileModel` 的 `isDir` / `type` 归成文件夹 / 图像 / 视频 / 其它；`typeWord` 取 `Folder`/`Image`/`Video`/`Other` 这批已有本地化 key（与 `setWindowTitle` 统计文案同源，不新增文案）；`thumbnail(name:kind:)` 与 `largeImage(name:kind:)` 返回「文件名, 类型词」（文件名原样保留、不截断，空名或全空白只返回类型词）；`sidebar(name:role:isAllTagsEntry:)` 按 `SidebarNodeRole`：分隔线 / 根节点返回 nil，标签条目追加「标签」（名称为空时只有「标签」；「所有标签…」入口 `isAllTagsEntry` 为真时只用名称，调用方按 `fullPath == "file:///VirtualFinderTagsFolder/"` 判断——不能用 `entryID`，颜色标签也是 "tags"；也不能用 `fileURL`，标签节点恒为 nil），其余条目只用名称、空名返回 nil（卷没有合适的已有类型词，`Volume` 在中文里是「音量」）。接入点：`CustomCollectionViewItem.configureWithImage`、`CustomOutlineViewManager` 的 `viewFor`、`LargeImageView.file` 的 `didSet` |
+| UpdateChecker.swift | 「检查更新…」的版本比较、请求与响应解析（只 import Foundation）。**全工程唯一出现 `URLSession` / `URLRequest` 的文件**，也是应用唯一的联网点：只在用户点菜单时被调用，没有启动 / 定时 / 后台检查，没有自动更新。`SemanticVersion`：解析 `v0.0.6` / `0.0.6` / `1.2`（缺的补 0）/ `0.0.7-rc1` / `0.0.6+2026112601`，`+元数据`（含应用 build 号 YYYYMMDDNN）解析后丢弃、不参与比较，4 段以上 / 空串 / 非数字 / 负号 / 空白 / 前导尾随垃圾返回 nil，预发布后缀按 semver 优先级比较且低于同号正式版。`parseLatestRelease` 取 `tag_name`（须能解析）与 `html_url`；空数据、超过 `maxResponseBytes`（1 MiB）、非 JSON 对象、缺字段 / 类型不对、`draft` / `prerelease` 为 true 都算失败；`html_url` 必须是 `https://github.com`（无账号、无端口）才算可信（`isTrustedReleaseURL`），否则 `.untrustedReleaseURL`，防止被篡改的响应诱导「打开发布页」去任意地址。`makeRequest`：**单次 GET** `api.github.com/repos/natinli/Pixy/releases/latest`，请求头只设 `Accept: application/vnd.github+json` 与 `User-Agent: Pixy/<主.次.修订>`（实测线上还有系统网络层自动加的 `Host`、`Accept-Encoding`、`Accept-Language`、`Connection`，不含 cookie / 鉴权 / build 号 / 任何用户标识），`timeoutInterval = 10`，无 query / body。`makeSessionConfiguration`：`ephemeral`，cookie / 凭据 / 缓存存储全置 nil，`reloadIgnoringLocalCacheData`，请求超时 10 秒、总时长 20 秒、`waitsForConnectivity = false`（离线立即失败）。`check(currentVersion:endpoint:allowLoopbackReleaseURL:session:completion:)`：当前版本读不出来就不发请求直接 `.failed(.invalidCurrentVersion)`；否则发一个请求、无重试，结果 `UpdateCheckResult`（`.upToDate` 含当前版本 ≥ 最新、`.updateAvailable(current:latest:releaseURL:)`、`.failed(UpdateCheckFailure)`），回调在后台队列，`session` 由本次检查接管（发出后 `finishTasksAndInvalidate`，每次传新会话）；`URLSession` 注入使 `URLProtocol` 桩测试成为可能。**仅 `#if DEBUG`**：环境变量 `PIXY_UPDATE_URL` 覆盖请求地址并放宽 `html_url` 校验到 127.0.0.1 / localhost（见 [build.md](build.md#检查更新的本机验证)）；这段代码与字符串编译不进 Release（`strings` 实测 0 处）。接入点：`AppDelegate+UpdateCheck.swift`；`PixyTests/UpdateCheckerTests.swift`（41 个用例）覆盖版本解析 / 比较、响应解析与链接校验、请求构造与会话配置、桩网络下的各条路径并断言一次检查恰好 1 个请求 |
 | ScrollAnchorMath.swift | 浏览位置锚点里不依赖 AppKit 的纯数学（只 import Foundation + CoreGraphics，便于用合成布局做模型测试）：`pickAnchor(selected:sticky:visibleRect:frameOf:visibleCandidates:)` 决定「选哪一项当锚点」，顺序为 在顶部（`visibleRect.minY <= 0.5`）返回 nil（只保留选中）→ 可视区内第一个选中项（调用方传升序）→ 仍与可视区相交的 sticky 项（即 `PublicVar.lastZoomAnchorFile`，身份校验由调用方做）→ 顶部项（中点不低于可视区顶边的项里 `minY` 最小、并列取 index 小的；一个都没有就退回最靠上的相交项）；高度 ≤ 0 的 frame 一律忽略，`frameOf` 取不到 frame（含越界）的项忽略。`frameOf` / `visibleCandidates` 用闭包而不是数组，是为了与原实现保持同样的惰性：命中选中项或 sticky 后不会再去问布局可视区里有哪些项，也不会为整个选中集合取 frame。`targetScrollTop(anchorMinY:anchorHeight:offsetInViewport:oldViewportHeight:newViewportHeight:contentHeight:insetTop:)` 算视口要滚到的 y（已减 `insetTop`）：可视区高度变化超过 0.5 时偏移按比例缩放 → 夹到 `[0, 新可视区高度 − 锚点高度]` → 目标顶边夹到 `[0, max(0, 内容高度 − 新可视区高度)]`。接入点：`LayoutManagement.swift` 的 `makeScrollAnchor`、`applyAnchorScroll`（AppKit 层只负责取 frame / 可视区、调用、滚动）；`PixyTests/ScrollAnchorMathTests.swift` 用合成布局（`SyntheticLayout`）与最小滚动视图模型（`SyntheticViewport`）测 |
 
 ## ViewControllerExtension/（16 文件，全是 ViewController extension）
@@ -167,7 +175,7 @@
 
 ## 工程配置要点
 
-- `PixyTests/`：单元测试 target（宿主为 Pixy，仅 Debug）。`SidebarNamingTests`、`DeleteConfirmPolicyTests`、`TreeViewModelURLTests`、`SortKeyTests`、`AccessibilityLabelsTests`、`ScrollAnchorMathTests`，共 83 个用例；pbxproj 里没有自动同步文件夹，新增测试文件用 `scripts/pbxproj-add-file.py <路径> --target tests` 登记进 `PixyTests` 组与 Sources 阶段（见 [build.md](build.md#新增源文件)）。命令见 [build.md](build.md#单元测试)
+- `PixyTests/`：单元测试 target（宿主为 Pixy，仅 Debug）。`SidebarNamingTests`、`DeleteConfirmPolicyTests`、`TreeViewModelURLTests`、`SortKeyTests`、`AccessibilityLabelsTests`、`ScrollAnchorMathTests`、`UpdateCheckerTests`，共 124 个用例；pbxproj 里没有自动同步文件夹，新增测试文件用 `scripts/pbxproj-add-file.py <路径> --target tests` 登记进 `PixyTests` 组与 Sources 阶段（见 [build.md](build.md#新增源文件)）。命令见 [build.md](build.md#单元测试)
 
 - 部署目标 **macOS 11.0**（xcodeproj 4 处配置一致）
 - SPM 依赖全部来自公开仓库，版本由 `FlowVision.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved` 锁定：SDWebImageWebPCoder、SDWebImage、libwebp-xcode、**BTree**、**Settings**。clone 后无需在仓库外准备任何本地包。

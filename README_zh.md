@@ -91,6 +91,13 @@ brew install --cask natinli/pixy/pixy
 
 完整的首次启动说明见 [docs/user/installation.md](docs/user/installation.md)。
 
+### 更新与联网
+
+Pixy 不会自己检查更新。只有你点击菜单 **Pixy → 检查更新…** 时才会联网：向 `api.github.com` 发一次请求
+（读取 `natinli/Pixy` 的最新 release，不带账号、cookie 或任何标识），然后告诉你有没有新版，
+并给出 `brew upgrade --cask pixy` 命令。没有启动时检查、定时检查或后台检查，也没有自动更新；
+其余功能全部在本机运行。
+
 ### 从源码编译
 
 ```bash

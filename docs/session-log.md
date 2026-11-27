@@ -4,6 +4,44 @@
 
 ## 2026-11-27
 
+### [Claude] · 工程升级 子任务 3：手动「检查更新…」（Trellis 任务 11-26-pixy-engineering-upgrade · pixy-up-update-check）
+
+- TL;DR：应用菜单「关于 Pixy」之后新增「检查更新…」。**只在用户点击时联网一次**（用户 11-26 拍板，不做启动 / 定时 / 后台检查），对比 GitHub `releases/latest`，有新版时给出 `brew upgrade --cask pixy` 并提供「打开发布页」「复制命令」。这是应用第一次联网。提交 `3455f65`（代码 + 文案 + 41 个新单测，PixyTests 共 124 个全过）。**未发版**。
+
+#### 做了什么
+
+- `Common/UpdateChecker.swift`：`SemanticVersion`（主.次.修订，`v` 前缀、缺位补 0、预发布低于同号正式版、`+元数据` 与 build 号不参与比较，4 段以上 / 非数字 / 空白 / 溢出一律 nil）、请求构造、响应解析。**全工程唯一出现 `URLSession` / `URLRequest` 的文件**。
+- 请求：单次 GET `https://api.github.com/repos/natinli/Pixy/releases/latest`，头只设 `Accept` 与 `User-Agent: Pixy/<版本>`；ephemeral 会话（不存 cookie / 缓存 / 凭据）、单请求 10 秒超时、总时长 20 秒、离线立即失败、无重试、不带 build 号或任何用户标识。系统网络层自动附带的 `Host`、`Accept-Encoding`、`Accept-Language`、`Connection` 没有压掉，文档如实写明。
+- 响应里的 `html_url` 只有 `https://github.com`（无账号、无端口）才会作为「打开发布页」的目标，其它一律当失败；响应体上限 1 MB。
+- 仅 `#if DEBUG` 支持环境变量 `PIXY_UPDATE_URL` 覆盖地址，用于本机验证；Release 二进制里 `strings` 查为 0。
+- 菜单与对话框：`Main.storyboard` 新增菜单项，动作在新文件 `AppDelegate+UpdateCheck.swift`（AppDelegate 已有 1281 行，所以没往里堆），`AppDelegate.swift` 只加一个进行中标志和 `validateMenuItem` 里的提前返回。三种对话框：新版（标题含新版本号，正文含当前版本与命令，按钮「打开发布页」默认、「复制命令」、「好」）、已是最新、无法检查更新（离线 / 超时 / 非 200 / 响应异常 / 链接不可信都只显示同一条泛化提示，具体原因只进日志）。检查进行中菜单项置灰，标志保持到对话框关闭。
+- 文案：9 个标识符式 key + 英文 `value:` 回退，Localizable.xcstrings 补全 17 种语言；菜单标题走 `mul.lproj/Main.xcstrings`。
+- 文档：README / README_zh / SECURITY / faq / installation / usage 如实写明「只在点击时联网、单次 GET、发往 api.github.com、GitHub 作为服务端必然看得到来源 IP、没有自动更新」；faq 里原先的「应用有网络请求吗？没有」已更正；build.md 加了 Debug 本机三路径验证办法；CHANGELOG、modules、architecture 同步。
+- 实现由 trellis-implement 子 agent 完成，审查与变异复核由 trellis-check 子 agent 完成，界面与空闲联网由主会话验证。
+
+#### 验证
+
+- **单测**：版本比较（`v` 前缀、位数不同、预发布、元数据、约 40 种非法输入、build 号不参与）、JSON 解析、请求构造（方法、两个头、超时 10、无 body、无 cookie / 鉴权）、用 `URLProtocol` 桩验证 `check`（新版 / 同版 / 更旧 / 404 / 500 / 垃圾 / 网络错误 / 超时 / 空响应，且断言一次检查恰好 1 个请求）。桩只通过会话配置注入，没有 `registerClass`，不污染其它测试。
+- **变异**：预发布判断 → 4 个红（`testPrereleaseIsLowerThanTheSameRelease` 等）；「当前更新也算已是最新」→ 2 个红（`testOlderLatestIsStillUpToDate`、`testRunningANewerBuildThanLatestIsUpToDate`）；host 校验改成 `contains` → `testReleasePageMustBeHTTPSGitHub` 红；超时 10 → 100 → 11 个红。还原后与备份逐字节一致。
+- **AC-3.1 空闲无联网**：PixyDbg 启动后 5 秒与空闲 62 秒，`lsof -a -p <pid> -i` 均无任何 inet 连接；本机假服务器日志 0 条请求。
+- **三条路径（界面，PixyDbg + 本机假服务器 + `PIXY_UPDATE_URL`）**：新版 → 对话框标题「Pixy 0.0.7 is available」，正文含 `brew upgrade --cask pixy`，三个按钮；已是最新 → 「You’re up to date」；目标端口没有服务 → 「Unable to Check for Updates」。每次服务器恰好收到 1 个 GET，请求头为 `Accept`、`User-Agent: Pixy/0.0.6`，加 `Host`、`Accept-Language`、`Accept-Encoding`、`Connection`。
+- **复制命令**：点按钮后剪贴板内容变为 `brew upgrade --cask pixy`。**检查进行中连按两次**（假服务器延迟 6 秒）：只收到 1 个请求、只出 1 个对话框；关闭对话框后再点一次可以再检查（共 2 个请求）。
+- 其它：Debug 与 Release 构建、`check-localization.py`（436 个字面量 key、17 种语言）、`check-public-hygiene.sh`、`git diff --check`、`xmllint --noout` storyboard 均通过。
+
+#### 审查中发现并修掉的
+
+- **文案**（检查 agent 逐语言读了 17 种）：ar「已是最新」句首是拉丁字母会让段落按 LTR 排、句号落错一侧，改成阿拉伯词开头；ar 的 Terminal 改为项目已有译法「الطرفية」；zh-Hant 「拷貝指令」「打開發布頁面」改成项目里一贯的「複製指令」「開啟發布頁面」；de 菜单标题去掉省略号前多余空格。
+- **进行中标志过早复位**：原先在 `runModal` 之前就复位，对话框期间若动作被再次触发会叠第二个请求和对话框；改成 `defer`，对话框关闭后才复位（界面上已重新验证）。
+- **隐私陈述**：补了「GitHub 作为服务端必然看得到来源 IP」，SECURITY 与 faq 各一句。
+- 实现 agent 额外加了 `AppDelegate+UpdateCheck.swift`（设计里没有），因为 AppDelegate 已经很长；`validateMenuItem` 的提前返回必须放在「没有窗口就把其它菜单项置灰」的 guard 之前，否则关掉所有窗口后这个菜单项会变灰。
+
+#### 未验证 / 取舍
+
+- 「打开发布页」没有在界面上点（会拉起浏览器抢用户的焦点）；Esc 绑定「好」没测；阿拉伯语在真实 NSAlert 里的 RTL 渲染没看过，只按 Unicode 双向规则推演；母语者级别的措辞润色没做；没有对真实 `api.github.com` 发过请求（只用了本机回环与桩）。
+- 关掉最后一个窗口时调试版会直接退出，所以「无窗口时菜单项仍可点」无法在界面上测，由代码里的提前返回保证。
+- **`Accept-Language` 会让 GitHub 看到界面语言偏好**，我没有压掉（设计只要求不带用户标识，通用头除外），文档里已写明；若想去掉，改成固定值很小，等用户定。
+- 测试中我往用户剪贴板写过占位值，现在里面是 `brew upgrade --cask pixy`。
+
 ### [Claude] · 工程升级 子任务 2：滚动位置回归兜底（Trellis 任务 11-26-pixy-engineering-upgrade · pixy-up-anchor-tests）
 
 - TL;DR：把 11-17 以来修过六次的「丢浏览位置」逻辑里纯数学的两块——「选哪一项当锚点」「视口滚到哪」——抽成 `Common/ScrollAnchorMath.swift`，加了 46 个模型测试（`PixyTests` 共 83 个全过）。**用户可见行为不变**，界面回归场景重放一遍结果与 11-26 记录一致。提交 `ece174b`（代码 + 测试）。**未发版**。

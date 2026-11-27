@@ -97,6 +97,14 @@ then drag Pixy into Applications.
 
 Full first-launch guide: [docs/user/installation.md](docs/user/installation.md).
 
+### Updates and network access
+
+Pixy never checks for updates on its own. The only time it uses the network is when you choose
+**Pixy → Check for Updates…**: it then sends a single request to `api.github.com` (the latest
+release of `natinli/Pixy`; no account, cookies or identifiers) and tells you whether a newer
+version exists, along with the `brew upgrade --cask pixy` command. There is no launch-time,
+scheduled or background checking, and no automatic update. Everything else runs locally.
+
 ### Building from source
 
 ```bash

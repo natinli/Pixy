@@ -11,12 +11,14 @@
   - **BTree**、**Settings**——公开 Swift Package，clone 后无需在仓库外准备本地包
 - FFmpegKit：`ffmpegkit.xcframework` 嵌入 Bundle，`dlopen` 懒加载，未加载时全部 FFmpeg 功能静默降级
 - 并发模型：传统 GCD / OperationQueue / 常驻 Thread 为主，少量 `Task{}`；自建 `TaskPool` 管理后台任务
+- 联网：只有菜单「检查更新…」一个入口（`Common/UpdateChecker.swift`，全工程唯一出现 `URLSession` / `URLRequest` 的文件），仅在用户点击时发一次 GET；无启动 / 定时 / 后台检查，无自动更新
 
 ## 模块地图
 
 ```
-FlowVision/Sources/（58 个 Swift 文件，约 3.36 万行）
+FlowVision/Sources/（60 个 Swift 文件，约 3.5 万行）
 ├── AppDelegate.swift          应用入口：生命周期、窗口创建、Finder 打开分发、菜单
+├── AppDelegate+UpdateCheck.swift  菜单「检查更新…」：点击时调 UpdateChecker，NSAlert 呈现三种结果
 ├── WindowController.swift     单窗口壳：工具栏、标题栏、全屏、窗口状态持久化
 ├── WindowController+ToolbarBlend.swift  大图模式透明标题栏融合与底部标题胶囊
 ├── ViewController.swift       核心中枢（~2500 行）：持有数据/布局/线程池，协调全链路
@@ -51,7 +53,7 @@ FlowVision/Sources/（58 个 Swift 文件，约 3.36 万行）
 │   ├── FileInfoWindow.swift   文件信息窗口
 │   ├── ImageEditingView.swift 图片标注编辑（EDIT_FEATURE_ENABLED 门控，默认关）
 │   └── …（路径条、收藏夹弹窗、手势轨迹浮层等）
-├── Common/                    模型与工具（13 个文件）
+├── Common/                    模型与工具（14 个文件）
 │   ├── DataModel.swift        核心数据结构：SortKey/FileModel/DirModel/DatabaseModel/TaskPool（BTree Map）
 │   ├── ImageProcess.swift     图像解码/缩放/缩略图/元数据 + LargeImageProcessor 缓存去重（最大工具文件）
 │   ├── GlobalVariable.swift   globalVar 单例：扩展名白名单、设置项、跨窗口状态
@@ -64,7 +66,8 @@ FlowVision/Sources/（58 个 Swift 文件，约 3.36 万行）
 │   ├── TempVariable.swift     编译期开关（EDIT_FEATURE_ENABLED、SDK_VERSION）
 │   ├── RefCode.swift          FSEvents 参考实现（未接入主链路）
 │   ├── AccessibilityLabels.swift  辅助功能标签纯函数（缩略图/侧栏/大图的「名称, 类型」）
-│   └── ScrollAnchorMath.swift 浏览位置锚点的纯数学（选哪一项当锚点、滚到哪），LayoutManagement 调用，有模型测试
+│   ├── ScrollAnchorMath.swift 浏览位置锚点的纯数学（选哪一项当锚点、滚到哪），LayoutManagement 调用，有模型测试
+│   └── UpdateChecker.swift    版本比较 + releases/latest 请求与解析（全工程唯一联网点，仅手动触发），有 URLProtocol 桩测试
 └── SettingsViews/             设置面板（6 文件，基于 sindresorhus/Settings）
 ```
 

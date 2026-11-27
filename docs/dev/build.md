@@ -154,6 +154,31 @@ CI 分成两个工作流，区别在于要不要占用 macOS runner：
 - `Log.swift` 的 `log(_:level:)` 是全局日志入口；新增日志使用该函数。
 - 内存问题关注 `MemoryManagement.swift` 的 footprint 报告与 memMonitorThread 行为。
 
+## 检查更新的本机验证
+
+菜单「检查更新…」是应用唯一的联网入口，只在用户点击时发**一次** GET（代码全在 `Common/UpdateChecker.swift`，详见 [modules.md](modules.md)）。为了不碰真实的 GitHub 也能验证三条路径，**Debug 构建**支持环境变量 `PIXY_UPDATE_URL` 覆盖请求地址，并把响应里 `html_url` 的校验放宽到 `127.0.0.1` / `localhost`（「打开发布页」平时只接受 `https://github.com`）。这个开关用 `#if DEBUG` 包起来，Release 构建里没有这段代码，也没有这个字符串：
+
+```bash
+strings .build/DerivedData-release/Build/Products/Release/Pixy.app/Contents/MacOS/Pixy | grep -c PIXY_UPDATE_URL   # 必须是 0
+```
+
+三条路径的做法（数据放 `/tmp`，不要放 `~/Documents`）：
+
+```bash
+mkdir -p /tmp/pixy-update && cd /tmp/pixy-update
+echo '{"tag_name":"v9.9.9","html_url":"http://127.0.0.1:18765/release/v9.9.9"}' > new.json   # 有新版
+echo '{"tag_name":"v0.0.1","html_url":"http://127.0.0.1:18765/release/v0.0.1"}' > old.json   # 已是最新（比当前版本低即可）
+python3 -m http.server 18765 --bind 127.0.0.1 &                                              # 不起服务 / 请求不存在的文件 = 失败路径
+
+# 回到仓库根目录，用 Debug 产物（二进制名 PixyDbg）带环境变量启动，再点菜单 Pixy → 检查更新…
+PIXY_UPDATE_URL=http://127.0.0.1:18765/new.json \
+  .build/DerivedData-root/Build/Products/Debug/PixyDbg.app/Contents/MacOS/PixyDbg
+```
+
+- 把地址换成 `old.json` 看「已是最新」；换成不存在的文件名（404）、停掉服务（连接被拒）或让文件内容不是 JSON，看「无法检查更新」。
+- 确认空闲时不联网：启动后什么都不点，`lsof -a -p <PixyDbg 的 pid> -i` 在 60 秒内应没有任何连接；只有点了菜单项才会出现一次请求（本机服务的访问日志里恰好一行 GET）。
+- 单元测试用 `URLProtocol` 桩，不需要本机服务，也不联网：`UpdateCheckerTests` 覆盖版本比较、响应解析、请求构造与各条结果路径。
+
 ## 常见构建问题
 
 | 现象 | 原因与解决 |

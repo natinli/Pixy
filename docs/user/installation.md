@@ -8,7 +8,7 @@
 
 ## 隐私与安全性
 
-Pixy 的功能在本机运行，不需要联网账号。首次访问图片目录时，macOS 会按目录请求文件权限；只授予你需要浏览的位置即可。
+Pixy 的功能在本机运行，不需要联网账号。唯一的联网动作是你点击菜单「检查更新…」时向 GitHub 发一次请求，没有后台、启动时或定时联网（详见 [使用说明](usage.md)）。首次访问图片目录时，macOS 会按目录请求文件权限；只授予你需要浏览的位置即可。
 
 ## 方式一：Homebrew（推荐）
 
@@ -16,7 +16,7 @@ Pixy 的功能在本机运行，不需要联网账号。首次访问图片目录
 brew install --cask natinli/pixy/pixy
 ```
 
-升级用 `brew upgrade --cask pixy`，卸载用 `brew uninstall --cask pixy`；加上 `--zap` 会一并删掉偏好设置、缓存和搜索索引，回到干净状态。
+升级用 `brew upgrade --cask pixy`（想知道有没有新版，可以点菜单栏 Pixy → 「检查更新…」，它会告诉你并给出这条命令），卸载用 `brew uninstall --cask pixy`；加上 `--zap` 会一并删掉偏好设置、缓存和搜索索引，回到干净状态。
 
 cask 来自个人 tap [natinli/homebrew-pixy](https://github.com/natinli/homebrew-pixy)。Pixy 没有进入官方 `homebrew/cask`，原因是官方库要求 cask 能通过 Gatekeeper 检查，而未签名的 Pixy 通不过——详见 [发布流程](../dev/release.md)。
 
