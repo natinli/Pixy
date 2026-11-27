@@ -65,7 +65,10 @@ class LargeImageView: NSView {
         editingView.setImageFrame(imageView.frame)
     }
     
-    var file: FileModel = FileModel(path: "", ver: 0)
+    var file: FileModel = FileModel(path: "", ver: 0) {
+        // 赋值点有两处（changeLargeImage、switchFolder 里 Finder 打开后改为目录内打开）；辅助功能标签跟着 file 走，不在别处重复维护。
+        didSet { updateAccessibilityLabel() }
+    }
     private var lastDragLocation: CGPoint?
     private var hasZoomedByWheel: Bool = false
     var longPressZoomTimer: Timer?
@@ -107,12 +110,39 @@ class LargeImageView: NSView {
         commonInit()
     }
     
+    private func updateAccessibilityLabel() {
+        let name = URL(string: file.path)?.lastPathComponent ?? ""
+        let kind = AccessibilityLabels.kind(isDirectory: file.isDir, type: file.type)
+        setAccessibilityLabel(AccessibilityLabels.largeImage(name: name, kind: kind))
+    }
+
+    /// imageView 没有文字描述，由容器的标签代替；NSImageView 上 setAccessibilityElement(false) 无效
+    /// （实测辅助功能树里仍有一个覆盖整个大图的无名 AXImage：暴露出来的是它的 cell，视图本身默认就不是元素），
+    /// 所以在容器上把它从子元素里剔掉。控制条等其它子视图照常暴露。
+    /// imageView has no text description and the container's label stands in for it; setAccessibilityElement(false) does nothing on
+    /// NSImageView (an unnamed AXImage covering the whole large view stayed in the tree: what is exposed is its cell, the view itself is
+    /// not an element by default), so it is filtered out of the children here.
+    override func accessibilityChildren() -> [Any]? {
+        // 不能过滤 super 的结果：它返回的是已展开的元素，NSImageView 以它的 cell（NSImageCell）出现而不是视图本身，
+        // `!== imageView` 匹配不到（独立小程序实测）。所以从 subviews 自己筛，再用 unignoredChildren 展开：
+        // 控制条、提示浮层这些不是辅助功能元素的容器视图，要换成里面真正的元素，和系统默认实现一致。
+        // Can't filter super's result: it is already flattened and a control shows up as its cell (NSImageCell), never as the NSImageView,
+        // so `!== imageView` matches nothing (verified in a standalone probe). Filter subviews instead, then run unignoredChildren so that
+        // container views that are not elements themselves (controls bar, overlays) are replaced by the elements inside, like the default does.
+        NSAccessibility.unignoredChildren(from: subviews.filter { !$0.isHidden && $0 !== imageView })
+    }
+
     private func commonInit() {
         imageView = CustomLargeImageView(frame: self.bounds)
         imageView.imageScaling = .scaleAxesIndependently
         imageView.wantsLayer = true
         imageView.animates=true
         self.addSubview(imageView)
+
+        // 辅助功能：大图视图整体作为一个「文件名, 类型」元素（图片与视频共用；视频播放时 imageView 是隐藏的，
+        // 所以标签挂在容器上而不是 imageView 上）。控制条等子视图仍按原样暴露，imageView 见 accessibilityChildren()。
+        setAccessibilityElement(true)
+        setAccessibilityRole(.group)
 
         videoControlsView = VideoPlayerControlsView(frame: .zero)
         videoControlsView.largeImageView = self

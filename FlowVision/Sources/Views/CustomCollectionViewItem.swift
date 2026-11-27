@@ -46,6 +46,18 @@ class CustomCollectionViewItem: NSCollectionViewItem {
         view.layer?.cornerRadius = 5.0
         view.layer?.masksToBounds = false
         
+        // 辅助功能：整个单元格作为一个「名称, 类型」元素暴露（标签在 configureWithImage 里随文件设置）。
+        // 内部的缩略图、文件名文本框、视频角标都在重复同一信息（缩略图没有文字描述，文件名可能被设置隐藏，
+        // 角标的描述是写死的英文 "Video"），所以清空子元素。NSImageView 上 setAccessibilityElement(false) 无效
+        // （实测辅助功能树里仍有无名的 AXImage），必须在父视图上用 setAccessibilityChildren。
+        // 角色用 .cell：缩略图是集合里的单元格，且 AXGroup 容器不会出现在多数自动化工具的元素树里，无法按名称定位。
+        // The whole cell is one "name, type" element; the thumbnail image, the filename field and the video badge only repeat it,
+        // so the children are cleared. setAccessibilityElement(false) does nothing on NSImageView (an unnamed AXImage stayed in the tree),
+        // hence setAccessibilityChildren on the parent. Role .cell because AXGroup containers do not show up in most automation trees.
+        view.setAccessibilityElement(true)
+        view.setAccessibilityRole(.cell)
+        view.setAccessibilityChildren([])
+
         // 图像容器
         // Image container
         imageViewObj.imageScaling = .scaleAxesIndependently
@@ -416,6 +428,7 @@ class CustomCollectionViewItem: NSCollectionViewItem {
         self.file=fileModel
         
         setTooltip()
+        updateAccessibilityLabel()
         
         imageNameField.stringValue = viewController.publicVar.profile.isShowThumbnailFilename ? URL(string:file.path)!.lastPathComponent : ""
 
@@ -567,6 +580,14 @@ class CustomCollectionViewItem: NSCollectionViewItem {
         }
     }
     
+    /// 名称取自文件路径（URL.lastPathComponent 已解码），不读 imageNameField：「显示缩略图文件名」关闭时它是空串。
+    /// 目录与文件同一条路径。`isSelected` 由 NSCollectionView 自带的 AXSelected 表达，这里不重复。
+    private func updateAccessibilityLabel() {
+        let name = URL(string: file.path)?.lastPathComponent ?? ""
+        let kind = AccessibilityLabels.kind(isDirectory: file.isDir, type: file.type)
+        view.setAccessibilityLabel(AccessibilityLabels.thumbnail(name: name, kind: kind))
+    }
+
     func setTooltip(){
         guard let viewController = getViewController(collectionView) else { return }
         if globalVar.collectionViewItemShowTooltip && !viewController.publicVar.isInLargeView {

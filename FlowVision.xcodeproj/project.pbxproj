@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1E67ADB5A08ECF4E00E76236 /* AccessibilityLabels.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94C06DB27B48E341F16F60E /* AccessibilityLabels.swift */; };
+		94C33FAED57F500ECF14F24D /* AccessibilityLabelsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BF545629D9A28082F944847 /* AccessibilityLabelsTests.swift */; };
 		B7E57A020000000000000002 /* SidebarNamingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E57A010000000000000002 /* SidebarNamingTests.swift */; };
 		B7E57A020000000000000003 /* DeleteConfirmPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E57A010000000000000003 /* DeleteConfirmPolicyTests.swift */; };
 		B7E57A020000000000000004 /* TreeViewModelURLTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7E57A010000000000000004 /* TreeViewModelURLTests.swift */; };
@@ -106,11 +108,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		2BF545629D9A28082F944847 /* AccessibilityLabelsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityLabelsTests.swift; sourceTree = "<group>"; };
 		B7E57A010000000000000001 /* PixyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PixyTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7E57A010000000000000002 /* SidebarNamingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarNamingTests.swift; sourceTree = "<group>"; };
 		B7E57A010000000000000003 /* DeleteConfirmPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeleteConfirmPolicyTests.swift; sourceTree = "<group>"; };
 		B7E57A010000000000000004 /* TreeViewModelURLTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TreeViewModelURLTests.swift; sourceTree = "<group>"; };
 		B7E57A010000000000000005 /* SortKeyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SortKeyTests.swift; sourceTree = "<group>"; };
+		B94C06DB27B48E341F16F60E /* AccessibilityLabels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccessibilityLabels.swift; sourceTree = "<group>"; };
 		E00E13C3056A4910B242187C /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = "<group>"; };
 		F70368E72BF609F300155F36 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		F70F9FC02BAFE7B300C50CDD /* Common.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
@@ -219,6 +223,7 @@
 				B7E57A010000000000000003 /* DeleteConfirmPolicyTests.swift */,
 				B7E57A010000000000000004 /* TreeViewModelURLTests.swift */,
 				B7E57A010000000000000005 /* SortKeyTests.swift */,
+				2BF545629D9A28082F944847 /* AccessibilityLabelsTests.swift */,
 			);
 			path = PixyTests;
 			sourceTree = "<group>";
@@ -237,6 +242,7 @@
 				F76E2EFD2C3B765C0031B0B4 /* Log.swift */,
 				F73865DA2C37BC1500837FE4 /* RefCode.swift */,
 				F7AAA8BC2D9BD1ED007CE330 /* VideoProcess.swift */,
+				B94C06DB27B48E341F16F60E /* AccessibilityLabels.swift */,
 			);
 			path = Common;
 			sourceTree = "<group>";
@@ -548,6 +554,7 @@
 				B7E57A020000000000000003 /* DeleteConfirmPolicyTests.swift in Sources */,
 				B7E57A020000000000000004 /* TreeViewModelURLTests.swift in Sources */,
 				B7E57A020000000000000005 /* SortKeyTests.swift in Sources */,
+				94C33FAED57F500ECF14F24D /* AccessibilityLabelsTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -611,6 +618,7 @@
 				F74D554E2F0E459C00C9AB85 /* WindowManagement.swift in Sources */,
 				F73865D32C37B97500837FE4 /* CustomCollectionView.swift in Sources */,
 				F74D555E2F0E52F800C9AB85 /* ArrowKeyLocate.swift in Sources */,
+				1E67ADB5A08ECF4E00E76236 /* AccessibilityLabels.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

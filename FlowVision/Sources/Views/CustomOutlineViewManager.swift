@@ -153,11 +153,17 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
             title.font = .systemFont(ofSize: 11, weight: .semibold)
             title.textColor = .secondaryLabelColor
             title.lineBreakMode = .byTruncatingTail
+            // 辅助功能：分组标题单元格带上组名（NSAccessibility 没有标题/heading 角色，沿用单元格角色）。
+            container.setAccessibilityElement(true)
+            container.setAccessibilityLabel(AccessibilityLabels.sidebar(name: treeNode.name, role: treeNode.role))
+            container.setAccessibilityChildren([])  // 标题文字已在标签里，不再把文本框当子元素重复读出
             return container
         }
         if treeNode.role == .separator {
             let line = NSBox()
             line.boxType = .separator
+            // 分隔线只是视觉留白，不暴露给辅助功能。
+            line.setAccessibilityElement(false)
             return line
         }
         guard let view = outlineView.makeView(withIdentifier: NSUserInterfaceItemIdentifier("DataCell"), owner: self) as? CustomTableCellView else { return nil }
@@ -166,6 +172,10 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
         view.textField?.textColor = .labelColor
         view.textField?.lineBreakMode = .byTruncatingTail
         view.toolTip = treeNode.fileURL?.path ?? treeNode.name
+        // 辅助功能：名称与界面显示一致；标签条目追加「标签」（见 AccessibilityLabels.sidebar）。
+        view.setAccessibilityElement(true)
+        view.setAccessibilityLabel(AccessibilityLabels.sidebar(name: treeNode.localizedName ?? treeNode.name, role: treeNode.role,
+                                                                 isAllTagsEntry: treeNode.role == .tag && treeNode.fullPath == "file:///VirtualFinderTagsFolder/"))
         if treeNode.role == .tag {
             view.imageView?.image = sidebarTagImage(for: treeNode)
             view.imageView?.contentTintColor = nil
@@ -182,6 +192,13 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
                 .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 12, weight: .regular))
             : nil
         view.ejectImageView.contentTintColor = .secondaryLabelColor
+        // 图标没有文字描述、只是装饰，文本框的内容已在单元格标签里。NSImageView 上 setAccessibilityElement(false) 无效
+        // （实测辅助功能树里仍有无名的 AXImage），所以显式清空子元素。推出图标因此也不单独暴露：实测把它显式列为子元素或
+        // 保持系统默认都出不来，而它本来就没有「按下」动作，所在行的名称已经暴露。
+        // The icon is decorative and the text field repeats the label. setAccessibilityElement(false) does nothing on NSImageView
+        // (an unnamed AXImage stayed in the tree), so clear the children explicitly. The eject icon is therefore not exposed on its own:
+        // neither listing it as a child nor keeping the system default surfaced it (verified), and it has no press action anyway.
+        view.setAccessibilityChildren([])
         let isCut = globalVar.cutItemPaths.contains(treeNode.fullPath)
         if isCut {
             view.alphaValue = 0.4
