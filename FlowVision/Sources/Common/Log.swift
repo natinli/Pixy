@@ -252,6 +252,18 @@ class Logger {
 
     private init() {
         setupLogFile()
+        #if DEBUG
+        // 仅 Debug：环境变量 PIXY_LOG_FILE 非空时，日志写到该文件（scripts/bench/run.sh 用它读加载耗时）。
+        // 每次启动先清空（或新建）该文件，保证每行都以换行结尾；不设置则行为不变（不写文件），Release 里没有这段代码。
+        // Debug only: a non-empty PIXY_LOG_FILE sends logs to that file (scripts/bench/run.sh reads timings from it).
+        // The file is truncated (or created) at launch so every line ends with a newline; unset = unchanged
+        // (no file logging), and Release builds do not contain this block.
+        if let path = ProcessInfo.processInfo.environment["PIXY_LOG_FILE"], !path.isEmpty {
+            FileManager.default.createFile(atPath: path, contents: nil)
+            logFileURL = URL(fileURLWithPath: path)
+            isFileLoggingEnabled = true
+        }
+        #endif
         setupLogWindow()
         log("Logger initialized", level: .debug)
     }
