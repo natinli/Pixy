@@ -46,10 +46,10 @@
 - 本地产物（上面的签名、架构、DMG 结构检查针对它；Release 页附件由 CI 重建，哈希不同，以 Release 的 `SHA256SUMS.txt` 为准）：
   - ZIP `9d774e5134bff34241b9be6cdd571321716acb35074dce4f15db8c0a18f98243`
   - DMG `55785f201d6f1506599c8d7d8c6e7e4297a36f740a9263872aa8257c6831a4cc`
-- Release 页附件（CI 构建，下载后 `shasum -a 256 -c SHA256SUMS.txt` 核对；Latest、非 pre-release）：
-  - ZIP ``
-  - DMG ``
-- 发布过程：这是 `scripts/release-prepare.sh` 第一次用在真实发版上（`--dry-run` 后真跑，pbxproj 恰改 4 行，形态与 0.0.6 发版提交一致）；`scripts/release.sh --unsigned` 本地构建一次成功。
+- Release 页附件（CI 构建，已下载并 `shasum -a 256 -c SHA256SUMS.txt` 全部 OK；Latest、非 pre-release；解压后版本 0.0.7 / 2026112801、`lipo -archs` 为 x86_64 arm64、ad-hoc 签名、`codesign --verify --deep --strict` 通过、`spctl` rejected、DMG 含 `Pixy.app` 与 `/Applications` 软链接、包里没有仅 Debug 的开关）：
+  - ZIP `eae189e16db4168732188eb598cd9eb07cac12255fc3a910f21e0a5b3f344cc9`
+  - DMG `1d043accdf6cf63a4ca3e435b3705b5d6a3939aadeb69ecf23d2d359213851f6`
+- 发布过程：这是 `scripts/release-prepare.sh` 第一次用在真实发版上（`--dry-run` 后真跑，pbxproj 恰改 4 行，形态与 0.0.6 发版提交一致）；`scripts/release.sh --unsigned` 本地构建一次成功。提交 `8919144`、tag `v0.0.7` 推送后，Release 工作流（运行 46108444808）**第一次就拿到 runner 并成功**（约 4 分钟，没有遇到容量不足）。tap 提交 `2983063`；本机 `brew upgrade --cask pixy` 从 0.0.6 升到 0.0.7，`codesign --verify` 通过，升级前后偏好键全部保留（13 个，无缺失、无新增、无变化）；升级后未启动 Pixy，首次放行由用户执行。
 - 本版内容：无障碍标注（缩略图 / 侧栏 / 大图可被 VoiceOver 读出名称）；菜单「检查更新…」（Pixy 第一次联网，只在点击时发一次请求）；内部：滚动位置锚点抽成纯函数加模型测试、发版准备脚本、本机性能基线脚本（详见 CHANGELOG）。
 - 界面验证范围：这批改动在 Debug 构建（`com.natinli.PixyDbg`）上验证过（过程见 session-log 2026-11-27、11-28 各条）：无障碍树、滚动位置回归全套（含缩放 ×5 与 ⌘R 大目录，全屏控制补验）、检查更新的三种对话框与空闲 62 秒无任何网络连接；发布包本身（bundle id 与本机正在使用的 Pixy 相同）**没有在界面上启动**，本次只做了产物层面的校验（哈希、架构、签名、DMG 结构、版本号、仅 Debug 开关不在包里）。
 - 未覆盖：检查更新没有对真实 `api.github.com` 发过请求（只用本机回环与桩验证），「打开发布页」按钮与 Esc 没点过；RTL、真 Intel 机、干净用户环境首次启动；本机没有 ShellCheck

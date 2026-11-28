@@ -4,6 +4,27 @@
 
 ## 2026-11-28
 
+### [Claude] · 发布 v0.0.7（未签名版）并在本机升级
+
+- TL;DR：补验通过后（见下一条），用户选「先补验再发」，随后又要求「你帮我安装吧」。把工程升级的六个子任务（无障碍标注、「检查更新…」菜单、滚动位置回归兜底、发版准备脚本、性能基线等）发成 `v0.0.7`，同步 tap，本机用 brew 从 0.0.6 升到 0.0.7。全程按既定路线：未签名 + 个人 tap，release 非 pre-release。**升级后没有启动 Pixy，首次放行由用户自己做。**
+
+#### 做了什么
+
+1. **发版准备由 `scripts/release-prepare.sh` 完成，这是它第一次用在真实发版上**：工作区干净、`main` 与 `origin/main` 一致、无同名 tag 后先 `--dry-run`（计划：pbxproj 4 行 `0.0.6 → 0.0.7`、build `2026112601 → 2026112801`，CHANGELOG「未发布」28 行非空内容转成 `## [Fork] 2026-11-28 — 0.0.7` 并补未签名说明，checklist 加骨架），再真跑：pbxproj 恰改 4 行（8 行 diff）、`plutil -lint` 通过、两个检查通过、无 commit / tag；形态与 0.0.6 发版提交（`9dca863`）一致。
+2. **本地构建与产物验收**：`scripts/release.sh --unsigned` 一次成功；解压到临时目录（未启动）：`shasum -c` 两项 OK；`lipo -archs` 为 `x86_64 arm64`；`Signature=adhoc`、`TeamIdentifier=not set`；`codesign --verify --deep --strict` 通过；`spctl --assess` rejected（预期）；DMG 无 staple 票据；Info.plist 0.0.7 / 2026112801；`Contents/Frameworks` 含 8 个 FFmpeg 框架 + `libswift_Concurrency.dylib`；DMG 含 `Pixy.app` 与指向 `/Applications` 的软链接；整个包里 grep 不到 `PIXY_UPDATE_URL`、`PIXY_LOG_FILE`（仅 Debug 开关确实没进发布包）。
+3. **checklist 补记**：本地产物哈希、架构 / 签名核对结果、本版内容、界面验证范围、未覆盖项填进脚本生成的 `### 0.0.7（未签名版）` 骨架；CI 附件哈希与发布过程发布后补记一次（本条所在提交）。
+4. **提交 `8919144`（`chore(release): 0.0.7`，只 add 三个文件）推送 main；注解 tag `v0.0.7`（指向 `8919144`）推送。**
+5. **Release 工作流（运行 46108444808）第一次就拿到 runner 并成功**（约 4 分钟），没有遇到 macOS arm64 runner 容量不足（0.0.5 之后第一次不用重跑）。Release 页：`Pixy 0.0.7（未签名）`、非草稿、非 pre-release、Latest，附件 ZIP / DMG / `SHA256SUMS.txt`；下载后 `shasum -c` 全部 OK；解压 ZIP 版本 0.0.7 / 2026112801、双架构、ad-hoc、`codesign --verify --deep --strict` 通过、`spctl` rejected、DMG 结构同上、包里无 Debug 开关。CI 重建的哈希与本地不同（预期，ZIP `eae189e1…`，本地 `9d774e51…`），两组都记入 checklist。
+6. **tap**：`scripts/update-cask.sh 0.0.7` 提交推送，tap 提交 `2983063`；本机 tap 的 `Casks/pixy.rb` 为 version 0.0.7、sha256 与 Release 的 ZIP 一致。
+7. **本机升级**：先确认 `/Applications/Pixy.app` 没在运行（`pgrep -x Pixy` 无输出），导出 `com.natinli.Pixy` 偏好（13 个键），`brew update` 后 `brew upgrade --cask pixy`（0.0.6 → 0.0.7，成功）。升级后：`brew list --cask --versions pixy` 为 `pixy 0.0.7`，Info.plist 0.0.7 / 2026112801，`codesign --verify --deep --strict` 通过，双架构；新 app 带 `com.apple.quarantine`（brew 加的，预期），**没有执行 `xattr`、没有启动**。升级前后偏好用 plistlib 比较：13 个键，无缺失、无新增、无变化；临时导出文件已删。
+
+#### 未完成 / 说明
+
+- **用户待办**：首次启动要放行一次（系统设置 → 隐私与安全性 → 仍要打开；或 brew 提示里的 `xattr -dr com.apple.quarantine "/Applications/Pixy.app"`）。
+- 发布包本身（bundle id 与用户正在用的 Pixy 相同）没有在界面上启动，只做了产物层面的校验；这批改动的界面验证都在 Debug 构建（`com.natinli.PixyDbg`）上做过（见下面几条）。
+- 检查更新没有对真实 `api.github.com` 发过请求（只用本机回环与桩），**0.0.7 装好后「检查更新…」会第一次打到真实接口**：此时最新就是 0.0.7，预期弹「已是最新」；用户可以在放行首次启动后点一次确认。「打开发布页」与 Esc 绑定没点过。
+- CI 全绿：`chore(release): 0.0.7`（`8919144`）上的 Release、CI checks、CI build 都是 success（`fbd55b7` 的 CI build 也是 success；子任务 3 的 `8153bcf` 那次 CI build 是被紧接着的下一次推送按 concurrency 取消的，不是失败）。本机没有 ShellCheck。
+
 ### [Claude] · 补验：缩放 ×5 与 ⌘R 刷新大目录（子任务 2 遗留的 AC-2.4 缺口）
 
 - TL;DR：用户选了「先补验再发」。这次用全屏控制（用户在场，申请时已说明，操作前提醒别动鼠标键盘；期间系统把「微信」隐藏了，结束后已还原）补做子任务 2 没能在界面上重放的两项，**全部通过，AC-2.4 补齐**。没有改代码。
