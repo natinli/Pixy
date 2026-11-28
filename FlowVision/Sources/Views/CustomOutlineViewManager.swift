@@ -185,19 +185,10 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
                     .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 16, weight: .regular))
             view.imageView?.contentTintColor = treeNode.role == .volume ? .secondaryLabelColor : .systemBlue
         }
-        let shouldShowEject = treeNode.role == .volume
-            && treeNode.name == "Minimalist"
-        view.ejectImageView.image = shouldShowEject
-            ? NSImage(systemSymbolName: "eject", accessibilityDescription: NSLocalizedString("Eject", comment: "推出"))?
-                .withSymbolConfiguration(NSImage.SymbolConfiguration(pointSize: 12, weight: .regular))
-            : nil
-        view.ejectImageView.contentTintColor = .secondaryLabelColor
         // 图标没有文字描述、只是装饰，文本框的内容已在单元格标签里。NSImageView 上 setAccessibilityElement(false) 无效
-        // （实测辅助功能树里仍有无名的 AXImage），所以显式清空子元素。推出图标因此也不单独暴露：实测把它显式列为子元素或
-        // 保持系统默认都出不来，而它本来就没有「按下」动作，所在行的名称已经暴露。
+        // （实测辅助功能树里仍有无名的 AXImage），所以显式清空子元素。
         // The icon is decorative and the text field repeats the label. setAccessibilityElement(false) does nothing on NSImageView
-        // (an unnamed AXImage stayed in the tree), so clear the children explicitly. The eject icon is therefore not exposed on its own:
-        // neither listing it as a child nor keeping the system default surfaced it (verified), and it has no press action anyway.
+        // (an unnamed AXImage stayed in the tree), so clear the children explicitly.
         view.setAccessibilityChildren([])
         let isCut = globalVar.cutItemPaths.contains(treeNode.fullPath)
         if isCut {
@@ -346,7 +337,6 @@ extension CustomOutlineViewManager: NSOutlineViewDelegate {
 class CustomTableCellView: NSTableCellView {
     
     private var didSetupConstraints = false
-    let ejectImageView = NSImageView()
 
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -358,10 +348,6 @@ class CustomTableCellView: NSTableCellView {
 
         imageView.translatesAutoresizingMaskIntoConstraints = false
         textField.translatesAutoresizingMaskIntoConstraints = false
-        ejectImageView.translatesAutoresizingMaskIntoConstraints = false
-        ejectImageView.imageScaling = .scaleProportionallyDown
-        ejectImageView.contentTintColor = .secondaryLabelColor
-        addSubview(ejectImageView)
 
         NSLayoutConstraint.activate([
             imageView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 4),
@@ -372,12 +358,6 @@ class CustomTableCellView: NSTableCellView {
             textField.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: 7),
             textField.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -8),
             textField.centerYAnchor.constraint(equalTo: centerYAnchor),
-
-            // Finder 将推出按钮留在行右侧约 24pt 的位置；不要让它贴到侧栏边界。
-            ejectImageView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -36),
-            ejectImageView.centerYAnchor.constraint(equalTo: centerYAnchor),
-            ejectImageView.widthAnchor.constraint(equalToConstant: 14),
-            ejectImageView.heightAnchor.constraint(equalToConstant: 14),
         ])
     }
     

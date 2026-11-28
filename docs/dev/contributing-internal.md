@@ -64,7 +64,7 @@ git merge upstream/main        # 或 rebase，视本地分叉程度
 |---|---|
 | `Common/DataModel.swift` | 侧栏数据模型：`TreeViewModel`/`TreeNode`/`SidebarNodeRole`、`rebuildSidebar`、`sidebarCandidates` |
 | `ViewControllerExtension/DirTree.swift` | 目录跟随与侧栏定位重写（`treeReLocate`） |
-| `Views/CustomOutlineViewManager.swift`、`CustomOutlineView.swift` | 侧栏渲染：分组、行高、选中态、OneDrive 图标、推出按钮 |
+| `Views/CustomOutlineViewManager.swift`、`CustomOutlineView.swift` | 侧栏渲染：分组、行高、选中态、OneDrive 图标 |
 | `ViewController+SidebarCard.swift`（新增） | 两段式布局：圆角裁剪、共享材质、工具栏避让 |
 | `WindowController+ToolbarBlend.swift`（新增） | 大图模式透明标题栏与底部标题胶囊 |
 | `ViewControllerExtension/LayoutManagement.swift` | 侧栏刷新与展开状态保存 |

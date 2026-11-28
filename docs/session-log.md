@@ -4,6 +4,22 @@
 
 ## 2026-11-28
 
+### [Claude] · 去掉侧栏磁盘行上没有功能的「推出」图标（用户选「去掉图标」）
+
+- TL;DR：上一条查出推出图标是个没接线的装饰，用户在「做成真推出 / 去掉图标」里选了**去掉图标**。已去掉，磁盘行布局不变，不再使用的「Eject」译文一并从字符串表移除。未发版（0.0.7 里装的仍有这个图标）。
+
+#### 改了什么
+
+- `CustomOutlineViewManager.swift`：删掉 `shouldShowEject`（`role == .volume && name == "Minimalist"`）与给 `ejectImageView` 设图的那段；`CustomTableCellView` 里删掉 `ejectImageView` 属性、初始化与四条约束（trailing -36、居中、14×14）。它原先还和长磁盘名的文本框右端叠在一起（文本框 trailing 是 -8），现在不再叠。`view.setAccessibilityChildren([])` 保留（仍要剔掉图标与文本框这两个重复 / 无名的子元素），只改了注释里关于推出图标的说明。
+- `Localizable.xcstrings`：移除只此处使用的 `Eject` 条目（77 行，是 `strings` 里最后一个 key，所以同时去掉前一个条目的逗号），改后 `json.load` 通过。
+- 文档：`usage.md`、`modules.md`、`architecture.md`、`contributing-internal.md` 里「推出按钮」的说法删掉；`CHANGELOG.md` 在「## [Fork] 未发布」新增一条，并写明「以后要做真推出是新功能，另行设计」。0.0.7 及更早小节里的历史说法不改。
+
+#### 验证
+
+- 124 个单测全过，Debug 与 Release 构建通过，`check-localization.py`（435 个字面量 key、17 种语言）、`check-public-hygiene.sh`、`git diff --check` 通过；Release 二进制里已没有 `eject` 符号名字符串。
+- 界面（PixyDbg，真实侧栏）：「Minimalist」行右边不再有推出图标，其余行的位置、图标、文字与之前一致；辅助功能树里该行仍是名为「Minimalist」的 AXCell。
+- 没有对真实的外置盘做任何操作。
+
 ### [Claude] · 「检查更新…」的请求不再带系统语言偏好（`Accept-Language` 固定为 `en`）；推出图标其实是个没接线的装饰
 
 - TL;DR：用户对 0.0.7 收尾时留下的两个遗留问题回了「两个都休下」，我按「都修一下」理解（一个字的歧义，已向用户说明）。**`Accept-Language` 已修**，**推出图标先没改**：查代码发现它不是「硬编码磁盘名」那么简单，而是一个**根本没接线的装饰图标**，要先问用户怎么处理。未发版（0.0.7 里装的仍是旧行为）。
