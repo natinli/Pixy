@@ -61,6 +61,27 @@ enum AccessibilityLabels {
         }
     }
 
+    /// 大图里的 EXIF / 信息浮层（`ExifTextView`）：浮层是自绘的文字，辅助功能树里本来什么都没有，VoiceOver 读不到。
+    /// 这里把它的条目拼成一段朗读文本：每条「键: 值」一行，按显示顺序；分隔线（键为 "-"）与键、值都是空白的条目跳过；
+    /// 值里的换行（浮层为了排版会折行）折成空格，免得一个值被读成好几句；整个浮层没有可读条目返回 nil。
+    /// 键和值都是应用已经显示给用户的文字，不新增文案。
+    static func infoOverlay(_ items: [(String, Any)]) -> String? {
+        let lines: [String] = items.compactMap { key, value in
+            if key == "-" { return nil }
+            let keyText = collapseWhitespace(key)
+            let valueText = collapseWhitespace(String(describing: value))
+            if keyText.isEmpty && valueText.isEmpty { return nil }
+            if valueText.isEmpty { return keyText }
+            return keyText.isEmpty ? valueText : keyText + ": " + valueText
+        }
+        return lines.isEmpty ? nil : lines.joined(separator: "\n")
+    }
+
+    /// 连续的空白（含换行）折成一个空格并去掉首尾。
+    private static func collapseWhitespace(_ text: String) -> String {
+        text.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).joined(separator: " ")
+    }
+
     private static func join(name: String, word: String) -> String {
         isBlank(name) ? word : name + separator + word
     }

@@ -133,6 +133,46 @@ final class AccessibilityLabelsTests: XCTestCase {
         XCTAssertEqual(AccessibilityLabels.sidebar(name: "", role: .tag), tagWord)
     }
 
+    // MARK: - 信息浮层（EXIF）
+
+    func testInfoOverlayJoinsEntriesInDisplayOrderOnePerLine() {
+        let items: [(String, Any)] = [("Dimensions", "1200 x 800"), ("Make", "Apple"), ("ISO", 100)]
+        XCTAssertEqual(AccessibilityLabels.infoOverlay(items), "Dimensions: 1200 x 800\nMake: Apple\nISO: 100")
+    }
+
+    func testInfoOverlaySkipsSeparatorsAndBlankEntries() {
+        let items: [(String, Any)] = [("Make", "Apple"), ("-", ""), ("", ""), ("  ", "\n"), ("Model", "iPhone")]
+        XCTAssertEqual(AccessibilityLabels.infoOverlay(items), "Make: Apple\nModel: iPhone")
+    }
+
+    func testInfoOverlayWithNothingReadableIsNil() {
+        XCTAssertNil(AccessibilityLabels.infoOverlay([]))
+        XCTAssertNil(AccessibilityLabels.infoOverlay([("-", ""), ("-", "x")]))
+        XCTAssertNil(AccessibilityLabels.infoOverlay([("", ""), (" \n", "\t")]))
+    }
+
+    func testInfoOverlayFoldsWrappedValuesOntoOneLine() {
+        // 浮层为了排版会在值里折行；朗读时不应变成好几句
+        let items: [(String, Any)] = [("Lens", "iPhone 15 Pro\n back triple camera\n 6.765mm f/1.78")]
+        XCTAssertEqual(AccessibilityLabels.infoOverlay(items), "Lens: iPhone 15 Pro back triple camera 6.765mm f/1.78")
+    }
+
+    func testInfoOverlayKeepsKeyOrValueWhenTheOtherIsBlank() {
+        XCTAssertEqual(AccessibilityLabels.infoOverlay([("Location", "")]), "Location")
+        XCTAssertEqual(AccessibilityLabels.infoOverlay([("", "orphan value")]), "orphan value")
+    }
+
+    func testInfoOverlayRendersNonStringValuesTheWayTheOverlayDrawsThem() {
+        // 与 ExifTextView.draw 一致：String(describing:)
+        let items: [(String, Any)] = [("Aperture", 1.78), ("Count", 3), ("Flag", true)]
+        XCTAssertEqual(AccessibilityLabels.infoOverlay(items), "Aperture: 1.78\nCount: 3\nFlag: true")
+    }
+
+    func testInfoOverlayPreservesUnicodeAndSpecialCharacters() {
+        let items: [(String, Any)] = [("文件名", "照片 #1 100%.jpg"), ("Emoji", "🎞️ ✨")]
+        XCTAssertEqual(AccessibilityLabels.infoOverlay(items), "文件名: 照片 #1 100%.jpg\nEmoji: 🎞️ ✨")
+    }
+
     func testSidebarKeepsSpecialCharactersVerbatim() {
         XCTAssertEqual(AccessibilityLabels.sidebar(name: "100% #1 🎞️", role: .directory), "100% #1 🎞️")
         XCTAssertEqual(AccessibilityLabels.sidebar(name: "OneDrive - 个人", role: .volume), "OneDrive - 个人")

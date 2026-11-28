@@ -9,7 +9,25 @@ import Cocoa
 class CustomCollectionView: NSCollectionView {
 
     private var mouseDownLocation: NSPoint? = nil
-    
+
+    /// 辅助功能：进大图时网格被大图盖住，置为 true 后网格不再向辅助功能暴露任何子元素（缩略图），否则 VoiceOver 能摸到盖在下面的缩略图。
+    /// 用重写 `accessibilityChildren()` 而不是 `setAccessibilityChildren([])` / `setAccessibilityHidden`：前者没有「还原」问题
+    /// （实测 `setAccessibilityChildren(nil)` 不会恢复默认子元素，退出大图后缩略图就永远读不到了），后者对子树不生效。
+    /// Accessibility: while the large view covers the grid this is true and the grid exposes no children (the thumbnails),
+    /// so VoiceOver cannot reach the covered thumbnails. Overriding `accessibilityChildren()` has nothing to restore, unlike
+    /// `setAccessibilityChildren([])` (resetting it with nil does not bring the default children back, verified) or
+    /// `setAccessibilityHidden` (does not prune the subtree).
+    var hidesChildrenFromAccessibility = false {
+        didSet {
+            guard hidesChildrenFromAccessibility != oldValue else { return }
+            NSAccessibility.post(element: self, notification: .layoutChanged)
+        }
+    }
+
+    override func accessibilityChildren() -> [Any]? {
+        hidesChildrenFromAccessibility ? [] : super.accessibilityChildren()
+    }
+
     private lazy var folderInfoLabel: NSTextField = {
         let label = NSTextField(labelWithString: "")
         label.font = NSFont.systemFont(ofSize: 16, weight: .regular)

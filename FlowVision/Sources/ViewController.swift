@@ -183,6 +183,11 @@ class PublicVar{
     var isInInitStage: Bool = true
     var isInLargeView: Bool = false {
         didSet {
+            // 辅助功能：大图盖住了缩略图网格，进大图时让网格不再暴露缩略图（见 CustomCollectionView.hidesChildrenFromAccessibility）。
+            // 启动阶段（从文件直接进大图）也要生效，所以放在 isInInitStage 判断之前。
+            // Accessibility: the large view covers the thumbnail grid, so stop the grid from exposing its thumbnails while it is up
+            // (see CustomCollectionView.hidesChildrenFromAccessibility). Runs before the init-stage guard (launch straight into a large image).
+            (viewController?.collectionView as? CustomCollectionView)?.hidesChildrenFromAccessibility = isInLargeView
             if !isInInitStage {
                 if let visibleItems = viewController.collectionView.visibleItems() as? [CustomCollectionViewItem] {
                     for item in visibleItems {

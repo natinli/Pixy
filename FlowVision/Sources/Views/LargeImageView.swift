@@ -2514,9 +2514,25 @@ class ExifTextView: NSView {
             invalidateIntrinsicContentSize()
             needsDisplay = true
             updateMapButtonVisibility()
+            updateAccessibilityValue()
         }
     }
-    
+
+    /// 浮层是 `NSString.draw` 自绘的，辅助功能树里本来没有它；有内容时把条目拼成一段文本作为静态文本的值（见 AccessibilityLabels.infoOverlay）。
+    /// 浮层隐藏（`isHidden`）时系统自己会把它排除在辅助功能树之外，这里不用管。
+    /// The overlay is drawn with `NSString.draw`, so it was never in the accessibility tree; with content, expose it as static text
+    /// whose value is the joined entries. A hidden view is excluded by the system, nothing to do here.
+    private func updateAccessibilityValue() {
+        if let summary = AccessibilityLabels.infoOverlay(textItems) {
+            setAccessibilityElement(true)
+            setAccessibilityRole(.staticText)
+            setAccessibilityValue(summary)
+        } else {
+            setAccessibilityElement(false)
+            setAccessibilityValue(nil)
+        }
+    }
+
     private var mapButton: NSButton?
     private var gpsCoordinates: (latitude: Double, longitude: Double, altitude: Double)?
 
