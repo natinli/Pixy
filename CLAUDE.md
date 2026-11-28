@@ -5,8 +5,8 @@ macOS 瀑布流图片查看器，应用展示名为 **Pixy**。本仓库是上�
 ## 仓库性质
 
 - **origin**：`https://github.com/natinli/Pixy.git`（fork，日常工作推送到这里）
-- **upstream**：`https://github.com/netdcy/FlowVision.git`（原仓库，只 fetch 合并，不推送）
-- fork 上的改动（文档、修复、定制）会与上游分叉；上游同步策略见 [docs/dev/contributing-internal.md](docs/dev/contributing-internal.md)。
+- **upstream**：`https://github.com/netdcy/FlowVision.git`（原仓库，**只读参考，不再合并**，不推送）
+- **2026-11-28 起 Pixy 与上游独立演进**：不再合并上游，可以自由拆分文件、搬迁代码、重命名；上游有需要的修复手工移植。此前的上游同步策略保留为历史记录，见 [docs/dev/contributing-internal.md](docs/dev/contributing-internal.md#fork-上游同步策略)。
 
 ## 快速了解
 
