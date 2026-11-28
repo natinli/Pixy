@@ -4,6 +4,41 @@
 
 ## 2026-11-28
 
+### [Claude] · 再攒几个（用户选「再攒几个」，不发 0.0.8）：检查更新对真实接口验证、大图下的辅助功能两处缺口、文档文件数
+
+- TL;DR：用户在「现在发 0.0.8 / 再攒几个」里选了再攒几个，我从日志里记过的遗留问题里挑了风险低、能在界面上验证的几件：①把 0.0.7 的「检查更新」对**真实** GitHub 接口验证了一次；②进大图后被盖住的缩略图不再暴露给 VoiceOver；③大图里的 EXIF / 信息浮层现在能被读出；④修正文档里 Views 的文件数。未发版、未打 tag。
+
+#### ① 「检查更新」对真实接口验证（没有改代码）
+
+- 0.0.7 发布后第一次对真实 `api.github.com` 发请求：调试版（不设 `PIXY_UPDATE_URL`，环境里确认没有该变量）启动后空闲 `lsof` 无连接，点「检查更新…」，对话框是「You’re up to date / Pixy 0.0.7 is the latest version.」。这补上了上一条「只在本机回环与桩上验证过」的缺口；「打开发布页」与 Esc 仍没点过。
+
+#### ② 进大图后，被盖住的缩略图不再暴露给辅助功能
+
+- 现象（日志里「发现的遗留问题」第 2 条）：进大图后，界面上看不见的缩略图格子仍在辅助功能树里，而 0.0.7 之后它们都有了名字，VoiceOver 能摸到盖在下面的内容。基线实测：300 张目录进大图后树里仍有 15 个可见缩略图元素。
+- **试了三种做法，只有最后一种对**：`setAccessibilityHidden(true)` 加在 `mainScrollView` 上——**对子树不生效**（仍是 15 个）；`setAccessibilityChildren([])` 进大图时置空、退出时 `setAccessibilityChildren(nil)` 还原——进大图确实变成 0，但**退出大图后缩略图永远读不到了**（`nil` 恢复不了默认子元素，实测 69 个元素没回到 88），这是个会让用户踩到的回归，是验证时才发现的；最后改成 `CustomCollectionView` 上的 `hidesChildrenFromAccessibility` 标志加重写 `accessibilityChildren()`（为 true 返回空，否则 `super`），没有「还原」问题。`PublicVar.isInLargeView` 的 `didSet` 里切换它（放在 `isInInitStage` 判断之前，从文件直接打开进大图也生效），状态变化时发 `.layoutChanged` 通知。
+- 验证（PixyDbg，300 张目录，空格进大图、Esc 退出，`app_ax_find` 数 `AXCell`）：网格 15 个 → 大图 0 个 → 退出后 15 个（元素总数 88 → 69 → 88）。
+
+#### ③ 大图里的 EXIF / 信息浮层能被读出
+
+- 现象（遗留问题第 3 条）：`ExifTextView` 用 `NSString.draw` 自绘文字，从来不在辅助功能树里，VoiceOver 读不到文件名、尺寸、拍摄信息。
+- 改动：`AccessibilityLabels.infoOverlay(_:)`（纯函数）把条目拼成「键: 值」一行一条，按显示顺序，分隔线（键 `-`）与键值全空白的条目跳过，值里的换行折成空格，没有可读条目返回 nil；`ExifTextView.textItems` 的 `didSet` 有内容时设成静态文本元素、值取该文本，无内容时不是元素；浮层隐藏时系统自会排除。条目文字就是浮层上已有的，没有新增文案。7 个新单测，`PixyTests` 共 131 个。
+- 验证：大图里按「Show Info」，辅助功能树里多出一个 `AXStaticText`，位置与浮层完全重合（元素总数 69 → 70）；工具只能按标题匹配、读不到值，所以**临时**把同样的文字也设成标签（带 `TEMP-VERIFY` 标记）重编验证，匹配到「Filename: img_00001.png」「Resolution: 1200 × 800」，然后从备份还原、确认该标记已不在源码里，最终构建与测试都是在还原后跑的。
+
+#### ④ 文档
+
+- `docs/dev/modules.md` 与 `architecture.md` 里 Views 目录写「19 个文件」，实际是 18 个 Swift + 1 个 `.xib`，改成明说；根级 6 个、Common 14 个、ViewControllerExtension 16 个、SettingsViews 6 个、总数 60 个都核对过是对的（日志里「根级 3 / Views 19」的旧数说法已不成立，只剩 Views 这一处含糊）。`CustomCollectionView.swift` / `LargeImageView.swift` 的行数同步成 503 / 2948。
+- `modules.md` 补了 `infoOverlay`、`hidesChildrenFromAccessibility`（含三种做法的取舍）、`ExifTextView` 的辅助功能说明；`CHANGELOG.md`「## [Fork] 未发布」新增一条。
+
+#### 验证
+
+- 131 个单测全过，Debug 与 Release 构建通过，`check-localization.py`、`check-public-hygiene.sh`、`git diff --check` 通过。
+
+#### 没做 / 未验证
+
+- 真实 VoiceOver 朗读没听过，只验证了辅助功能树里的元素与文本；EXIF 浮层里「位置」行与地图按钮不在汇总文本里（按钮本身是系统按钮，仍可被访问）。
+- 日志里留着的其它遗留项没动：别名文件读作「其它」、缩略图上标签圆点与评级读不出来、德文里 `Tag` 译作「Etikett」而侧栏用「Tags」。
+- 这批改动（含上两条）都还没发版，装着的 0.0.7 没有它们。
+
 ### [Claude] · 去掉侧栏磁盘行上没有功能的「推出」图标（用户选「去掉图标」）
 
 - TL;DR：上一条查出推出图标是个没接线的装饰，用户在「做成真推出 / 去掉图标」里选了**去掉图标**。已去掉，磁盘行布局不变，不再使用的「Eject」译文一并从字符串表移除。未发版（0.0.7 里装的仍有这个图标）。

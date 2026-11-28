@@ -42,7 +42,7 @@ FlowVision/Sources/（60 个 Swift 文件，约 3.5 万行）
 │   ├── AutoScrollPlay.swift   自动滚动/自动播放
 │   ├── LayoutProfileConfig.swift 布局风格配置切换
 │   └── ProgressBar.swift      底部进度条
-├── Views/                     自定义视图（19 个文件）
+├── Views/                     自定义视图（19 个文件：18 个 Swift + 1 个 xib）
 │   ├── Layout.swift           布局引擎：CustomFlowLayout(justified) / CustomGridLayout / WaterfallLayout / LeftAligned(detail)
 │   ├── CustomCollectionViewItem.swift  缩略图单元格（configureWithImage 唯一渲染入口）
 │   ├── CustomCollectionView.swift / Manager  集合视图与数据源
