@@ -4,6 +4,12 @@
 
 版本号说明：Pixy 从 `0.0.1` 开始使用**自己的版本线**，与上游 `1.x` 无关；上游历史 tag 随 fork 保留但不再使用。详见 [docs/dev/release.md](docs/dev/release.md)。
 
+## [Fork] 未发布
+
+### 隐私：「检查更新…」的请求不再带上你的系统语言偏好
+
+0.0.7 的「检查更新…」请求里，系统网络层会自动附带 `Accept-Language`（例如 `zh-CN,zh-Hans;q=0.9`），GitHub 因此能看到你的界面语言偏好。这个头没法从请求里去掉（空值会发出一个不合语法的空头），所以现在固定为所有用户一样的 `Accept-Language: en`。请求头现在是 `Accept`、`User-Agent: Pixy/<版本号>` 与固定的 `Accept-Language: en`；系统仍会自动附带 `Host`、`Accept-Encoding`、`Connection` 这类协议层的头。其余不变：只在点击菜单时联网一次，不带账号、cookie 或任何用户标识。`SECURITY.md` 与 `docs/dev/modules.md` 已同步。
+
 ## [Fork] 2026-11-28 — 0.0.7
 
 仍为**未签名**版本，升级后首次启动需再放行一次（[安装说明](docs/user/installation.md)）。

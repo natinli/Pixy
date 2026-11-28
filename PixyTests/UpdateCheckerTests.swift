@@ -278,11 +278,12 @@ final class UpdateCheckerRequestTests: XCTestCase {
         XCTAssertNil(URLComponents(url: try XCTUnwrap(request.url), resolvingAgainstBaseURL: false)?.query, "不带 query")
     }
 
-    func testRequestCarriesExactlyTwoHeaders() {
+    func testRequestCarriesExactlyTheseHeaders() {
         let request = UpdateChecker.makeRequest(endpoint: UpdateChecker.defaultEndpoint,
                                                 appVersion: SemanticVersion("0.0.6")!)
+        // Accept-Language 固定为 "en"：不设的话系统会自动附带用户的界面语言偏好，那是能识别用户的信息
         XCTAssertEqual(request.allHTTPHeaderFields,
-                       ["Accept": "application/vnd.github+json", "User-Agent": "Pixy/0.0.6"])
+                       ["Accept": "application/vnd.github+json", "User-Agent": "Pixy/0.0.6", "Accept-Language": "en"])
         for forbidden in ["Authorization", "Cookie", "X-GitHub-Api-Version", "Referer"] {
             XCTAssertNil(request.value(forHTTPHeaderField: forbidden), forbidden)
         }

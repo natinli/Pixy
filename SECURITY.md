@@ -20,7 +20,7 @@ Pixy 当前**没有付费 Apple Developer Program 账号**，因此 0.x 版本�
 
 Pixy 的全部功能在本机运行，**只有一个联网入口**：应用菜单「检查更新…」。只有用户点击它时，才会向 `https://api.github.com/repos/natinli/Pixy/releases/latest` 发一次 GET 请求（超时 10 秒，不重试），读取最新 release 的版本号与页面链接。
 
-- 不带账号、令牌、cookie、设备或用户标识；请求头只有 `Accept` 与 `User-Agent: Pixy/<版本号>`（系统网络层自动附带的通用头如 `Accept-Encoding`、`Accept-Language` 除外）；不使用持久缓存与凭据存储。与访问任何网站一样，GitHub 作为服务端能看到发起请求的 IP 地址，这一点无法避免，Pixy 不会额外附带任何标识。
+- 不带账号、令牌、cookie、设备或用户标识；请求头只设 `Accept`、`User-Agent: Pixy/<版本号>` 与固定的 `Accept-Language: en`（不会带上你的系统语言偏好；系统网络层仍会自动附带 `Host`、`Accept-Encoding`、`Connection` 这类协议层的通用头）；不使用持久缓存与凭据存储。与访问任何网站一样，GitHub 作为服务端能看到发起请求的 IP 地址，这一点无法避免，Pixy 不会额外附带任何标识。
 - 没有启动时、定时或后台检查，没有统计或遥测，也没有自动下载、自动更新。
 - 响应里的发布页链接只有是 `https://github.com` 下的地址才会作为「打开发布页」的目标，其它情况按失败处理。
 - 全部联网代码只在 `FlowVision/Sources/Common/UpdateChecker.swift` 一个文件里；Debug 构建才有、用于本机测试的地址覆盖开关不会编译进发布包。

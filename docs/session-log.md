@@ -4,6 +4,22 @@
 
 ## 2026-11-28
 
+### [Claude] · 「检查更新…」的请求不再带系统语言偏好（`Accept-Language` 固定为 `en`）；推出图标其实是个没接线的装饰
+
+- TL;DR：用户对 0.0.7 收尾时留下的两个遗留问题回了「两个都休下」，我按「都修一下」理解（一个字的歧义，已向用户说明）。**`Accept-Language` 已修**，**推出图标先没改**：查代码发现它不是「硬编码磁盘名」那么简单，而是一个**根本没接线的装饰图标**，要先问用户怎么处理。未发版（0.0.7 里装的仍是旧行为）。
+
+#### Accept-Language
+
+- 现象：0.0.7 的「检查更新…」请求里系统网络层会自动附带用户的界面语言偏好（本机实测默认 `zh-CN,zh-Hans;q=0.9`），GitHub 能看到。
+- 先在本机用 URLSession 对一个会打印请求头的本地服务做了四种对照：不设 → 带偏好；请求头设空串 → 发出一个**空的** `Accept-Language:` 头（不合语法，可能被某些服务端 / WAF 当畸形请求）；设固定值 `en` → 原样发出 `en`；配置里 `httpAdditionalHeaders` 设空串 → 同样发空头。**这个头去不掉**，所以选固定值 `en`（所有用户一样，不泄露偏好，又是合法头）。
+- 改动：`UpdateChecker.makeRequest` 多设一个 `Accept-Language: en`；`testRequestCarriesExactlyTwoHeaders` 改名为 `testRequestCarriesExactlyTheseHeaders` 并断言三个头；`SECURITY.md`、`docs/dev/modules.md`、`CHANGELOG.md`（新开「## [Fork] 未发布」）同步。
+- 验证：124 个单测全过；Debug 构建后用 `-AppleLanguages "(zh-Hans)"`（界面是中文，对话框也是中文）启动 PixyDbg，点「检查更新…」，本地服务实收到的头是 `Accept: application/vnd.github+json`、`Accept-Language: 'en'`、`User-Agent: Pixy/0.0.7`，另有 `Host`、`Connection`、`Accept-Encoding`；中文界面下没有再出现 `zh-CN`。已安装的 0.0.7 仍是旧行为，要等下次发版。
+
+#### 推出图标（没改，等用户定）
+
+- 查代码：`CustomOutlineViewManager.swift` 里 `shouldShowEject = treeNode.role == .volume && treeNode.name == "Minimalist"`，只给名字恰好是 `Minimalist` 的卷显示一个 `eject` 图标；**但全工程没有任何推出动作**——没有 `unmountAndEjectDevice`、没有点击处理、没有菜单项，图标只是画上去的，点它只会选中那一行。来自 11-01 的「完整复刻 Finder 风格侧边栏」提交 `8e69a07`，应是复刻 Finder 外观时拿作者自己的磁盘名当示例。
+- 我之前把它说成「推出按钮只对名叫 Minimalist 的磁盘显示」是**说得不准**：它不是一个坏掉的按钮，是一个从来没有功能的图标。所以「修」有三种做法，各有取舍，需要用户选：①做成真的推出（给可推出 / 可移除的卷显示，点图标调用系统推出并处理失败；新功能，有「弹出磁盘」的后果，需要用磁盘映像实测）；②把这个没用的图标去掉；③保持现状。我没有擅自选。
+
 ### [Claude] · 发布 v0.0.7（未签名版）并在本机升级
 
 - TL;DR：补验通过后（见下一条），用户选「先补验再发」，随后又要求「你帮我安装吧」。把工程升级的六个子任务（无障碍标注、「检查更新…」菜单、滚动位置回归兜底、发版准备脚本、性能基线等）发成 `v0.0.7`，同步 tap，本机用 brew 从 0.0.6 升到 0.0.7。全程按既定路线：未签名 + 个人 tap，release 非 pre-release。**升级后没有启动 Pixy，首次放行由用户自己做。**

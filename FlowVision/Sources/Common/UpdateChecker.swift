@@ -192,8 +192,10 @@ enum UpdateChecker {
 
     // MARK: 请求与会话
 
-    /// 只带 `Accept` 与 `User-Agent: Pixy/<版本号>` 两个头：无鉴权、无 cookie、无 query、无 body、
-    /// 无 build 号或任何用户 / 设备标识。
+    /// 只设 `Accept`、`User-Agent: Pixy/<版本号>` 与固定的 `Accept-Language: en` 三个头：无鉴权、无 cookie、无 query、
+    /// 无 body、无 build 号或任何用户 / 设备标识。
+    /// Only `Accept`, `User-Agent: Pixy/<version>` and a fixed `Accept-Language: en` are set: no auth, cookies, query,
+    /// body, build number or any user / device identifier.
     static func makeRequest(endpoint: URL, appVersion: SemanticVersion) -> URLRequest {
         var request = URLRequest(url: endpoint, cachePolicy: .reloadIgnoringLocalCacheData, timeoutInterval: timeout)
         request.httpMethod = "GET"
@@ -201,6 +203,11 @@ enum UpdateChecker {
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
         // 用解析后的主.次.修订（含预发布后缀），不带 +build 元数据
         request.setValue("Pixy/\(appVersion.description)", forHTTPHeaderField: "User-Agent")
+        // 不设的话系统会自动附带用户的界面语言偏好（如 zh-CN,zh-Hans;q=0.9）；这个头去不掉，所以固定成所有用户一样的值，
+        // 不泄露语言偏好。（空值会发出一个空头，不合 Accept-Language 的语法，所以不用空值。）
+        // Left unset, the system adds the user's language preference (e.g. zh-CN,zh-Hans;q=0.9). The header cannot be
+        // removed, so it is pinned to one value for everybody. (An empty value would send an invalid empty header.)
+        request.setValue("en", forHTTPHeaderField: "Accept-Language")
         return request
     }
 
